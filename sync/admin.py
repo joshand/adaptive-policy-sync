@@ -10,10 +10,29 @@ class ISEServerAdmin(admin.ModelAdmin):
     readonly_fields = ('raw_data', 'last_update', 'last_sync')
 
 
+class TagAdmin(admin.ModelAdmin):
+    readonly_fields = ('last_update', 'last_update_data', 'match_report', 'push_delete', 'update_dest', 'push_config')
+    # readonly_fields = ('last_update', 'last_update_data', 'match_report', 'update_dest', 'push_config')
+
+
+class ACLAdmin(admin.ModelAdmin):
+    readonly_fields = ('last_update', 'last_update_data', 'match_report', 'push_delete', 'update_dest', 'push_config')
+    # readonly_fields = ('last_update', 'last_update_data', 'match_report', 'update_dest', 'push_config')
+
+
+class PolicyAdmin(admin.ModelAdmin):
+    readonly_fields = ('last_update', 'last_update_data', 'match_report', 'push_delete', 'update_dest', 'push_config')
+    # readonly_fields = ('last_update', 'last_update_data', 'match_report', 'update_dest', 'push_config')
+
+
+class SyncSessionAdmin(admin.ModelAdmin):
+    readonly_fields = ('last_update', )
+
+
 admin.site.register(Dashboard, DashboardAdmin)
 admin.site.register(ISEServer, ISEServerAdmin)
-admin.site.register(ISEMatrix)
-admin.site.register(SyncSession)
-admin.site.register(Tag)
-admin.site.register(ACL)
-admin.site.register(Policy)
+# admin.site.register(ISEMatrix)
+admin.site.register(SyncSession, SyncSessionAdmin)
+admin.site.register(Tag, TagAdmin)
+admin.site.register(ACL, ACLAdmin)
+admin.site.register(Policy, PolicyAdmin)

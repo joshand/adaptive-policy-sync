@@ -15,6 +15,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+try:
+    import adaptive_policy_sync.dashboard_monitor
+    import adaptive_policy_sync.ise_monitor
+except:
+    print("#### Exception starting scheduled jobs")
 
 urlpatterns = [
     path('admin/', admin.site.urls),
