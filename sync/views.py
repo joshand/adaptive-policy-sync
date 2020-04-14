@@ -105,6 +105,17 @@ class TagViewSet(viewsets.ModelViewSet):
     queryset = Tag.objects.all().order_by('last_update')
     serializer_class = TagSerializer
 
+    def get_queryset(self):
+        """
+        Optionally restricts the returned elements
+        """
+        queryset = Tag.objects.all()
+        parm0 = self.request.query_params.get('tag', None)
+        if parm0 is not None:
+            queryset = queryset.filter(tag_number__iexact=parm0)
+
+        return queryset
+
 
 class ACLViewSet(viewsets.ModelViewSet):
     """

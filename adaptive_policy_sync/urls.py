@@ -26,15 +26,15 @@ tasks.run_tasks()
 from scripts.dashboard_webhook import process_webhook
 
 router = routers.DefaultRouter()
-router.register(r'api/v0/uploadzip', views.UploadZipViewSet)
-router.register(r'api/v0/upload', views.UploadViewSet)
-router.register(r'api/v0/dashboard', views.DashboardViewSet)
-router.register(r'api/v0/iseserver', views.ISEServerViewSet)
-# router.register(r'api/v0/isematrix', views.ISEMatrixViewSet)
-router.register(r'api/v0/syncsession', views.SyncSessionViewSet)
-router.register(r'api/v0/tag', views.TagViewSet)
-router.register(r'api/v0/acl', views.ACLViewSet)
-router.register(r'api/v0/policy', views.PolicyViewSet)
+router.register(r'uploadzip', views.UploadZipViewSet)
+router.register(r'upload', views.UploadViewSet)
+router.register(r'dashboard', views.DashboardViewSet)
+router.register(r'iseserver', views.ISEServerViewSet)
+# router.register(r'isematrix', views.ISEMatrixViewSet)
+router.register(r'syncsession', views.SyncSessionViewSet)
+router.register(r'tag', views.TagViewSet)
+router.register(r'acl', views.ACLViewSet)
+router.register(r'policy', views.PolicyViewSet)
 
 schema_view = get_schema_view(title="Adaptive Policy Sync API", renderer_classes=[JSONOpenAPIRenderer])
 
@@ -44,5 +44,5 @@ urlpatterns = [
     path('api-token-auth/', obtain_auth_token, name='api_token_auth'),
     path('api/v0/schema/', schema_view),
     path('webhook/', process_webhook),
-    path('', include(router.urls)),
+    path(r'api/v0/', include(router.urls)),
 ]
