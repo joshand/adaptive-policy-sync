@@ -6,6 +6,77 @@ from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
 from django.utils.timezone import make_aware
 import datetime
+import zipfile
+from io import BytesIO
+import os
+from rest_framework import authentication
+
+
+class BearerAuthentication(authentication.TokenAuthentication):
+    """
+    Simple token based authentication using utvsapitoken.
+
+    Clients should authenticate by passing the token key in the 'Authorization'
+    HTTP header, prepended with the string 'Bearer '.  For example:
+
+        Authorization: Bearer 1234567890abcdefghijklmnopqrstuvwxyz1234
+    """
+    keyword = 'Bearer'
+
+
+class UploadZip(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    description = models.CharField(max_length=255, blank=True)
+    # file = models.BinaryField(editable=False)
+    file = models.FileField(upload_to='upload')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.description
+
+
+@receiver(post_save, sender=UploadZip)
+def post_save_uploadzip(sender, instance=None, created=False, **kwargs):
+    post_save.disconnect(post_save_uploadzip, sender=UploadZip)
+    if instance.description:
+        instance.description = instance.description + "-" + str(instance.file)
+    else:
+        instance.description = "None-" + str(instance.file)
+
+    instance.save()
+    unzipped = zipfile.ZipFile(BytesIO(instance.file.read()))
+    for libitem in unzipped.namelist():
+        if libitem.startswith('__MACOSX/'):
+            continue
+        fn = "upload/" + libitem
+        filecontent = open(fn, 'wb').write(unzipped.read(libitem))
+        i = Upload.objects.create(description=instance.description + "-" + fn, file=fn)
+        i.save()
+
+    post_save.connect(post_save_uploadzip, sender=UploadZip)
+
+
+class Upload(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    description = models.CharField(max_length=255, blank=True)
+    # file = models.BinaryField(editable=False)
+    file = models.FileField(upload_to='upload')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.description
+
+    def filedata(self):
+        try:
+            try:
+                return self.file.read().decode("utf-8")
+            except:
+                return self.file.read()
+        except:
+            return self.file
+
+    def fspath(self):
+        return os.path.join(os.path.dirname(os.path.realpath(__file__)), self.file.name)
 
 
 class Dashboard(models.Model):
@@ -17,6 +88,9 @@ class Dashboard(models.Model):
     # netid = models.CharField(max_length=32, null=True, blank=True, default=None)
     # username = models.CharField(max_length=64, null=True, blank=True, default=None)
     # password = models.CharField(max_length=64, null=True, blank=True, default=None)
+    webhook_enable = models.BooleanField(default=False, editable=True)
+    webhook_ngrok = models.BooleanField(default=False, editable=True)
+    webhook_url = models.CharField(max_length=200, null=True, blank=True, default=None)
     raw_data = models.TextField(blank=True, null=True, default=None)
     force_rebuild = models.BooleanField("Force Dashboard Sync", default=False, editable=True)
     skip_sync = models.BooleanField(default=False, editable=False)
@@ -27,17 +101,33 @@ class Dashboard(models.Model):
         return self.description
 
 
+# @receiver(post_save, sender=Dashboard)
+# def post_save_dashboard(sender, instance=None, created=False, **kwargs):
+#     post_save.disconnect(post_save_dashboard, sender=Dashboard)
+#     if instance.webhook_ngrok:
+#
+#         instance.save()
+#     post_save.connect(post_save_dashboard, sender=Dashboard)
+
+
 class ISEServer(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     description = models.CharField("ISE Server Description", max_length=100, blank=False, null=False)
     ipaddress = models.CharField("ISE IP or FQDN", max_length=64, null=False, blank=False)
-    username = models.CharField(max_length=64, null=True, blank=True, default=None)
-    password = models.CharField(max_length=64, null=True, blank=True, default=None)
+    username = models.CharField(max_length=64, null=True, blank=True, default=None, verbose_name="ERS Username")
+    password = models.CharField(max_length=64, null=True, blank=True, default=None, verbose_name="ERS Password")
     raw_data = models.TextField(blank=True, null=True, default=None)
     force_rebuild = models.BooleanField("Force Server Sync", default=False, editable=True)
     skip_sync = models.BooleanField(default=False, editable=False)
     last_update = models.DateTimeField(default=django.utils.timezone.now)
     last_sync = models.DateTimeField(null=True, default=None, blank=True)
+    pxgrid_enable = models.BooleanField(default=False, editable=True)
+    pxgrid_ip = models.CharField("pxGrid Node IP or FQDN", max_length=64, null=True, blank=True, default=None)
+    pxgrid_cliname = models.CharField(max_length=64, null=True, blank=True, default=None, verbose_name="pxGrid Client Name")
+    pxgrid_clicert = models.ForeignKey(Upload, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="pxGrid Client Chain (.cer)", related_name='pxgrid_clicert')
+    pxgrid_clikey = models.ForeignKey(Upload, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="pxGrid Client Key (.key)", related_name='pxgrid_clikey')
+    pxgrid_clipw = models.CharField(max_length=64, null=True, blank=True, default=None, verbose_name="pxGrid Client Key Password")
+    pxgrid_isecert = models.ForeignKey(Upload, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="pxGrid Server Cert (.cer)", related_name='pxgrid_isecert')
 
     class Meta:
         verbose_name = "ISE Server"
@@ -188,6 +278,15 @@ class Tag(models.Model):
             return thismeth, url, json.dumps({"value": self.tag_number, "name": self.name, "description": self.description})
 
         return "", "", ""
+
+
+@receiver(post_save, sender=Tag)
+def post_save_tag(sender, instance=None, created=False, **kwargs):
+    post_save.disconnect(post_save_tag, sender=Tag)
+    if instance:
+        instance.last_updated = datetime.datetime.now()
+        instance.save()
+    post_save.connect(post_save_tag, sender=Tag)
 
 
 class ACL(models.Model):
@@ -478,6 +577,15 @@ class ACL(models.Model):
         return "", "", ""
 
 
+@receiver(post_save, sender=ACL)
+def post_save_acl(sender, instance=None, created=False, **kwargs):
+    post_save.disconnect(post_save_acl, sender=ACL)
+    if instance:
+        instance.last_updated = datetime.datetime.now()
+        instance.save()
+    post_save.connect(post_save_acl, sender=ACL)
+
+
 class Policy(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     mapping = models.CharField("Policy Mapping", max_length=50, blank=False, null=False)
@@ -712,3 +820,34 @@ class Policy(models.Model):
                 })
 
         return "", "", ""
+
+
+@receiver(post_save, sender=Policy)
+def post_save_policy(sender, instance=None, created=False, **kwargs):
+    post_save.disconnect(post_save_policy, sender=Policy)
+    if instance:
+        instance.last_updated = datetime.datetime.now()
+        instance.save()
+    post_save.connect(post_save_policy, sender=Policy)
+
+
+class Task(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    description = models.CharField("Task Description", max_length=50, blank=False, null=False)
+    task_data = models.TextField(blank=True, null=True, default=None)
+    last_update = models.DateTimeField(default=django.utils.timezone.now)
+
+    def __str__(self):
+        return str(self.last_update) + "::" + self.description
+
+    class Meta:
+        ordering = ('-last_update',)
+
+
+@receiver(post_save, sender=Task)
+def post_save_task(sender, instance=None, created=False, **kwargs):
+    post_save.disconnect(post_save_task, sender=Task)
+    if instance:
+        instance.last_updated = datetime.datetime.now()
+        instance.save()
+    post_save.connect(post_save_task, sender=Task)

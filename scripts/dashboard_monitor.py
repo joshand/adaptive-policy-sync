@@ -7,7 +7,8 @@ import meraki
 import requests
 import json
 import datetime
-from adaptive_policy_sync.db_trustsec import *
+from scripts.db_trustsec import *
+from scripts.dblog import *
 
 
 def meraki_read_sgt(baseurl, orgid, headers):
@@ -39,24 +40,24 @@ def exec_api_action(method, url, data, headers):
     return ret.content.decode("UTF-8")
 
 
-def sync_dashboard_accounts(accounts):
+def sync_dashboard_accounts(accounts, log):
     dt = make_aware(datetime.datetime.now())
 
     for sa in accounts:
         a = sa.dashboard
-        print("dashboard_monitor::sync_dashboard_accounts::Resync -", a.description)
+        append_log(log, "dashboard_monitor::sync_dashboard_accounts::Resync -", a.description)
         headers = {"X-Cisco-Meraki-API-Key": a.apikey, "Content-Type": "application/json"}
         nets = meraki.getnetworklist(a.apikey, a.orgid, suppressprint=True)
         sgts = meraki_read_sgt(a.baseurl, a.orgid, headers)
         sgacls = meraki_read_sgacl(a.baseurl, a.orgid, headers)
         sgpolicies = meraki_read_sgpolicy(a.baseurl, a.orgid, headers)
 
-        merge_sgts("meraki", sgts, not sa.ise_source, sa)
-        merge_sgacls("meraki", sgacls, not sa.ise_source, sa)
-        merge_sgpolicies("meraki", sgpolicies, not sa.ise_source, sa)
-        clean_sgts("meraki", sgts, not sa.ise_source, sa)
-        clean_sgacls("meraki", sgacls, not sa.ise_source, sa)
-        clean_sgpolicies("meraki", sgpolicies, not sa.ise_source, sa)
+        merge_sgts("meraki", sgts, not sa.ise_source, sa, log)
+        merge_sgacls("meraki", sgacls, not sa.ise_source, sa, log)
+        merge_sgpolicies("meraki", sgpolicies, not sa.ise_source, sa, log)
+        clean_sgts("meraki", sgts, not sa.ise_source, sa, log)
+        clean_sgacls("meraki", sgacls, not sa.ise_source, sa, log)
+        clean_sgpolicies("meraki", sgpolicies, not sa.ise_source, sa, log)
 
         a.raw_data = json.dumps(nets)
         a.force_rebuild = False
@@ -71,7 +72,7 @@ def sync_dashboard_accounts(accounts):
                 if sa.apply_changes:
                     m, u, d = o.push_config()
                     if m != "":
-                        print("dashboard_monitor::sync_dashboard_accounts::tag API push", o.push_config())
+                        append_log(log, "dashboard_monitor::sync_dashboard_accounts::tag API push", o.push_config())
                         ret = exec_api_action(m, u, d, headers)
                         o.last_update_data = ret
                         o.save()
@@ -80,7 +81,7 @@ def sync_dashboard_accounts(accounts):
                     if o.push_delete:
                         o.delete()
                 else:
-                    print("dashboard_monitor::sync_dashboard_accounts::tag needs API push", o.push_config())
+                    append_log(log, "dashboard_monitor::sync_dashboard_accounts::tag needs API push", o.push_config())
             elif not o.do_sync and o.push_delete:
                 o.delete()
         acls = ACL.objects.filter(syncsession=sa)
@@ -89,7 +90,7 @@ def sync_dashboard_accounts(accounts):
                 if sa.apply_changes:
                     m, u, d = o.push_config()
                     if m != "":
-                        print("dashboard_monitor::sync_dashboard_accounts::acl API push", o.push_config())
+                        append_log(log, "dashboard_monitor::sync_dashboard_accounts::acl API push", o.push_config())
                         ret = exec_api_action(m, u, d, headers)
                         o.last_update_data = ret
                         o.save()
@@ -98,7 +99,7 @@ def sync_dashboard_accounts(accounts):
                     if o.push_delete:
                         o.delete()
                 else:
-                    print("dashboard_monitor::sync_dashboard_accounts::acl needs API push", o.push_config())
+                    append_log(log, "dashboard_monitor::sync_dashboard_accounts::acl needs API push", o.push_config())
             elif o.push_delete:
                 o.delete()
         policies = Policy.objects.filter(syncsession=sa)
@@ -107,7 +108,7 @@ def sync_dashboard_accounts(accounts):
                 if sa.apply_changes:
                     m, u, d = o.push_config()
                     if m != "":
-                        print("dashboard_monitor::sync_dashboard_accounts::policy API push", o.push_config())
+                        append_log(log, "dashboard_monitor::sync_dashboard_accounts::policy API push", o.push_config())
                         ret = exec_api_action(m, u, d, headers)
                         o.last_update_data = ret
                         o.save()
@@ -116,18 +117,19 @@ def sync_dashboard_accounts(accounts):
                     if o.push_delete:
                         o.delete()
                 else:
-                    print("dashboard_monitor::sync_dashboard_accounts::policy needs API push", o.push_config())
+                    append_log(log, "dashboard_monitor::sync_dashboard_accounts::policy needs API push", o.push_config())
             elif o.push_delete:
                 o.delete()
 
 
 def sync_dashboard():
-    print("dashboard_monitor::sync_dashboard::Checking Dashboard Accounts for re-sync...")
+    log = []
+    append_log(log, "dashboard_monitor::sync_dashboard::Checking Dashboard Accounts for re-sync...")
     sync_list = []
     # dbs = Dashboard.objects.filter(force_rebuild=True)
     dbs = SyncSession.objects.filter(Q(dashboard__force_rebuild=True) | Q(force_rebuild=True))
     for db in dbs:
-        print("dashboard_monitor::sync_dashboard::Force Rebuild -", db)
+        append_log(log, "dashboard_monitor::sync_dashboard::Force Rebuild -", db)
         # sync_dashboard_accounts(dbs)
         db.force_rebuild = False
         db.save()
@@ -137,7 +139,7 @@ def sync_dashboard():
     dbs = SyncSession.objects.all().exclude(dashboard__last_sync=F('dashboard__last_update'))
     for db in dbs:
         if db not in sync_list:
-            print("dashboard_monitor::sync_dashboard::Out of Sync -", db)
+            append_log(log, "dashboard_monitor::sync_dashboard::Out of Sync -", db)
             # sync_dashboard_accounts(dbs)
             sync_list.append(db)
 
@@ -147,7 +149,7 @@ def sync_dashboard():
         dbs = SyncSession.objects.filter(dashboard__last_sync__lte=ctime)
         for db in dbs:
             if db not in sync_list:
-                print("dashboard_monitor::sync_dashboard::Past sync interval -", dbs)
+                append_log(log, "dashboard_monitor::sync_dashboard::Past sync interval -", dbs)
                 sync_list.append(db)
                 # sync_dashboard_accounts(dbs)
 
@@ -155,18 +157,20 @@ def sync_dashboard():
         if not s.sync_enabled:
             sync_list.remove(s)
 
-    sync_dashboard_accounts(sync_list)
-    print("dashboard_monitor::sync_dashboard::Done")
+    sync_dashboard_accounts(sync_list, log)
+    append_log(log, "dashboard_monitor::sync_dashboard::Done")
+    db_log("dashboard_monitor", log)
 
 
-# Enable the job scheduler to run schedule jobs
-cron = BackgroundScheduler()
+def run():
+    # Enable the job scheduler to run schedule jobs
+    cron = BackgroundScheduler()
 
-# Explicitly kick off the background thread
-cron.start()
-cron.remove_all_jobs()
-job0 = cron.add_job(sync_dashboard)
-job1 = cron.add_job(sync_dashboard, 'interval', seconds=10)
+    # Explicitly kick off the background thread
+    cron.start()
+    cron.remove_all_jobs()
+    job0 = cron.add_job(sync_dashboard)
+    job1 = cron.add_job(sync_dashboard, 'interval', seconds=10)
 
-# Shutdown your cron thread if the web process is stopped
-atexit.register(lambda: cron.shutdown(wait=False))
+    # Shutdown your cron thread if the web process is stopped
+    atexit.register(lambda: cron.shutdown(wait=False))

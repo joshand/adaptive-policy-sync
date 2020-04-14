@@ -29,6 +29,16 @@ class SyncSessionAdmin(admin.ModelAdmin):
     readonly_fields = ('last_update', )
 
 
+class UploadAdmin(admin.ModelAdmin):
+    readonly_fields = ('filedata', 'fspath')
+
+
+class TaskAdmin(admin.ModelAdmin):
+    readonly_fields = ('task_data', 'last_update')
+
+
+admin.site.register(UploadZip)
+admin.site.register(Upload, UploadAdmin)
 admin.site.register(Dashboard, DashboardAdmin)
 admin.site.register(ISEServer, ISEServerAdmin)
 # admin.site.register(ISEMatrix)
@@ -36,3 +46,4 @@ admin.site.register(SyncSession, SyncSessionAdmin)
 admin.site.register(Tag, TagAdmin)
 admin.site.register(ACL, ACLAdmin)
 admin.site.register(Policy, PolicyAdmin)
+admin.site.register(Task, TaskAdmin)
