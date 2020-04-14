@@ -36,6 +36,7 @@ class Config:
             self.config.id = db.id
         else:
             append_log(log, "pxgrid_monitor::pxgrid_config::No pxGrid servers configured...")
+            exit()
 
     def get_id(self):
         return self.config.id
