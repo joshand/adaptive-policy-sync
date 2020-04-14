@@ -1,3 +1,5 @@
+import atexit
+from apscheduler.schedulers.background import BackgroundScheduler
 import threading
 import asyncio
 import sys
@@ -5,6 +7,15 @@ from sync.models import *
 
 
 def run_tasks():
+    # Enable the job scheduler to run schedule jobs
+    cron = BackgroundScheduler()
+
+    # Explicitly kick off the background thread
+    cron.start()
+    cron.remove_all_jobs()
+    # Shutdown your cron thread if the web process is stopped
+    atexit.register(lambda: cron.shutdown(wait=False))
+
     if 'runserver' not in sys.argv:
         return None
     try:
@@ -20,17 +31,26 @@ def run_tasks():
         print("#### Exception starting scheduled job: dashboard_monitor")
 
     try:
-        import scripts.dashboard_webhook
-        scripts.dashboard_webhook.run()
-    except:
-        print("#### Exception starting scheduled job: dashboard_webhook")
-
-    try:
         import scripts.ise_monitor
         scripts.ise_monitor.run()
     except:
         print("#### Exception starting scheduled job: ise_monitor")
 
+    launch_dashboard_webhooks(cron)
+    launch_pxgrid_monitor(cron)
+
+
+def launch_dashboard_webhooks(c):
+    try:
+        import scripts.dashboard_webhook
+        scripts.dashboard_webhook.run()
+        c.remove_job('dashboard_webhook')
+    except:
+        print("#### Exception starting scheduled job: dashboard_webhook")
+        c.add_job(launch_dashboard_webhooks, 'interval', minutes=5, id='dashboard_webhook')
+
+
+def launch_pxgrid_monitor(c):
     try:
         loop = asyncio.new_event_loop()
         import scripts.pxgrid_websocket
@@ -38,5 +58,7 @@ def run_tasks():
         th.start()
         log = []
         scripts.pxgrid_websocket.sync_pxgrid(loop, log)
+        c.remove_job('sync_pxgrid')
     except:
         print("#### Exception starting scheduled job: sync_pxgrid")
+        c.add_job(launch_pxgrid_monitor, 'interval', minutes=5, id='sync_pxgrid')
