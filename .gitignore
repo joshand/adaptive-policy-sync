@@ -132,4 +132,4 @@ dmypy.json
 .DS_Store
 sync/migrations/
 /upload
-/old
+/old/*
