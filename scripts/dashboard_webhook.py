@@ -48,6 +48,8 @@ def run():
                 append_log(log, "updating alert settings", alerts)
                 r = dashboard.alert_settings.updateNetworkAlertSettings(networkId=n["id"], defaultDestinations=alerts["defaultDestinations"], alerts=alerts["alerts"])
                 append_log(log, "update response", r)
+    else:
+        raise Exception("Dashboard webhooks are not configured")
 
     db_log("dashboard_webhook", log)
 
