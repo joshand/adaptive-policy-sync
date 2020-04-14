@@ -47,7 +47,9 @@ def launch_dashboard_webhooks(c):
         c.remove_job('dashboard_webhook')
     except:
         print("#### Exception starting scheduled job: dashboard_webhook")
-        c.add_job(launch_dashboard_webhooks, 'interval', minutes=5, id='dashboard_webhook', args=[c])
+        j = c.get_job('dashboard_webhook')
+        if len(j) <= 0:
+            c.add_job(launch_dashboard_webhooks, 'interval', minutes=5, id='dashboard_webhook', args=[c])
 
 
 def launch_pxgrid_monitor(c):
@@ -61,4 +63,6 @@ def launch_pxgrid_monitor(c):
         c.remove_job('sync_pxgrid')
     except:
         print("#### Exception starting scheduled job: sync_pxgrid")
-        c.add_job(launch_pxgrid_monitor, 'interval', minutes=5, id='sync_pxgrid', args=[c])
+        j = c.get_job('sync_pxgrid')
+        if len(j) <= 0:
+            c.add_job(launch_pxgrid_monitor, 'interval', minutes=5, id='sync_pxgrid', args=[c])
