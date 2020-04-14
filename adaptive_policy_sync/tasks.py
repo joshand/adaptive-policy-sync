@@ -44,7 +44,9 @@ def launch_dashboard_webhooks(c):
     try:
         import scripts.dashboard_webhook
         scripts.dashboard_webhook.run()
-        c.remove_job('dashboard_webhook')
+        j = c.get_job('dashboard_webhook')
+        if j:
+            c.remove_job('dashboard_webhook')
     except:
         print("#### Exception starting scheduled job: dashboard_webhook")
         j = c.get_job('dashboard_webhook')
@@ -60,7 +62,9 @@ def launch_pxgrid_monitor(c):
         th.start()
         log = []
         scripts.pxgrid_websocket.sync_pxgrid(loop, log)
-        c.remove_job('sync_pxgrid')
+        j = c.get_job('sync_pxgrid')
+        if j:
+            c.remove_job('sync_pxgrid')
     except:
         print("#### Exception starting scheduled job: sync_pxgrid")
         j = c.get_job('sync_pxgrid')
