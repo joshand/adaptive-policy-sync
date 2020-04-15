@@ -148,5 +148,5 @@ class PolicySerializer(serializers.ModelSerializer):
 class TaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
-        fields = ('id', 'url', 'description', 'task_data', 'task_update')
-        read_only_fields = ('id', 'url', 'description', 'task_data', 'task_update')
+        fields = ('id', 'url', 'description', 'task_data', 'last_update')
+        read_only_fields = ('id', 'url', 'description', 'task_data', 'last_update')
