@@ -35,6 +35,7 @@ router.register(r'syncsession', views.SyncSessionViewSet)
 router.register(r'tag', views.TagViewSet)
 router.register(r'acl', views.ACLViewSet)
 router.register(r'policy', views.PolicyViewSet)
+router.register(r'task', views.TaskViewSet)
 
 schema_view = get_schema_view(title="Adaptive Policy Sync API", renderer_classes=[JSONOpenAPIRenderer])
 

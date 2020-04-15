@@ -156,3 +156,17 @@ class PolicyViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(Q(mapping__iregex=rq1) | Q(mapping__iregex=rq2))
 
         return queryset
+
+
+class TaskViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows System Tasks to be viewed.
+
+    retrieve:
+    Return a task.
+
+    list:
+    Return all tasks.
+    """
+    queryset = Task.objects.all().order_by('last_update')
+    serializer_class = TaskSerializer

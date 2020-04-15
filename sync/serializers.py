@@ -143,3 +143,10 @@ class PolicySerializer(serializers.ModelSerializer):
                 self.fields.pop("update_dest")
                 self.fields.pop("push_config")
                 self.fields.pop("push_delete")
+
+
+class TaskSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Task
+        fields = ('id', 'url', 'description', 'task_data', 'task_update')
+        read_only_fields = ('id', 'url', 'description', 'task_data', 'task_update')
