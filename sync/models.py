@@ -10,6 +10,7 @@ import zipfile
 from io import BytesIO
 import os
 from rest_framework import authentication
+import re
 
 
 class BearerAuthentication(authentication.TokenAuthentication):
@@ -34,6 +35,19 @@ class UploadZip(models.Model):
     def __str__(self):
         return self.description
 
+    def filename(self):
+        fpath = str(self.file)
+        flist = fpath.split(os.path.sep)
+        if len(flist) > 0:
+            return flist[-1]
+        else:
+            return str(self.file)
+
+    def base_desc(self):
+        fl = self.description.split("-")
+        if len(fl) > 0:
+            return fl[0]
+
 
 @receiver(post_save, sender=UploadZip)
 def post_save_uploadzip(sender, instance=None, created=False, **kwargs):
@@ -54,6 +68,38 @@ def post_save_uploadzip(sender, instance=None, created=False, **kwargs):
         i.save()
 
     post_save.connect(post_save_uploadzip, sender=UploadZip)
+
+
+@receiver(models.signals.post_delete, sender=UploadZip)
+def auto_delete_uploadzip_on_delete(sender, instance, **kwargs):
+    """
+    Deletes file from filesystem
+    when corresponding `UploadZip` object is deleted.
+    """
+    if instance.file:
+        if os.path.isfile(instance.file.path):
+            os.remove(instance.file.path)
+
+
+@receiver(models.signals.pre_save, sender=UploadZip)
+def auto_delete_uploadzip_on_change(sender, instance, **kwargs):
+    """
+    Deletes old file from filesystem
+    when corresponding `UploadZip` object is updated
+    with new file.
+    """
+    if not instance.pk:
+        return False
+
+    try:
+        old_file = UploadZip.objects.get(pk=instance.pk).file
+    except UploadZip.DoesNotExist:
+        return False
+
+    new_file = instance.file
+    if not old_file == new_file:
+        if os.path.isfile(old_file.path):
+            os.remove(old_file.path)
 
 
 class Upload(models.Model):
@@ -77,6 +123,57 @@ class Upload(models.Model):
 
     def fspath(self):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), self.file.name)
+
+    def filename(self):
+        fpath = str(self.file)
+        flist = fpath.split(os.path.sep)
+        if len(flist) > 0:
+            return flist[-1]
+        else:
+            return str(self.file)
+
+    def systemcert(self):
+        if "CertificateServices" in str(self.file):
+            return True
+        else:
+            return False
+
+    def base_desc(self):
+        fl = self.description.split("-")
+        if len(fl) > 0:
+            return fl[0]
+
+
+@receiver(models.signals.post_delete, sender=Upload)
+def auto_delete_upload_on_delete(sender, instance, **kwargs):
+    """
+    Deletes file from filesystem
+    when corresponding `Upload` object is deleted.
+    """
+    if instance.file:
+        if os.path.isfile(instance.file.path):
+            os.remove(instance.file.path)
+
+
+@receiver(models.signals.pre_save, sender=Upload)
+def auto_delete_uploadzip_on_change(sender, instance, **kwargs):
+    """
+    Deletes old file from filesystem
+    when corresponding `Upload` object is updated
+    with new file.
+    """
+    if not instance.pk:
+        return False
+
+    try:
+        old_file = Upload.objects.get(pk=instance.pk).file
+    except Upload.DoesNotExist:
+        return False
+
+    new_file = instance.file
+    if not old_file == new_file:
+        if os.path.isfile(old_file.path):
+            os.remove(old_file.path)
 
 
 class Dashboard(models.Model):
@@ -198,6 +295,11 @@ class Tag(models.Model):
         else:
             return self.name + " (" + str(self.tag_number) + ")"
 
+    def cleaned_name(self):
+        newname = self.name[:32]
+        newname = re.sub('[^0-9a-zA-Z]+', '_', newname)
+        return newname
+
     def in_sync(self):
         return self.match_report(bool_only=True)
 
@@ -209,9 +311,11 @@ class Tag(models.Model):
             idata = json.loads(self.ise_data)
 
             name_match = mdata["name"] == idata["name"]
+            name_match_cl = self.cleaned_name() == idata["name"]
             desc_match = mdata["description"] == idata["description"]
 
             outtxt += "name:" + str(name_match) + "\n"
+            outtxt += "cleaned name:" + str(name_match_cl) + "\n"
             outtxt += "description:" + str(desc_match) + "\n"
             if self.tag_number == 2:
                 outtxt += "\n" + "note:this tag (2) will always return Matches:True. we don't want to sync it.".upper() + "\n"
@@ -220,7 +324,7 @@ class Tag(models.Model):
             outtxt += "delete?:" + str(self.push_delete) + "\n"
 
             if bool_only:
-                return name_match and desc_match and not self.push_delete
+                return (name_match or name_match_cl) and desc_match and not self.push_delete
             else:
                 return outtxt
 
@@ -262,7 +366,7 @@ class Tag(models.Model):
                 thismeth = "POST"
                 url = "https://" + self.syncsession.iseserver.ipaddress + ":9060/ers/config/sgt"
 
-            return thismeth, url, json.dumps({"Sgt": {"name": self.name, "description": self.description, "value": self.tag_number, "propogateToApic": False, "defaultSGACLs": []}})
+            return thismeth, url, json.dumps({"Sgt": {"name": self.cleaned_name(), "description": self.description, "value": self.tag_number, "propogateToApic": False, "defaultSGACLs": []}})
         elif d == "meraki":
             if self.push_delete:
                 thismeth = "DELETE"
@@ -464,7 +568,7 @@ class ACL(models.Model):
             test_meraki_acl = self.normalize_ise_rules(idata["aclcontent"], mode="convert")
             test_ise_acl_2 = self.normalize_meraki_rules(test_meraki_acl, mode="convert").strip().replace("\n", ";")
             test_ise_acl_3 = self.normalize_ise_rules(test_ise_acl_2)
-            ise_valid_config = test_ise_acl_1 == test_ise_acl_2
+            ise_valid_config = test_ise_acl_1 == test_ise_acl_3
             # print(test_ise_acl_1, test_ise_acl_2, len(test_ise_acl_1), len(test_ise_acl_2), ise_valid_config)
             outtxt += "----Filtered ISE Config:\n" + test_ise_acl_1 + "\n----Converted ISE Config:\n" + test_ise_acl_3 + "\n----\n"
             outtxt += "ise_valid_acl?:" + str(ise_valid_config) + "\n"

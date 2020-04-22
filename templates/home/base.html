@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://downloads.momentum-ui.com/@momentum-ui/core/css/momentum-ui.min.css" rel="stylesheet">
+    <title>Adaptive Policy Sync</title>
+    <style>
+        @media only screen and (min-width: 64.0625em) {
+            .md-top-bar {
+                grid-area: topbar;
+                padding: 0 32px;
+            }
+        }
+
+        .docs-content-area {
+            grid-area: main;
+            border-top: 1px solid rgba(0, 0, 0, 0.08); }
+            @media only screen and (min-width: 64.0625em) {
+            .docs-content-area--with-pagenav {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) 300px;
+                grid-template-rows: auto;
+                grid-template-areas: 'pagecolumn pagenav';
+            }
+        }
+        @media only screen and (min-width: 64.0625em) {
+            .docs-main {
+                display: grid;
+                grid-template-columns: 240px minmax(0, 1fr);
+                grid-template-rows: 80px auto 48px 1fr auto;
+                grid-template-areas: 'topbar topbar' '. page-header' '. tabs' 'sidebar main' 'sidebar page-footer';
+                min-height: 100%;
+            }
+        }
+
+        @media only screen and (min-width: 64.0625em) {
+            .docs-main--home {
+                grid-template-columns: 100%;
+                grid-template-rows: 80px 1fr auto;
+                grid-template-areas: 'topbar' 'home' 'page-footer';
+            }
+        }
+
+        .docs-main--home .docs-side-nav {
+            display: none;
+        }
+
+        .docs-content__column {
+            grid-area: pagecolumn;
+            padding: 3rem 2rem;
+        }
+
+        .docs-content__nav {
+            grid-area: pagenav;
+        }
+    </style>
+    <script>
+        function clearinput(inputid) {
+            let src = document.getElementById(inputid);
+            src.value = "";
+        }
+
+        function toggleList(btnname, dropdownname, listname) {
+            let src = document.getElementById(btnname);
+
+            let rect = src.getBoundingClientRect();
+
+            let position = {
+                top: rect.top + window.pageYOffset,
+                left: rect.left + window.pageXOffset
+            };
+            let sc = document.documentElement.scrollTop;
+
+            if (document.getElementById(dropdownname).style.display === "none") {
+                document.getElementById(listname).style.left = position.left.toString() + "px";
+                document.getElementById(listname).style.top = (position.top + src.offsetHeight + 5 - sc).toString() + "px";
+                document.getElementById(listname).style.width = src.offsetWidth.toString() + "px";
+                document.getElementById(dropdownname).style.display = "inline";
+            } else {
+                document.getElementById(dropdownname).style.display = "none";
+            }
+        }
+
+        function getdata(url, selectedval, outtype, tokenid, outputcontid, outputid, outputlabel, hiddenid, hiddenname, enablebtn) {
+            document.getElementById('preloader').style = "display:inline-block;position:absolute;top:50%;left:50%;background-color:rgba(0, 0, 0, 0);z-index:6000000;overflow:auto;width:400px;height:400px;margin-left:-100px;margin-top:-100px;";
+            let method = "GET";
+            let async = true;
+            let request = new XMLHttpRequest();
+            let apikey = document.getElementById(tokenid).value;
+            request.onload = function () {
+                if (request.readyState === 4) {
+                    if (request.status === 200) {
+                        let data = request.response;
+                        let outcont = document.getElementById(outputcontid);
+                        let outdata = document.getElementById(outputid);
+                        if (data.length > 0) {
+                            {#out.style = "display:inline;";#}
+                            {#out.innerHTML = "<font color='red'>Error Issuing Request</font>";#}
+                            let out_data = "";
+                            for (let elm in data)
+                            {
+                                if (outtype === 1) {
+                                    out_data += '<div aria-current="true" class="md-list-item" id="md-list-73__so-item" role="option" value="' + data[elm].id + '" tabindex="0" title="' + data[elm].name + '">';
+                                    out_data += '  <div class="md-list-item__center" onclick="listclick(\'' + data[elm].id + '\', \'' + data[elm].name + '\', \'' + outputlabel + '\', \'' + hiddenid + '\', \'' + hiddenname + '\', \'' + enablebtn + '\')")>' + data[elm].name + '</div>';
+                                    out_data += '  <div class="md-list-item__right"></div>';
+                                    out_data += '</div>';
+                                    if (selectedval) {
+                                        if (selectedval === data[elm].id) {
+                                            let selectedname = data[elm].name;
+                                            listclick(selectedval, selectedname, outputlabel, hiddenid, hiddenname, enablebtn);
+                                        }
+                                    }
+                                }
+                            }
+                            if (outtype === 1) {
+                                outcont.style = "display:inline;";
+                                outdata.innerHTML = out_data;
+                            }
+                            document.getElementById('preloader').style = "display: none;";
+                        } else {
+                            {#outcont.style = "display:inline;";#}
+                            {#outdata.innerHTML = "<font color='red'>No Results Returned</font>";#}
+                            document.getElementById('preloader').style = "display: none;";
+                        }
+                    }
+                }
+            };
+            try {
+                request.open(method, url, async);
+                request.setRequestHeader("X-Cisco-Meraki-API-Key", apikey);
+                request.setRequestHeader("Authorization", "Bearer " + apikey);
+                request.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+                request.responseType = 'json';
+                request.send();
+            }
+            catch(err) {
+                console.log("500 Caught.");
+            }
+        }
+
+        function listclick(elemid, elemname, divsel, divid, divname, enablebtn) {
+            document.getElementById(divsel).innerHTML = elemname + '\n<i class="ignore icon icon-arrow-down_16"></i>';
+            document.getElementById(divid).value = elemid;
+            document.getElementById(divname).value = elemname;
+            if (enablebtn) {
+                document.getElementById(enablebtn).classList.remove("md-button--disabled");
+                document.getElementById(enablebtn).classList.add("md-button--blue");
+            }
+        }
+
+        function toggleMenu(menuid) {
+            if (document.getElementById(menuid).classList.contains("md-sidebar-nav__group--collapsed")) {
+                document.getElementById(menuid).classList.remove("md-sidebar-nav__group--collapsed");
+                document.getElementById(menuid).classList.add("md-sidebar-nav__group--expanded");
+            } else {
+                document.getElementById(menuid).classList.remove("md-sidebar-nav__group--expanded");
+                document.getElementById(menuid).classList.add("md-sidebar-nav__group--collapsed");
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <div id="app" class="md md--sites">
+        <div class="docs-main">
+{#            <div class="md-top-bar md-top-bar--fixed md-top-bar--light" role="navigation"><div class="md-top-bar__container"><div class="md-top-bar__brand"><a class="md-brand"><div class="md-brand__logo"><span></span></div></a></div><div class="md-top-bar__right"></div><div><button class="md-button md-button--36 md-button--icon md-top-bar__mobile-menu-button" id="md-button-1" data-md-event-key="md-button-1" alt="Open Menu" type="button" aria-label="Open Menu" aria-pressed="false" tabindex="0"><span class="md-button__children" style="opacity: 1;"><i class="md-icon icon icon-list-menu_20" style="font-size: 20px;"></i></span></button><div class="md-top-bar__mobile md-tb-mobile" role="menu" tabindex="0"><button class="md-button md-button--36 md-button--icon md-tb-mobile__close" id="md-button-2" data-md-event-key="md-button-2" alt="Close Menu" type="button" aria-label="Close Menu" aria-pressed="false" tabindex="0"><span class="md-button__children" style="opacity: 1;"><i class="md-icon icon icon-cancel_20" style="font-size: 20px;"></i></span></button><span><div class="md-top-bar__brand"><a aria-current="page" class="md-brand active" href="/"><div class="md-brand__logo"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNjMuMTIgNDguODYiPjxkZWZzPjxzdHlsZT4uYXtmaWxsOiNmZWI0MDA7fS5ie2ZpbGw6I2ZmNzAzMzt9LmN7ZmlsbDojMDdjMWU0O30uZHtmaWxsOiNhODY2ZmY7fTwvc3R5bGU+PC9kZWZzPjx0aXRsZT5tb21lbnR1bS1kZXNpZ248L3RpdGxlPjxyZWN0IGNsYXNzPSJhIiB3aWR0aD0iMzIuNTciIGhlaWdodD0iMzIuNTciLz48cG9seWdvbiBjbGFzcz0iYiIgcG9pbnRzPSIxNi4zOCAxNi4yOSAwLjEgMCAzMi42NyAwIDE2LjM4IDE2LjI5Ii8+PHBhdGggY2xhc3M9ImMiIGQ9Ik0xNi4yOSwxNi4yOUgzMi41N0ExNi4yOSwxNi4yOSwwLDAsMSw0OC44NiwzMi41N3YwQTE2LjI5LDE2LjI5LDAsMCwxLDMyLjU3LDQ4Ljg2SDE2LjI5YTAsMCwwLDAsMSwwLDBWMTYuMjlhMCwwLDAsMCwxLDAsMFoiLz48cmVjdCBjbGFzcz0iZCIgeD0iMTYuMjkiIHk9IjE2LjI5IiB3aWR0aD0iMTYuMjkiIGhlaWdodD0iMTYuMjkiLz48cGF0aCBkPSJNNjUsMjAuMjZ2LTEwaDEuNTFsLjIsMS4xN0EzLjQsMy40LDAsMCwxLDY5LjY2LDEwYTMuMTQsMy4xNCwwLDAsMSwyLjk0LDEuNTdBMy42LDMuNiwwLDAsMSw3NS44NCwxMGMyLDAsMy4zNywxLjIxLDMuMzcsMy41OHY2LjY4SDc3LjM3VjEzLjcyYzAtMS41Mi0uNjUtMi4xNS0xLjk0LTIuMTVBMi40NiwyLjQ2LDAsMCwwLDczLDE0LjE4djYuMDhINzEuMlYxMy43MmMwLTEuNTQtLjY4LTIuMTUtMS45NC0yLjE1YTIuNDYsMi40NiwwLDAsMC0yLjQsMi41NXY2LjE0WiIvPjxwYXRoIGQ9Ik04Ni4xNiwxMGMyLjcyLDAsNC45MSwxLjY5LDQuOTEsNS4yN1M4OSwyMC41NSw4Ni4xNCwyMC41NXMtNC45MS0xLjgzLTQuOTEtNS4yOFM4My40NSwxMCw4Ni4xNiwxMFptMCw5LjA1YzEuNzYsMCwzLTEuMywzLTMuNzhzLTEuMjktMy43OC0zLTMuNzgtMywxLjI5LTMsMy43OFM4NC40NSwxOS4wNSw4Ni4xOCwxOS4wNVoiLz48cGF0aCBkPSJNOTMuMTgsMjAuMjZ2LTEwaDEuNTFsLjIsMS4xN0EzLjM5LDMuMzksMCwwLDEsOTcuODIsMTBhMy4xMSwzLjExLDAsMCwxLDIuOTMsMS41N0EzLjYzLDMuNjMsMCwwLDEsMTA0LDEwYzIsMCwzLjM3LDEuMjEsMy4zNywzLjU4djYuNjhoLTEuODRWMTMuNzJjMC0xLjUyLS42NS0yLjE1LTEuOTQtMi4xNWEyLjQ2LDIuNDYsMCwwLDAtMi4zOSwyLjYxdjYuMDhIOTkuMzVWMTMuNzJjMC0xLjU0LS42Ny0yLjE1LTEuOTMtMi4xNUEyLjQ2LDIuNDYsMCwwLDAsOTUsMTQuMTJ2Ni4xNFoiLz48cGF0aCBkPSJNMTE4Ljc1LDE3LjM4YTQuMzQsNC4zNCwwLDAsMS00LjQ3LDMuMTdjLTIuODQsMC00Ljg5LTEuNzctNC44OS01LjI4czItNS4yNyw0Ljc5LTUuMjcsNC42OCwxLjY1LDQuNjgsNS42N2gtNy41OWMuMTUsMi4zMSwxLjQsMy4zMiwzLjA3LDMuMzJhMi40MywyLjQzLDAsMCwwLDIuNDEtMS42MVptLTcuNDEtMy4xNkgxMTdhMi42MiwyLjYyLDAsMCwwLTIuNzYtMi43NUEyLjg1LDIuODUsMCwwLDAsMTExLjM0LDE0LjIyWiIvPjxwYXRoIGQ9Ik0xMjEuMDcsMjAuMjZ2LTEwaDEuNTFsLjIyLDEuMjZhMy42NiwzLjY2LDAsMCwxLDMtMS41NWMyLjE2LDAsMy41MywxLjMyLDMuNTMsMy43NnY2LjVoLTEuODVWMTMuNzhhMS45MywxLjkzLDAsMCwwLTIuMTItMi4yMSwyLjQyLDIuNDIsMCwwLDAtMi40OCwyLjUzdjYuMTZaIi8+PHBhdGggZD0iTTEzNi40LDIwLjM1YTQuODMsNC44MywwLDAsMS0xLjM3LjIsMi40OSwyLjQ5LDAsMCwxLTIuNjYtMi43N1YxMS44NmgtMS40OFYxMC4yOWgxLjQ4bC4xMS0yLjRoMS43M3YyLjRoMi4xNXYxLjU3aC0yLjE1djZjMCwuNzUuMzYsMS4xMiwxLDEuMTJhNC4wNSw0LjA1LDAsMCwwLDEuMTQtLjE2WiIvPjxwYXRoIGQ9Ik0xMzkuODcsMTAuMjl2Ni41NEExLjg4LDEuODgsMCwwLDAsMTQxLjk0LDE5YTIuMzgsMi4zOCwwLDAsMCwyLjQ1LTIuNlYxMC4yOWgxLjg1djEwaC0xLjUybC0uMjEtMS4xNWEzLjYsMy42LDAsMCwxLTMsMS40NGMtMi4wNiwwLTMuNDktMS4yMS0zLjQ5LTMuNzZ2LTYuNVoiLz48cGF0aCBkPSJNMTQ4LjkyLDIwLjI2di0xMGgxLjUybC4xOSwxLjE3QTMuNCwzLjQsMCwwLDEsMTUzLjU2LDEwYTMuMTMsMy4xMywwLDAsMSwyLjk0LDEuNTdBMy42MSwzLjYxLDAsMCwxLDE1OS43NCwxMGMyLDAsMy4zOCwxLjIxLDMuMzgsMy41OHY2LjY4aC0xLjg1VjEzLjcyYzAtMS41Mi0uNjUtMi4xNS0xLjkzLTIuMTVhMi40NiwyLjQ2LDAsMCwwLTIuNCwyLjYxdjYuMDhIMTU1LjFWMTMuNzJjMC0xLjU0LS42Ny0yLjE1LTEuOTQtMi4xNWEyLjQ2LDIuNDYsMCwwLDAtMi40LDIuNTV2Ni4xNFoiLz48cGF0aCBkPSJNNzIuNSwzOS40NCw3Mi4xNywzOGEzLjg0LDMuODQsMCwwLDEtMy4zMSwxLjY5Yy0yLjUyLDAtNC40Mi0xLjg0LTQuNDItNS4yMiwwLTMuNTcsMS44Ni01LjMzLDQuNTMtNS4zM2EzLjc1LDMuNzUsMCwwLDEsMy4yLDEuNTV2LTUuMUg3NFYzOS40NFptLTMuMjQtMS4yOGMxLjksMCwzLTEuNSwzLTMuNTksMC0yLjQ0LTEuMTctMy44Mi0zLTMuODJzLTIuOSwxLjE5LTIuOSwzLjhDNjYuMzYsMzcsNjcuNTksMzguMTYsNjkuMjYsMzguMTZaIi8+PHBhdGggZD0iTTg1LjQ5LDM2LjU2QTQuMzQsNC4zNCwwLDAsMSw4MSwzOS43M2MtMi44NCwwLTQuODktMS43Ny00Ljg5LTUuMjhzMi01LjI3LDQuNzktNS4yNyw0LjY4LDEuNjUsNC42OCw1LjY4SDc4Yy4xNiwyLjMsMS40MSwzLjMyLDMuMDcsMy4zMmEyLjQ1LDIuNDUsMCwwLDAsMi40Mi0xLjYyWk03OC4wOCwzMy40aDUuNjRBMi42MSwyLjYxLDAsMCwwLDgxLDMwLjY2LDIuODQsMi44NCwwLDAsMCw3OC4wOCwzMy40WiIvPjxwYXRoIGQ9Ik05MC43NCwzNC45Yy0yLjM0LS41Mi0zLjI4LTEuNC0zLjI4LTIuODgsMC0xLjcxLDEuMzYtMi44NCwzLjg4LTIuODQsMi4yMiwwLDMuNzYsMS4wOSw0LjA4LDIuOTJIOTMuNTRjLS4yMS0uOTMtMS0xLjQ2LTIuMjItMS40NnMtMiwuNTEtMiwxLjIxLjQxLDEuMTEsMi4zMiwxLjUzYzIuMzIuNTIsMy44NiwxLjE3LDMuODYsMy4yMiwwLDEuODItMS41MiwzLjEzLTQuMTYsMy4xM1M4Ny4yMSwzOC41LDg3LDM2LjU4aDEuODhjLjIxLDEuMTksMSwxLjY5LDIuNDQsMS42OXMyLjI4LS42NywyLjI4LTEuNTNDOTMuNjQsMzUuNTcsOTIuNTMsMzUuMyw5MC43NCwzNC45WiIvPjxwYXRoIGQ9Ik05Ny40OSwyNy44VjI1LjYzaDIuMDhWMjcuOFptLjEyLDExLjY0di0xMGgxLjg0djEwWiIvPjxwYXRoIGQ9Ik0xMDQsNDAuMTFjLjE3LDEsMSwxLjYxLDIuNDcsMS42MSwxLjg2LDAsMi44Mi0uOTQsMi44Mi0yLjU5VjM3Ljg1YTQuMTgsNC4xOCwwLDAsMS0zLjMyLDEuM2MtMi4zNCwwLTQuNDEtMS43NC00LjQxLTQuOTNzMS44Mi01LDQuNTMtNWEzLjcsMy43LDAsMCwxLDMuMjQsMS42MWwuMjktMS4zMmgxLjUxdjkuNzZjMCwyLjI2LTEuNjUsNC00LjYsNC0yLjY3LDAtNC4xOC0xLjIxLTQuNTEtMy4wN1ptMi4zOC0yLjUzYzEuODksMCwzLTEuMjUsMy0zLjI2LDAtMi4zNC0xLjIzLTMuNTctMy0zLjU3cy0yLjksMS4xMy0yLjksMy41MUMxMDMuNDgsMzYuMzcsMTA0Ljc4LDM3LjU4LDEwNi4zOCwzNy41OFoiLz48cGF0aCBkPSJNMTEzLjgyLDM5LjQ0di0xMGgxLjUxbC4yMSwxLjI2YTMuNzEsMy43MSwwLDAsMSwzLTEuNTVjMi4xNiwwLDMuNTIsMS4zMiwzLjUyLDMuNzZ2Ni41aC0xLjg0VjMzYTEuOTMsMS45MywwLDAsMC0yLjEzLTIuMjEsMi40MiwyLjQyLDAsMCwwLTIuNDcsMi41M3Y2LjE2WiIvPjwvc3ZnPg==" alt="Cisco Momentum Design"></div></a></div></span><div class="md-list-separator"><span class="md-list-separator__container"></span></div><nav class="md-tb-mobile__nav"><div class="md-sidebar__wrapper docs-mobile-nav"><div class="md-sidebar md-sidebar--global md-sidebar--indented md-sidebar--nested"><div class="md-sidebar__body"><div class="md-sidebar-nav"><div class="md-list md-list--vertical md-sidebar-nav__group md-sidebar-nav__group--primary" role="list"><div class="md-list-item" id="md-sidebar__nav-item-1-1" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-1" data-md-keyboard-key="getting-started"><div class="md-list-item__left"><i class="md-icon icon icon-launch_20" style="font-size: 20px;"></i></div><div class="md-list-item__center">Getting Started</div><div class="md-list-item__right"><i class="md-icon icon icon-arrow-up_12" style="font-size: 12px;"></i></div></div><div class="md-sidebar-nav__group md-sidebar-nav__group--secondary md-sidebar-nav__group--expanded"><a class="md-list-item active" id="md-sidebar__nav-item-1-3-1" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-3-1" data-md-keyboard-key="designers" href="/getting-started/designers" aria-current="page"><div class="md-list-item__center">Designers</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-3-3" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-3-3" data-md-keyboard-key="governance" href="/getting-started/governance"><div class="md-list-item__center">Governance</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-3-5" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-3-5" data-md-keyboard-key="our-commitment" href="/getting-started/our-commitment-to-you"><div class="md-list-item__center">Our Commitment</div></a></div><div class="md-list-item" id="md-sidebar__nav-item-1-4" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-4" data-md-keyboard-key="guidelines"><div class="md-list-item__left"><i class="md-icon icon icon-area-selector_20" style="font-size: 20px;"></i></div><div class="md-list-item__center">Guidelines</div><div class="md-list-item__right"><i class="md-icon icon icon-arrow-down_12" style="font-size: 12px;"></i></div></div><div class="md-sidebar-nav__group md-sidebar-nav__group--secondary md-sidebar-nav__group--collapsed"><a class="md-list-item" id="md-sidebar__nav-item-1-6-1" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-6-1" data-md-keyboard-key="article-layout" href="/guidelines/article-layout"><div class="md-list-item__center">Article Layout</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-6-3" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-6-3" data-md-keyboard-key="blog-articles" href="/guidelines/blog-article"><div class="md-list-item__center">Blog Articles</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-6-5" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-6-5" data-md-keyboard-key="blog-list" href="/guidelines/blog-list"><div class="md-list-item__center">Blog List</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-6-7" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-6-7" data-md-keyboard-key="cards" href="/guidelines/cards"><div class="md-list-item__center">Cards</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-6-9" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-6-9" data-md-keyboard-key="data-visualization" href="/guidelines/data-visualization"><div class="md-list-item__center">Data Visualization</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-6-11" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-6-11" data-md-keyboard-key="footer" href="/guidelines/footer"><div class="md-list-item__center">Footer</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-6-13" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-6-13" data-md-keyboard-key="forms" href="/guidelines/forms-and-form-validation"><div class="md-list-item__center">Forms</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-6-15" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-6-15" data-md-keyboard-key="navigation" href="/guidelines/navigation"><div class="md-list-item__center">Navigation</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-6-17" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-6-17" data-md-keyboard-key="wizards" href="/guidelines/wizards"><div class="md-list-item__center">Wizards</div></a></div><div class="md-list-item" id="md-sidebar__nav-item-1-7" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-7" data-md-keyboard-key="styles"><div class="md-list-item__left"><i class="md-icon icon icon-appearance_20" style="font-size: 20px;"></i></div><div class="md-list-item__center">Styles</div><div class="md-list-item__right"><i class="md-icon icon icon-arrow-down_12" style="font-size: 12px;"></i></div></div><div class="md-sidebar-nav__group md-sidebar-nav__group--secondary md-sidebar-nav__group--collapsed"><a class="md-list-item" id="md-sidebar__nav-item-1-9-1" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-9-1" data-md-keyboard-key="overview" href="/styles"><div class="md-list-item__center">Overview</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-9-3" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-9-3" data-md-keyboard-key="design-tokens" href="/styles/design-tokens"><div class="md-list-item__center">Design Tokens</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-9-5" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-9-5" data-md-keyboard-key="color" href="/styles/color"><div class="md-list-item__center">Color</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-9-7" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-9-7" data-md-keyboard-key="typography" href="/styles/typography"><div class="md-list-item__center">Typography</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-9-9" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-9-9" data-md-keyboard-key="iconography" href="/styles/icons"><div class="md-list-item__center">Iconography</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-9-11" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-9-11" data-md-keyboard-key="illustrations" href="/styles/illustrations"><div class="md-list-item__center">Illustrations</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-9-13" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-9-13" data-md-keyboard-key="motion-design" href="/styles/motion-design"><div class="md-list-item__center">Motion Design</div></a></div><div class="md-list-item" id="md-sidebar__nav-item-1-10" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-10" data-md-keyboard-key="components"><div class="md-list-item__left"><i class="md-icon icon icon-view-thumbnail_20" style="font-size: 20px;"></i></div><div class="md-list-item__center">Components</div><div class="md-list-item__right"><i class="md-icon icon icon-arrow-down_12" style="font-size: 12px;"></i></div></div><div class="md-sidebar-nav__group md-sidebar-nav__group--secondary md-sidebar-nav__group--collapsed"><a class="md-list-item" id="md-sidebar__nav-item-1-12-1" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-12-1" data-md-keyboard-key="overview" href="/components"><div class="md-list-item__center">Overview</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-12-3" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-12-3" data-md-keyboard-key="accordion" href="/components/accordion"><div class="md-list-item__center">Accordion</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-12-5" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-12-5" data-md-keyboard-key="activity-buttons" href="/components/activity-button"><div class="md-list-item__center">Activity Buttons</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-12-7" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-12-7" data-md-keyboard-key="alerts" href="/components/alert"><div class="md-list-item__center">Alerts</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-12-9" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-12-9" data-md-keyboard-key="alert-banner" href="/components/alert-banner"><div class="md-list-item__center">Alert Banner</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-12-11" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-12-11" data-md-keyboard-key="avatars" href="/components/avatar"><div class="md-list-item__center">Avatars</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-12-13" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-12-13" data-md-keyboard-key="badges" href="/components/badge"><div class="md-list-item__center">Badges</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-12-15" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-12-15" data-md-keyboard-key="breadcrumbs" href="/components/breadcrumbs"><div class="md-list-item__center">Breadcrumbs</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-12-17" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-12-17" data-md-keyboard-key="buttons" href="/components/button"><div class="md-list-item__center">Buttons</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-12-19" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-12-19" data-md-keyboard-key="button-group" href="/components/button-group"><div class="md-list-item__center">Button Group</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-12-21" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-12-21" data-md-keyboard-key="call-alerts" href="/components/alert-call"><div class="md-list-item__center">Call Alerts</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-12-23" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-12-23" data-md-keyboard-key="call-control-buttons" href="/components/call-control"><div class="md-list-item__center">Call Control Buttons</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-12-25" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-12-25" data-md-keyboard-key="cards" href="/components/cards"><div class="md-list-item__center">Cards</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-12-27" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-12-27" data-md-keyboard-key="checkbox" href="/components/checkbox"><div class="md-list-item__center">Checkbox</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-12-29" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-12-29" data-md-keyboard-key="coachmarks" href="/components/coachmark"><div class="md-list-item__center">Coachmarks</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-12-31" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-12-31" data-md-keyboard-key="combo-box" href="/components/combo-box"><div class="md-list-item__center">Combo Box</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-12-33" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-12-33" data-md-keyboard-key="content-filter" href="/components/content-filter"><div class="md-list-item__center">Content Filter</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-12-35" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-12-35" data-md-keyboard-key="data-tables" href="/components/data-table"><div class="md-list-item__center">Data Tables</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-12-37" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-12-37" data-md-keyboard-key="date-picker" href="/components/date-picker"><div class="md-list-item__center">Date Picker</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-12-39" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-12-39" data-md-keyboard-key="date-range-picker" href="/components/date-range-picker"><div class="md-list-item__center">Date Range Picker</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-12-41" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-12-41" data-md-keyboard-key="date-and-time-picker" href="/components/date-time-picker"><div class="md-list-item__center">Date and Time Picker</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-12-43" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-12-43" data-md-keyboard-key="dialog" href="/components/dialog"><div class="md-list-item__center">Dialog</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-12-45" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-12-45" data-md-keyboard-key="drawers" href="/components/drawer"><div class="md-list-item__center">Drawers</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-12-47" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-12-47" data-md-keyboard-key="editable-textfield" href="/components/editable-textfield"><div class="md-list-item__center">Editable Textfield</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-12-49" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-12-49" data-md-keyboard-key="inputs" href="/components/input"><div class="md-list-item__center">Inputs</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-12-51" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-12-51" data-md-keyboard-key="input-phone-numbers" href="/components/input-phone-number"><div class="md-list-item__center">Input (Phone Numbers)</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-12-53" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-12-53" data-md-keyboard-key="layouts" href="/components/layout-grid"><div class="md-list-item__center">Layouts</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-12-55" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-12-55" data-md-keyboard-key="lightbox" href="/components/lightbox"><div class="md-list-item__center">Lightbox</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-12-57" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-12-57" data-md-keyboard-key="lists" href="/components/list"><div class="md-list-item__center">Lists</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-12-59" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-12-59" data-md-keyboard-key="links" href="/components/link"><div class="md-list-item__center">Links</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-12-61" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-12-61" data-md-keyboard-key="loader" href="/components/loader"><div class="md-list-item__center">Loader</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-12-63" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-12-63" data-md-keyboard-key="meeting-alerts" href="/components/alert-meeting"><div class="md-list-item__center">Meeting Alerts</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-12-65" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-12-65" data-md-keyboard-key="menu" href="/components/menu"><div class="md-list-item__center">Menu</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-12-67" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-12-67" data-md-keyboard-key="modal" href="/components/modal"><div class="md-list-item__center">Modal</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-12-69" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-12-69" data-md-keyboard-key="pagination" href="/components/pagination"><div class="md-list-item__center">Pagination</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-12-71" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-12-71" data-md-keyboard-key="popover" href="/components/popover"><div class="md-list-item__center">Popover</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-12-73" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-12-73" data-md-keyboard-key="progress-bar" href="/components/progress"><div class="md-list-item__center">Progress Bar</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-12-75" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-12-75" data-md-keyboard-key="radio-button" href="/components/radio"><div class="md-list-item__center">Radio Button</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-12-77" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-12-77" data-md-keyboard-key="search-input" href="/components/input-search"><div class="md-list-item__center">Search Input</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-12-79" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-12-79" data-md-keyboard-key="select" href="/components/select"><div class="md-list-item__center">Select</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-12-81" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-12-81" data-md-keyboard-key="sidebar" href="/components/sidebar"><div class="md-list-item__center">Sidebar</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-12-83" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-12-83" data-md-keyboard-key="slider" href="/components/slider"><div class="md-list-item__center">Slider</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-12-85" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-12-85" data-md-keyboard-key="social-list" href="/components/social-list"><div class="md-list-item__center">Social-List</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-12-87" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-12-87" data-md-keyboard-key="stepper" href="/components/stepper"><div class="md-list-item__center">Stepper</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-12-89" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-12-89" data-md-keyboard-key="tabs" href="/components/tabs"><div class="md-list-item__center">Tabs</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-12-91" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-12-91" data-md-keyboard-key="time-picker" href="/components/time-picker"><div class="md-list-item__center">Time Picker</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-12-93" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-12-93" data-md-keyboard-key="toggle-switch" href="/components/toggle-switch"><div class="md-list-item__center">Toggle Switch</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-12-95" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-12-95" data-md-keyboard-key="tooltips" href="/components/tooltip"><div class="md-list-item__center">Tooltips</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-12-97" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-12-97" data-md-keyboard-key="top-bar" href="/components/top-bar"><div class="md-list-item__center">Top-Bar</div></a></div><div class="md-list-item" id="md-sidebar__nav-item-1-13" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-13" data-md-keyboard-key="charts"><div class="md-list-item__left"><i class="md-icon icon icon-analysis_20" style="font-size: 20px;"></i></div><div class="md-list-item__center">Charts</div><div class="md-list-item__right"><i class="md-icon icon icon-arrow-down_12" style="font-size: 12px;"></i></div></div><div class="md-sidebar-nav__group md-sidebar-nav__group--secondary md-sidebar-nav__group--collapsed"><div class="md-list-item" id="md-sidebar__nav-item-1-15-1" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-15-1" data-md-keyboard-key="api"><div class="md-list-item__center">Api</div><div class="md-list-item__right"><i class="md-icon icon icon-arrow-down_12" style="font-size: 12px;"></i></div></div><div class="md-sidebar-nav__group md-sidebar-nav__group--tertiary md-sidebar-nav__group--collapsed"><a class="md-list-item" id="md-sidebar__nav-item-1-15-3-1" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-15-3-1" data-md-keyboard-key="arc" href="/charts/api/arc"><div class="md-list-item__center">Arc</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-15-3-3" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-15-3-3" data-md-keyboard-key="area" href="/charts/api/area"><div class="md-list-item__center">Area</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-15-3-5" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-15-3-5" data-md-keyboard-key="axis" href="/charts/api/axis"><div class="md-list-item__center">Axis</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-15-3-7" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-15-3-7" data-md-keyboard-key="board" href="/charts/api/board"><div class="md-list-item__center">Board</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-15-3-9" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-15-3-9" data-md-keyboard-key="break" href="/charts/api/break"><div class="md-list-item__center">Break</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-15-3-11" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-15-3-11" data-md-keyboard-key="colors" href="/charts/api/colors"><div class="md-list-item__center">Colors</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-15-3-13" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-15-3-13" data-md-keyboard-key="database" href="/charts/api/database"><div class="md-list-item__center">Database</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-15-3-15" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-15-3-15" data-md-keyboard-key="event-control" href="/charts/api/eventControl"><div class="md-list-item__center">EventControl</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-15-3-17" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-15-3-17" data-md-keyboard-key="layer" href="/charts/api/layer"><div class="md-list-item__center">Layer</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-15-3-19" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-15-3-19" data-md-keyboard-key="legends" href="/charts/api/legends"><div class="md-list-item__center">Legends</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-15-3-21" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-15-3-21" data-md-keyboard-key="line" href="/charts/api/line"><div class="md-list-item__center">Line</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-15-3-23" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-15-3-23" data-md-keyboard-key="preload" href="/charts/api/preload"><div class="md-list-item__center">Preload</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-15-3-25" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-15-3-25" data-md-keyboard-key="rect" href="/charts/api/rect"><div class="md-list-item__center">Rect</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-15-3-27" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-15-3-27" data-md-keyboard-key="responsive" href="/charts/api/responsive"><div class="md-list-item__center">Responsive</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-15-3-29" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-15-3-29" data-md-keyboard-key="scale" href="/charts/api/scale"><div class="md-list-item__center">Scale</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-15-3-31" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-15-3-31" data-md-keyboard-key="shape" href="/charts/api/shape"><div class="md-list-item__center">Shape</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-15-3-33" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-15-3-33" data-md-keyboard-key="symbol" href="/charts/api/symbol"><div class="md-list-item__center">Symbol</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-15-3-35" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-15-3-35" data-md-keyboard-key="template" href="/charts/api/template"><div class="md-list-item__center">Template</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-15-3-37" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-15-3-37" data-md-keyboard-key="text" href="/charts/api/text"><div class="md-list-item__center">Text</div></a></div><div class="md-list-item" id="md-sidebar__nav-item-1-15-4" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-15-4" data-md-keyboard-key="fundamentals"><div class="md-list-item__center">Fundamentals</div><div class="md-list-item__right"><i class="md-icon icon icon-arrow-down_12" style="font-size: 12px;"></i></div></div><div class="md-sidebar-nav__group md-sidebar-nav__group--tertiary md-sidebar-nav__group--collapsed"><a class="md-list-item" id="md-sidebar__nav-item-1-15-6-1" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-15-6-1" data-md-keyboard-key="data-management" href="/charts/fundamentals/dataManagement"><div class="md-list-item__center">DataManagement</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-15-6-3" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-15-6-3" data-md-keyboard-key="dom-structor" href="/charts/fundamentals/domStructor"><div class="md-list-item__center">DomStructor</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-15-6-5" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-15-6-5" data-md-keyboard-key="event-control" href="/charts/fundamentals/eventControl"><div class="md-list-item__center">EventControl</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-15-6-7" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-15-6-7" data-md-keyboard-key="generator" href="/charts/fundamentals/generator"><div class="md-list-item__center">Generator</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-15-6-9" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-15-6-9" data-md-keyboard-key="life-circle" href="/charts/fundamentals/lifeCircle"><div class="md-list-item__center">LifeCircle</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-15-6-11" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-15-6-11" data-md-keyboard-key="modify" href="/charts/fundamentals/modify"><div class="md-list-item__center">Modify</div></a></div><div class="md-list-item" id="md-sidebar__nav-item-1-15-7" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-15-7" data-md-keyboard-key="getting-started"><div class="md-list-item__center">Getting started</div><div class="md-list-item__right"><i class="md-icon icon icon-arrow-down_12" style="font-size: 12px;"></i></div></div><div class="md-sidebar-nav__group md-sidebar-nav__group--tertiary md-sidebar-nav__group--collapsed"><a class="md-list-item" id="md-sidebar__nav-item-1-15-9-1" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-15-9-1" data-md-keyboard-key="your-first-chart" href="/charts/getting_started/yourFirstChart"><div class="md-list-item__center">YourFirstChart</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-15-9-3" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-15-9-3" data-md-keyboard-key="add-more-charts" href="/charts/getting_started/addMoreCharts"><div class="md-list-item__center">AddMoreCharts</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-15-9-5" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-15-9-5" data-md-keyboard-key="use-momentum-colors" href="/charts/getting_started/useMomentumColors"><div class="md-list-item__center">UseMomentumColors</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-15-9-7" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-15-9-7" data-md-keyboard-key="axis-and-scale" href="/charts/getting_started/axisAndScale"><div class="md-list-item__center">AxisAndScale</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-15-9-9" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-15-9-9" data-md-keyboard-key="make-legends" href="/charts/getting_started/makeLegends"><div class="md-list-item__center">MakeLegends</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-15-9-11" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-15-9-11" data-md-keyboard-key="add-animation" href="/charts/getting_started/addAnimation"><div class="md-list-item__center">AddAnimation</div></a><a class="md-list-item" id="md-sidebar__nav-item-1-15-9-13" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-15-9-13" data-md-keyboard-key="responsive-design" href="/charts/getting_started/responsiveDesign"><div class="md-list-item__center">ResponsiveDesign</div></a></div><div class="md-list-item" id="md-sidebar__nav-item-1-15-10" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-15-10" data-md-keyboard-key="template"><div class="md-list-item__center">Template</div><div class="md-list-item__right"><i class="md-icon icon icon-arrow-down_12" style="font-size: 12px;"></i></div></div><div class="md-sidebar-nav__group md-sidebar-nav__group--tertiary md-sidebar-nav__group--collapsed"><a class="md-list-item" id="md-sidebar__nav-item-1-15-12-1" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-15-12-1" data-md-keyboard-key="overview" href="/charts/template/overview"><div class="md-list-item__center">Overview</div></a></div></div></div></div></div></div></div></nav></div><div class="md-tb-mobile__mask" role="none"></div></div></div></div>#}
+
+            <header class="md-top-bar md-top-bar--dark" role="navigation">
+                <div class="md-top-bar__container">
+                    <div class="md-top-bar__brand">
+                        <span class="md-brand" href="/home">
+                            <div class="md-brand__logo md-brand__logo--pad">
+                                <!-- Note: use either image or icon, but not both -->
+                                <!-- img src="/assets/spark-logo.svg" alt="Momentum UI" -->
+                                <i class="icon icon-cisco-logo" style="z-index:99999"></i>
+                            </div>
+                            <div class="md-brand__title" style="z-index:99999">Adaptive Policy Sync</div>
+                        </span>
+                    </div>
+
+                    <div class="md-tb-mobile__mask" role="none"></div>
+                </div>
+            </header>
+
+            <div class="md-sidebar__wrapper md-sidebar__wrapper--fixed docs-side-nav">
+                <div class="md-sidebar md-sidebar--dark md-sidebar--fixed md-sidebar--global md-sidebar--indented md-sidebar--nested">
+{#                <div class="md-sidebar md-sidebar--dark md-sidebar--global md-sidebar--nested md-sidebar--expanded">#}
+                    <div class="md-sidebar__header"></div>
+                    <div class="md-sidebar__header"></div>
+                    <div class="md-sidebar__body">
+                        <div class="md-sidebar-nav">
+                            <div class="md-list md-list--vertical md-sidebar-nav__group md-sidebar-nav__group--primary" role="list">
+                                <a href="/home" class="md-list-item" role="listitem" id="md-sidebar__nav-item-1-9" data-md-event-key="md-sidebar__nav-item-1-9">
+                                    <div class="md-list-item__left">
+                                        <i class="md-icon icon icon-house_16" style="font-size: 20px;"></i>
+                                    </div>
+                                    <div class="md-list-item__center">Home</div>
+                                </a>
+                                <div class="md-list-item" id="md-sidebar__nav-item-1-1" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-1" data-md-keyboard-key="current-status" onclick="toggleMenu('statusmenu');">
+                                    <div class="md-list-item__left">
+                                        <i class="md-icon icon icon-launch_20" style="font-size: 20px;"></i>
+                                    </div>
+                                    <div class="md-list-item__center">Status</div>
+                                    <div class="md-list-item__right">
+                                        <i class="md-icon icon icon-arrow-down_12" style="font-size: 12px;"></i>
+                                    </div>
+                                </div>
+                                {% if menuopen == 1 %}
+                                    <div id="statusmenu" class="md-sidebar-nav__group md-sidebar-nav__group--secondary md-sidebar-nav__group--expanded">
+                                {% else %}
+                                    <div id="statusmenu" class="md-sidebar-nav__group md-sidebar-nav__group--secondary md-sidebar-nav__group--collapsed">
+                                {% endif %}
+                                    <a class="md-list-item" id="md-sidebar__nav-item-1-3-1" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-3-1" data-md-keyboard-key="sgts" href="/home/status-sgt">
+                                        <div class="md-list-item__center">SGTs</div>
+                                    </a>
+                                    <a class="md-list-item" id="md-sidebar__nav-item-1-3-3" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-3-3" data-md-keyboard-key="sgacls" href="/home/status-sgacl">
+                                        <div class="md-list-item__center">SGACLs</div>
+                                    </a>
+                                    <a class="md-list-item" id="md-sidebar__nav-item-1-3-5" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-3-5" data-md-keyboard-key="policies" href="/home/status-policy">
+                                        <div class="md-list-item__center">Egress Policies</div>
+                                    </a>
+                                </div>
+                                <div class="md-list-item" id="md-sidebar__nav-item-1-4" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-4" data-md-keyboard-key="configuration" onclick="toggleMenu('configmenu');">
+                                    <div class="md-list-item__left">
+                                        <i class="md-icon icon icon-area-selector_20" style="font-size: 20px;"></i>
+                                    </div>
+                                    <div class="md-list-item__center">Configuration</div>
+                                    <div class="md-list-item__right">
+                                        <i class="md-icon icon icon-arrow-down_12" style="font-size: 12px;"></i>
+                                    </div>
+                                </div>
+                                {% if menuopen == 2 %}
+                                    <div id="configmenu" class="md-sidebar-nav__group md-sidebar-nav__group--secondary md-sidebar-nav__group--expanded">
+                                {% else %}
+                                    <div id="configmenu" class="md-sidebar-nav__group md-sidebar-nav__group--secondary md-sidebar-nav__group--collapsed">
+                                {% endif %}
+                                    <a class="md-list-item" id="md-sidebar__nav-item-1-6-1" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-6-1" data-md-keyboard-key="ise-cert" href="/home/config-cert">
+                                        <div class="md-list-item__center">ISE Certificates</div>
+                                    </a>
+                                    <a class="md-list-item" id="md-sidebar__nav-item-1-6-3" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-6-3" data-md-keyboard-key="ise-server" href="/home/config-ise">
+                                        <div class="md-list-item__center">ISE Server</div>
+                                    </a>
+                                    <a class="md-list-item" id="md-sidebar__nav-item-1-6-5" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-6-5" data-md-keyboard-key="meraki-dashboard" href="/home/config-meraki">
+                                        <div class="md-list-item__center">Meraki Dashboard</div>
+                                    </a>
+                                    <a class="md-list-item" id="md-sidebar__nav-item-1-6-7" role="listitem" tabindex="-1" data-md-event-key="md-sidebar__nav-item-1-6-7" data-md-keyboard-key="synchronization" href="/home/config-sync">
+                                        <div class="md-list-item__center">Synchronization</div>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <ul class="md-breadcrumbs" style="grid-area: tabs;">
+{#                <li><a href="javascript:void(0)">Home</a></li>#}
+{#                <li><a href="javascript:void(0)">Library</a></li>#}
+{#                <li class="current">Data</li>#}
+                {{ crumbs|safe }}
+            </ul>
+
+
+{#            <div class="md-page-header md-page-header--left"><div class="md-page-header__container "><div class="md-page-header__title">Components</div><h4 class="md-page-header__lead">Our basic building blocks for designing user interfaces. We provide usage guidelines and code snippets for each component.</h4></div><div style="position: fixed; display: none; z-index: 1200; top: 0px;" class="md-page-header__container "><div class="md-page-header__title">Components</div><h4 class="md-page-header__lead">Our basic building blocks for designing user interfaces. We provide usage guidelines and code snippets for each component.</h4></div></div>#}
+            <div class="docs-content-area">
+                <div class="docs-content-area docs-content-area">
+                    <div class="docs-content__column row">
+                        <div class="docs-section" id="default">
+                            {% block content %}
+                            {% endblock %}
+                        </div>
+                    </div>
+                    <div class="docs-content__nav"><div class="md-page-links__container" style="top: 400px;"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+{#    <div class="md-panel__footer">#}
+{#        <div class="footer__logo">#}
+{#            <i class="icon icon-cisco-logo"></i>#}
+{#        </div>#}
+{#    </div>#}
+    <script>
+        document.body.addEventListener("click", function (evt) {
+            if (evt.target) {
+                if (evt.target.className.split(' ').indexOf("ignore") >= 0) {
+                    // Don't close the menu if someone is trying to click on it
+                } else {
+                    // If you click on something other than a menu, close all menus
+                    let all = document.getElementsByTagName("*");
+                    for (let i=0, max=all.length; i < max; i++) {
+                        if (all[i].id) {
+                            if (all[i].id.search("dropdown") >= 0) {
+                                {#console.log(all[i].id);#}
+                                all[i].style.display = "none";
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+    </body>
+</html>

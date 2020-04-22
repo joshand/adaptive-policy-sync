@@ -12,7 +12,7 @@ class UploadZipSerializer(serializers.ModelSerializer):
 class UploadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Upload
-        fields = ('id', 'url', 'description', 'file', 'uploaded_at')
+        fields = ('id', 'url', 'description', 'file', 'filename', 'systemcert', 'uploaded_at')
 
 
 class DashboardSerializer(serializers.ModelSerializer):
@@ -76,7 +76,7 @@ class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
         fields = ('id', 'url', 'name', 'description', 'do_sync', 'syncsession', 'tag_number', 'meraki_id', 'ise_id', 'meraki_data', 'ise_data', 'last_update', 'last_update_data', 'push_delete', 'in_sync', 'match_report', 'update_dest', 'push_config')
-        read_only_fields = ('id', 'url', 'meraki_id', 'ise_id', 'meraki_data', 'ise_data', 'last_update', 'last_update_data', 'push_delete', 'in_sync', 'match_report', 'update_dest', 'push_config')
+        read_only_fields = ('id', 'url', 'meraki_id', 'ise_id', 'meraki_data', 'ise_data', 'last_update', 'last_update_data', 'push_delete', 'in_sync', 'match_report', 'update_dest', 'push_config', 'cleaned_name')
 
     def __init__(self, *args, **kwargs):
         super(TagSerializer, self).__init__(*args, **kwargs)

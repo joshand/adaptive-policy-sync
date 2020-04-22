@@ -7,6 +7,10 @@ from sync.models import *
 
 
 def run_tasks():
+    skiptasks = os.getenv('SKIPTASKS')
+    if skiptasks and skiptasks.upper() == "TRUE":
+        print("Skipping tasks because 'SKIPTASKS' environment variable set.")
+        return None
     # Enable the job scheduler to run schedule jobs
     cron = BackgroundScheduler()
 

@@ -193,8 +193,9 @@ def merge_sgpolicies(src, sgpolicies, is_base, sync_session, log=None):
         if src == "meraki":
             p_src = Tag.objects.filter(meraki_id=s["srcGroupId"])
             p_dst = Tag.objects.filter(meraki_id=s["dstGroupId"])
-            binding_name = str(p_src[0].tag_number) + "-" + str(p_dst[0].tag_number)
-            binding_desc = str(p_src[0].name) + "-" + str(p_dst[0].name)
+            if len(p_src) > 0 and len(p_dst) > 0:
+                binding_name = str(p_src[0].tag_number) + "-" + str(p_dst[0].tag_number)
+                binding_desc = str(p_src[0].name) + "-" + str(p_dst[0].name)
         elif src == "ise":
             p_src = Tag.objects.filter(ise_id=s["sourceSgtId"])
             p_dst = Tag.objects.filter(ise_id=s["destinationSgtId"])

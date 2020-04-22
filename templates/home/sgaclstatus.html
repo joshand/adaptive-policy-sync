@@ -1,0 +1,36 @@
+{% extends 'home/base.html' %}
+
+{% block content %}
+    <div class="md-data-table" style="width: 100%;">
+        <div class="md-data-table__wrapper">
+            <table class="testTableClass">
+                <thead class="md-data-table__thead">
+                    <tr>
+                        <th style="width: 8rem">Name</th>
+                        <th style="width: 12rem">Description</th>
+                        <th style="width: 6rem">Valid?</th>
+                        <th style="width: 6rem">Matches?</th>
+                        <th style="width: 12rem">Last Update</th>
+                        <th style="width: 16rem">ID</th>
+                    </tr>
+                </thead>
+                <tbody class="md-data-table__tbody">
+                    {% for d in data.sgacl %}
+                        <tr><td> {{ d.name }} </td><td> {{ d.description }} </td>
+                        {% if d.is_valid_config %}
+                            <td style="background-color:#55dd55"> {{ d.is_valid_config }} </td>
+                        {% else %}
+                            <td style="background-color:#dd5555"> {{ d.is_valid_config }} </td>
+                        {% endif %}
+                        {% if d.in_sync %}
+                            <td style="background-color:#55dd55"> {{ d.in_sync }} </td>
+                        {% else %}
+                            <td style="background-color:#dd5555"> {{ d.in_sync }} </td>
+                        {% endif %}
+                        <td> {{ d.last_update }} </td><td><a href="{{ request.url }}?id={{ d.id }}"> {{ d.id }} </a></td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

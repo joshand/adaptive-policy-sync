@@ -21,6 +21,7 @@ from rest_framework.authtoken.views import obtain_auth_token
 from rest_framework.schemas import get_schema_view
 from rest_framework.renderers import JSONOpenAPIRenderer
 from sync import views
+from . import views as apsyncviews
 from adaptive_policy_sync import tasks
 tasks.run_tasks()
 from scripts.dashboard_webhook import process_webhook
@@ -46,4 +47,22 @@ urlpatterns = [
     path('api/v0/schema/', schema_view),
     path('webhook/', process_webhook),
     path(r'api/v0/', include(router.urls)),
+    path('', apsyncviews.dolanding, name='landing'),
+    url(r'^orgs/$', apsyncviews.getmerakiorgs, name='getmerakiorgs'),
+    url(r'^setup/$', apsyncviews.setup, name='setup'),
+    url(r'^setup/ise$', apsyncviews.setupise, name='setupise'),
+    url(r'^setup/isenext$', apsyncviews.setupisenext, name='setupisenext'),
+    url(r'^setup/isecert$', apsyncviews.setupcert, name='setupisecert'),
+    url(r'^setup/isepxgrid$', apsyncviews.setuppxgrid, name='setupisepxgrid'),
+    url(r'^setup/meraki$', apsyncviews.setupmeraki, name='setupmeraki'),
+    url(r'^setup/sync$', apsyncviews.setupsync, name='setupsync'),
+    url(r'^setup/done$', apsyncviews.setupdone, name='setupdone'),
+    url(r'^home$', apsyncviews.home, name='home'),
+    url(r'^home/status-sgt$', apsyncviews.sgtstatus, name='sgtstatus'),
+    url(r'^home/status-sgacl$', apsyncviews.sgaclstatus, name='sgaclstatus'),
+    url(r'^home/status-policy$', apsyncviews.policystatus, name='policystatus'),
+    url(r'^home/config-cert$', apsyncviews.certconfig, name='certconfig'),
+    url(r'^home/config-ise$', apsyncviews.iseconfig, name='iseconfig'),
+    url(r'^home/config-meraki$', apsyncviews.merakiconfig, name='merakiconfig'),
+    url(r'^home/config-sync$', apsyncviews.syncconfig, name='syncconfig'),
 ]
