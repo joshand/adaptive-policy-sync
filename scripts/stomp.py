@@ -1,6 +1,3 @@
-import io
-
-
 class StompFrame:
     def __init__(self):
         self.headers = {}
@@ -39,14 +36,14 @@ class StompFrame:
         out.write('\0')
 
     @staticmethod
-    def parse(input):
+    def parse(datainput):
         frame = StompFrame()
-        frame.command = input.readline().rstrip('\r\n')
-        for line in input:
+        frame.command = datainput.readline().rstrip('\r\n')
+        for line in datainput:
             line = line.rstrip('\r\n')
             if line == '':
                 break
             (name, value) = line.split(':')
             frame.headers[name] = value
-        frame.content = input.read()[:-1]
+        frame.content = datainput.read()[:-1]
         return frame

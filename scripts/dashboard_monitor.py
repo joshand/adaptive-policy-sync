@@ -1,14 +1,14 @@
 import atexit
 from apscheduler.schedulers.background import BackgroundScheduler
-from sync.models import *
+from sync.models import SyncSession, Tag, ACL, Policy
 from django.db.models import F, Q
 from django.utils.timezone import make_aware
 import meraki
 import requests
-import json
 import datetime
-from scripts.db_trustsec import *
-from scripts.dblog import *
+import json
+from scripts.db_trustsec import clean_sgts, clean_sgacls, clean_sgpolicies, merge_sgts, merge_sgacls, merge_sgpolicies
+from scripts.dblog import append_log, db_log
 
 
 def meraki_read_sgt(baseurl, orgid, headers):
@@ -117,7 +117,8 @@ def sync_dashboard_accounts(accounts, log):
                     if o.push_delete:
                         o.delete()
                 else:
-                    append_log(log, "dashboard_monitor::sync_dashboard_accounts::policy needs API push", o.push_config())
+                    append_log(log, "dashboard_monitor::sync_dashboard_accounts::policy needs API push",
+                               o.push_config())
             elif o.push_delete:
                 o.delete()
 
@@ -169,8 +170,8 @@ def run():
     # Explicitly kick off the background thread
     cron.start()
     cron.remove_all_jobs()
-    job0 = cron.add_job(sync_dashboard)
-    job1 = cron.add_job(sync_dashboard, 'interval', seconds=10)
+    cron.add_job(sync_dashboard)
+    cron.add_job(sync_dashboard, 'interval', seconds=10)
 
     # Shutdown your cron thread if the web process is stopped
     atexit.register(lambda: cron.shutdown(wait=False))

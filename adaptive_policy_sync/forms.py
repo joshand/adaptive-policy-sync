@@ -1,5 +1,5 @@
 from django import forms
-from sync.models import *
+from sync.models import UploadZip
 
 
 class UploadForm(forms.Form):
@@ -9,4 +9,3 @@ class UploadForm(forms.Form):
     class Meta:
         model = UploadZip
         fields = ('description', 'file')
-

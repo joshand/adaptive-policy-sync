@@ -9,6 +9,6 @@ register = template.Library()
 def pretty_json(value):
     try:
         j = json.dumps(json.loads(value), indent=4)
-    except:
+    except Exception:
         j = value
     return j

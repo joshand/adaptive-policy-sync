@@ -2,9 +2,8 @@ from django.db import models
 import django.utils.timezone
 import uuid
 import json
-from django.db.models.signals import post_save, pre_delete
+from django.db.models.signals import post_save
 from django.dispatch import receiver
-from django.utils.timezone import make_aware
 import datetime
 import zipfile
 from io import BytesIO
@@ -63,7 +62,7 @@ def post_save_uploadzip(sender, instance=None, created=False, **kwargs):
         if libitem.startswith('__MACOSX/'):
             continue
         fn = "upload/" + libitem
-        filecontent = open(fn, 'wb').write(unzipped.read(libitem))
+        open(fn, 'wb').write(unzipped.read(libitem))
         i = Upload.objects.create(description=instance.description + "-" + fn, file=fn)
         i.save()
 
@@ -116,9 +115,9 @@ class Upload(models.Model):
         try:
             try:
                 return self.file.read().decode("utf-8")
-            except:
+            except Exception:
                 return self.file.read()
-        except:
+        except Exception:
             return self.file
 
     def fspath(self):
@@ -156,7 +155,7 @@ def auto_delete_upload_on_delete(sender, instance, **kwargs):
 
 
 @receiver(models.signals.pre_save, sender=Upload)
-def auto_delete_uploadzip_on_change(sender, instance, **kwargs):
+def auto_delete_upload_on_change(sender, instance, **kwargs):
     """
     Deletes old file from filesystem
     when corresponding `Upload` object is updated
@@ -220,11 +219,16 @@ class ISEServer(models.Model):
     last_sync = models.DateTimeField(null=True, default=None, blank=True)
     pxgrid_enable = models.BooleanField(default=False, editable=True)
     pxgrid_ip = models.CharField("pxGrid Node IP or FQDN", max_length=64, null=True, blank=True, default=None)
-    pxgrid_cliname = models.CharField(max_length=64, null=True, blank=True, default=None, verbose_name="pxGrid Client Name")
-    pxgrid_clicert = models.ForeignKey(Upload, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="pxGrid Client Chain (.cer)", related_name='pxgrid_clicert')
-    pxgrid_clikey = models.ForeignKey(Upload, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="pxGrid Client Key (.key)", related_name='pxgrid_clikey')
-    pxgrid_clipw = models.CharField(max_length=64, null=True, blank=True, default=None, verbose_name="pxGrid Client Key Password")
-    pxgrid_isecert = models.ForeignKey(Upload, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="pxGrid Server Cert (.cer)", related_name='pxgrid_isecert')
+    pxgrid_cliname = models.CharField(max_length=64, null=True, blank=True, default=None,
+                                      verbose_name="pxGrid Client Name")
+    pxgrid_clicert = models.ForeignKey(Upload, on_delete=models.SET_NULL, null=True, blank=True,
+                                       verbose_name="pxGrid Client Chain (.cer)", related_name='pxgrid_clicert')
+    pxgrid_clikey = models.ForeignKey(Upload, on_delete=models.SET_NULL, null=True, blank=True,
+                                      verbose_name="pxGrid Client Key (.key)", related_name='pxgrid_clikey')
+    pxgrid_clipw = models.CharField(max_length=64, null=True, blank=True, default=None,
+                                    verbose_name="pxGrid Client Key Password")
+    pxgrid_isecert = models.ForeignKey(Upload, on_delete=models.SET_NULL, null=True, blank=True,
+                                       verbose_name="pxGrid Server Cert (.cer)", related_name='pxgrid_isecert')
 
     class Meta:
         verbose_name = "ISE Server"
@@ -305,7 +309,6 @@ class Tag(models.Model):
 
     def match_report(self, bool_only=False):
         outtxt = ""
-        ret_bool = True
         if self.ise_id and self.ise_data and self.meraki_id and self.meraki_data:
             mdata = json.loads(self.meraki_data)
             idata = json.loads(self.ise_data)
@@ -318,7 +321,7 @@ class Tag(models.Model):
             outtxt += "cleaned name:" + str(name_match_cl) + "\n"
             outtxt += "description:" + str(desc_match) + "\n"
             if self.tag_number == 2:
-                outtxt += "\n" + "note:this tag (2) will always return Matches:True. we don't want to sync it.".upper() + "\n"
+                outtxt += "\n" + "NOTE:THIS TAG (2) WILL ALWAYS RETURN Matches:True. WE DO NOT WANT TO SYNC IT." + "\n"
                 if bool_only:
                     return True
             outtxt += "delete?:" + str(self.push_delete) + "\n"
@@ -366,20 +369,26 @@ class Tag(models.Model):
                 thismeth = "POST"
                 url = "https://" + self.syncsession.iseserver.ipaddress + ":9060/ers/config/sgt"
 
-            return thismeth, url, json.dumps({"Sgt": {"name": self.cleaned_name(), "description": self.description, "value": self.tag_number, "propogateToApic": False, "defaultSGACLs": []}})
+            return thismeth, url, json.dumps({"Sgt": {"name": self.cleaned_name(), "description": self.description,
+                                                      "value": self.tag_number, "propogateToApic": False,
+                                                      "defaultSGACLs": []}})
         elif d == "meraki":
             if self.push_delete:
                 thismeth = "DELETE"
-                url = self.syncsession.dashboard.baseurl + "/organizations/" + str(self.syncsession.dashboard.orgid) + "/adaptivePolicy/groups/" + self.meraki_id
+                url = self.syncsession.dashboard.baseurl + "/organizations/" + str(self.syncsession.dashboard.orgid) +\
+                    "/adaptivePolicy/groups/" + self.meraki_id
                 return thismeth, url, None
             elif self.meraki_id is not None and self.meraki_id != "":
                 thismeth = "PUT"
-                url = self.syncsession.dashboard.baseurl + "/organizations/" + str(self.syncsession.dashboard.orgid) + "/adaptivePolicy/groups/" + self.meraki_id
+                url = self.syncsession.dashboard.baseurl + "/organizations/" + str(self.syncsession.dashboard.orgid) +\
+                    "/adaptivePolicy/groups/" + self.meraki_id
             else:
                 thismeth = "POST"
-                url = self.syncsession.dashboard.baseurl + "/organizations/" + str(self.syncsession.dashboard.orgid) + "/adaptivePolicy/groups"
+                url = self.syncsession.dashboard.baseurl + "/organizations/" + str(self.syncsession.dashboard.orgid) +\
+                    "/adaptivePolicy/groups"
 
-            return thismeth, url, json.dumps({"value": self.tag_number, "name": self.name, "description": self.description})
+            return thismeth, url, json.dumps({"value": self.tag_number, "name": self.name,
+                                              "description": self.description})
 
         return "", "", ""
 
@@ -412,7 +421,7 @@ class ACL(models.Model):
         verbose_name_plural = "ACLs"
 
     def __str__(self):
-        return self.name +  " -- Valid:" + str(self.is_valid_config()) + " -- Matches:" + str(self.in_sync())
+        return self.name + " -- Valid:" + str(self.is_valid_config()) + " -- Matches:" + str(self.in_sync())
 
     def in_sync(self):
         return self.match_report(bool_only=True)
@@ -439,7 +448,7 @@ class ACL(models.Model):
         if mode == "compare":
             outtxt = ""
             for r in rule_list:
-                if r["policy"] == None:
+                if r["policy"] is None:
                     return ""
                 elif r["policy"] == "allow":
                     outtxt += "permit "
@@ -538,7 +547,8 @@ class ACL(models.Model):
                             this_dst = str(the_range[0]) + "-" + str(the_range[1])
                         else:
                             this_dst = ",".join(the_range)
-                    outr_list.append({"policy": this_pol, "protocol": this_proto, "srcPort": this_src, "dstPort": this_dst})
+                    outr_list.append({"policy": this_pol, "protocol": this_proto, "srcPort": this_src,
+                                      "dstPort": this_dst})
             return outr_list
 
         return ""
@@ -570,7 +580,8 @@ class ACL(models.Model):
             test_ise_acl_3 = self.normalize_ise_rules(test_ise_acl_2)
             ise_valid_config = test_ise_acl_1 == test_ise_acl_3
             # print(test_ise_acl_1, test_ise_acl_2, len(test_ise_acl_1), len(test_ise_acl_2), ise_valid_config)
-            outtxt += "----Filtered ISE Config:\n" + test_ise_acl_1 + "\n----Converted ISE Config:\n" + test_ise_acl_3 + "\n----\n"
+            outtxt += "----Filtered ISE Config:\n" + test_ise_acl_1 + "\n----Converted ISE Config:\n" +\
+                test_ise_acl_3 + "\n----\n"
             outtxt += "ise_valid_acl?:" + str(ise_valid_config) + "\n"
 
             outtxt += "meraki_acl:" + self.normalize_meraki_rules(mdata["rules"]) + "\n"
@@ -591,7 +602,6 @@ class ACL(models.Model):
 
     def is_valid_config(self):
         if self.ise_id and self.ise_data and self.meraki_id and self.meraki_data:
-            mdata = json.loads(self.meraki_data)
             idata = json.loads(self.ise_data)
 
             test_ise_acl_1 = self.normalize_ise_rules(idata["aclcontent"]).strip().replace("\n", ";")
@@ -663,20 +673,26 @@ class ACL(models.Model):
                 thismeth = "POST"
                 url = "https://" + self.syncsession.iseserver.ipaddress + ":9060/ers/config/sgacl"
 
-            return thismeth, url, json.dumps({"Sgacl": {"name": self.name, "description": self.description, "ipVersion": self.get_version(d), "readOnly": False, "aclcontent": self.get_rules(d)}}) #.replace("\\n", "\n")
+            return thismeth, url, json.dumps({"Sgacl": {"name": self.name, "description": self.description,
+                                                        "ipVersion": self.get_version(d), "readOnly": False,
+                                                        "aclcontent": self.get_rules(d)}})  # .replace("\\n", "\n")
         elif d == "meraki":
             if self.push_delete:
                 thismeth = "DELETE"
-                url = self.syncsession.dashboard.baseurl + "/organizations/" + str(self.syncsession.dashboard.orgid) + "/adaptivePolicy/acls/" + self.meraki_id
+                url = self.syncsession.dashboard.baseurl + "/organizations/" + str(self.syncsession.dashboard.orgid) +\
+                    "/adaptivePolicy/acls/" + self.meraki_id
                 return thismeth, url, None
             elif self.meraki_id is not None and self.meraki_id != "":
                 thismeth = "PUT"
-                url = self.syncsession.dashboard.baseurl + "/organizations/" + str(self.syncsession.dashboard.orgid) + "/adaptivePolicy/acls/" + self.meraki_id
+                url = self.syncsession.dashboard.baseurl + "/organizations/" + str(self.syncsession.dashboard.orgid) +\
+                    "/adaptivePolicy/acls/" + self.meraki_id
             else:
                 thismeth = "POST"
-                url = self.syncsession.dashboard.baseurl + "/organizations/" + str(self.syncsession.dashboard.orgid) + "/adaptivePolicy/acls"
+                url = self.syncsession.dashboard.baseurl + "/organizations/" + str(self.syncsession.dashboard.orgid) +\
+                    "/adaptivePolicy/acls"
 
-            return thismeth, url, json.dumps({"name": self.name, "description": self.description, "ipVersion": self.get_version(d), "rules": self.get_rules(d)})
+            return thismeth, url, json.dumps({"name": self.name, "description": self.description,
+                                              "ipVersion": self.get_version(d), "rules": self.get_rules(d)})
 
         return "", "", ""
 
@@ -892,10 +908,13 @@ class Policy(models.Model):
                 thismeth = "POST"
                 url = "https://" + self.syncsession.iseserver.ipaddress + ":9060/ers/config/egressmatrixcell"
 
-            return thismeth, url, json.dumps({"EgressMatrixCell": {"sourceSgtId": src, "destinationSgtId": dst, "matrixCellStatus": "ENABLED", "defaultRule": self.get_catchall(d), "sgacls": acl}})
+            return thismeth, url, json.dumps({"EgressMatrixCell": {"sourceSgtId": src, "destinationSgtId": dst,
+                                                                   "matrixCellStatus": "ENABLED",
+                                                                   "defaultRule": self.get_catchall(d), "sgacls": acl}})
         elif d == "meraki":
             thismeth = "PUT"
-            url = self.syncsession.dashboard.baseurl + "/organizations/" + str(self.syncsession.dashboard.orgid) + "/adaptivePolicy/bindings"
+            url = self.syncsession.dashboard.baseurl + "/organizations/" + str(self.syncsession.dashboard.orgid) +\
+                "/adaptivePolicy/bindings"
 
             if self.push_delete:
                 return thismeth, url, json.dumps({

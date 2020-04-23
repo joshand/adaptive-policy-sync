@@ -1,16 +1,16 @@
 import atexit
 from apscheduler.schedulers.background import BackgroundScheduler
-from sync.models import *
+from sync.models import SyncSession, Tag, ACL, Policy
 from django.db.models import F, Q
 from django.utils.timezone import make_aware
 import json
 import datetime
 import requests
 import base64
+from scripts.db_trustsec import clean_sgts, clean_sgacls, clean_sgpolicies, merge_sgts, merge_sgacls, merge_sgpolicies
+from scripts.dblog import append_log, db_log
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-from scripts.db_trustsec import *
-from scripts.dblog import *
 
 
 def ers_get(hostorip, url, un, pw):
@@ -169,8 +169,8 @@ def run():
     # Explicitly kick off the background thread
     cron.start()
     cron.remove_all_jobs()
-    job0 = cron.add_job(sync_ise)
-    job1 = cron.add_job(sync_ise, 'interval', seconds=10)
+    cron.add_job(sync_ise)
+    cron.add_job(sync_ise, 'interval', seconds=10)
 
     # Shutdown your cron thread if the web process is stopped
     atexit.register(lambda: cron.shutdown(wait=False))

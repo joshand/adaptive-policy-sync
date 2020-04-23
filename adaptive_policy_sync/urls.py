@@ -22,9 +22,9 @@ from rest_framework.schemas import get_schema_view
 from rest_framework.renderers import JSONOpenAPIRenderer
 from sync import views
 from . import views as apsyncviews
+from scripts.dashboard_webhook import process_webhook
 from adaptive_policy_sync import tasks
 tasks.run_tasks()
-from scripts.dashboard_webhook import process_webhook
 
 router = routers.DefaultRouter()
 router.register(r'uploadzip', views.UploadZipViewSet)
@@ -57,7 +57,8 @@ urlpatterns = [
     url(r'^setup/meraki$', apsyncviews.setupmeraki, name='setupmeraki'),
     url(r'^setup/sync$', apsyncviews.setupsync, name='setupsync'),
     url(r'^setup/done$', apsyncviews.setupdone, name='setupdone'),
-    url(r'^home$', apsyncviews.home, name='home'),
+    # url(r'^home$', apsyncviews.home, name='home'),
+    path('home/', apsyncviews.home, name='home'),
     url(r'^home/status-sgt$', apsyncviews.sgtstatus, name='sgtstatus'),
     url(r'^home/status-sgacl$', apsyncviews.sgaclstatus, name='sgaclstatus'),
     url(r'^home/status-policy$', apsyncviews.policystatus, name='policystatus'),

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from sync.models import *
+from sync.models import UploadZip, Upload, Dashboard, ISEServer, SyncSession, Tag, ACL, Policy, Task
 
 
 class DashboardAdmin(admin.ModelAdmin):
@@ -11,7 +11,8 @@ class ISEServerAdmin(admin.ModelAdmin):
 
 
 class TagAdmin(admin.ModelAdmin):
-    readonly_fields = ('cleaned_name', 'last_update', 'last_update_data', 'match_report', 'push_delete', 'update_dest', 'push_config')
+    readonly_fields = ('cleaned_name', 'last_update', 'last_update_data', 'match_report', 'push_delete', 'update_dest',
+                       'push_config')
     # readonly_fields = ('last_update', 'last_update_data', 'match_report', 'update_dest', 'push_config')
 
 

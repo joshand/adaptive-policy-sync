@@ -1,7 +1,7 @@
-from sync.models import *
-from django.shortcuts import redirect, reverse, render
+from sync.models import ISEServer, Upload, UploadZip, Dashboard, Tag, ACL, Policy, SyncSession
+from django.shortcuts import redirect, render
 from django.http import JsonResponse
-from .forms import *
+from .forms import UploadForm
 import meraki
 
 
@@ -215,7 +215,11 @@ def sgtstatus(request):
         if len(sgts) == 1:
             sgt = sgts[0]
             desc = sgt.name + " (" + str(sgt.tag_number) + ")"
-            crumbs = '<li class="current">Status</li><li><a href="/home/status-sgt">SGTs</a></li><li class="current">' + desc + '</li>'
+            crumbs = '''
+                <li class="current">Status</li>
+                <li><a href="/home/status-sgt">SGTs</a></li>
+                <li class="current">''' + desc + '''</li>
+            '''
             return render(request, 'home/showsgt.html', {"crumbs": crumbs, "menuopen": 1, "data": sgt})
 
     sgts = Tag.objects.all()
@@ -230,7 +234,11 @@ def sgaclstatus(request):
         if len(sgacls) == 1:
             sgacl = sgacls[0]
             desc = sgacl.name
-            crumbs = '<li class="current">Status</li><li><a href="/home/status-sgacl">SGACLs</a></li><li class="current">' + desc + '</li>'
+            crumbs = '''
+                <li class="current">Status</li>
+                <li><a href="/home/status-sgacl">SGACLs</a></li>
+                <li class="current">''' + desc + '''</li>
+            '''
             return render(request, 'home/showsgacl.html', {"crumbs": crumbs, "menuopen": 1, "data": sgacl})
 
     sgacls = ACL.objects.all()
@@ -245,7 +253,11 @@ def policystatus(request):
         if len(policies) == 1:
             policy = policies[0]
             desc = policy.name + " (" + str(policy.mapping) + ")"
-            crumbs = '<li class="current">Status</li><li><a href="/home/status-policy">Policies</a></li><li class="current">' + desc + '</li>'
+            crumbs = '''
+                <li class="current">Status</li>
+                <li><a href="/home/status-policy">Policies</a></li>
+                <li class="current">''' + desc + '''</li>
+            '''
             return render(request, 'home/showpolicy.html', {"crumbs": crumbs, "menuopen": 1, "data": policy})
 
     policies = Policy.objects.all()
@@ -258,7 +270,8 @@ def certconfig(request):
     upload = Upload.objects.all()
 
     crumbs = '<li class="current">Configuration</li><li class="current">Certificates</li>'
-    return render(request, 'home/certconfig.html', {"crumbs": crumbs, "menuopen": 2, "data": {"zip": uploadzip, "file": upload}})
+    return render(request, 'home/certconfig.html', {"crumbs": crumbs, "menuopen": 2,
+                                                    "data": {"zip": uploadzip, "file": upload}})
 
 
 def iseconfig(request):

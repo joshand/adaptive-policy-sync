@@ -3,7 +3,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 import threading
 import asyncio
 import sys
-from sync.models import *
+import os
 
 
 def run_tasks():
@@ -25,20 +25,20 @@ def run_tasks():
     try:
         import scripts.clean_tasks
         scripts.clean_tasks.run()
-    except:
-        print("#### Exception starting scheduled job: clean_tasks")
+    except Exception as e:
+        print("#### Exception starting scheduled job: clean_tasks", e)
 
     try:
         import scripts.dashboard_monitor
         scripts.dashboard_monitor.run()
-    except:
-        print("#### Exception starting scheduled job: dashboard_monitor")
+    except Exception as e:
+        print("#### Exception starting scheduled job: dashboard_monitor", e)
 
     try:
         import scripts.ise_monitor
         scripts.ise_monitor.run()
-    except:
-        print("#### Exception starting scheduled job: ise_monitor")
+    except Exception as e:
+        print("#### Exception starting scheduled job: ise_monitor", e)
 
     launch_dashboard_webhooks(cron)
     launch_pxgrid_monitor(cron)
@@ -51,8 +51,8 @@ def launch_dashboard_webhooks(c):
         j = c.get_job('dashboard_webhook')
         if j:
             c.remove_job('dashboard_webhook')
-    except:
-        print("#### Exception starting scheduled job: dashboard_webhook")
+    except Exception as e:
+        print("#### Exception starting scheduled job: dashboard_webhook", e)
         j = c.get_job('dashboard_webhook')
         if not j:
             c.add_job(launch_dashboard_webhooks, 'interval', minutes=5, id='dashboard_webhook', args=[c])
@@ -69,8 +69,8 @@ def launch_pxgrid_monitor(c):
         j = c.get_job('sync_pxgrid')
         if j:
             c.remove_job('sync_pxgrid')
-    except:
-        print("#### Exception starting scheduled job: sync_pxgrid")
+    except Exception as e:
+        print("#### Exception starting scheduled job: sync_pxgrid", e)
         j = c.get_job('sync_pxgrid')
         if not j:
             c.add_job(launch_pxgrid_monitor, 'interval', minutes=5, id='sync_pxgrid', args=[c])

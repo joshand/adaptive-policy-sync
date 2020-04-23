@@ -1,7 +1,9 @@
 import atexit
 from apscheduler.schedulers.background import BackgroundScheduler
-from sync.models import *
-from scripts.dblog import *
+from django.utils.timezone import make_aware
+import datetime
+from sync.models import Task
+from scripts.dblog import append_log
 
 
 def cleanup():
@@ -27,9 +29,8 @@ def run():
     # Explicitly kick off the background thread
     cron.start()
     cron.remove_all_jobs()
-    job0 = cron.add_job(cleanup)
-    job1 = cron.add_job(cleanup, 'interval', seconds=60)
+    cron.add_job(cleanup)
+    cron.add_job(cleanup, 'interval', seconds=60)
 
     # Shutdown your cron thread if the web process is stopped
     atexit.register(lambda: cron.shutdown(wait=False))
-

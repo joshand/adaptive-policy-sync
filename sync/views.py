@@ -1,10 +1,7 @@
-from rest_framework import permissions
-from rest_framework import renderers
 from rest_framework import viewsets
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from sync.models import *
-from sync.serializers import *
+from sync.serializers import UploadZipSerializer, UploadSerializer, DashboardSerializer, ISEServerSerializer,\
+    SyncSessionSerializer, TagSerializer, ACLSerializer, PolicySerializer, TaskSerializer
+from sync.models import UploadZip, Upload, Dashboard, ISEServer, SyncSession, Tag, ACL, Policy, Task
 from django.db.models import Q
 
 

@@ -1,9 +1,7 @@
 import atexit
-from sync.models import *
 import asyncio
 from asyncio.tasks import FIRST_COMPLETED
 from scripts.pxgrid import PxgridControl
-import json
 import sys
 import time
 from websockets import ConnectionClosed
@@ -11,17 +9,18 @@ from scripts.ws_stomp import WebSocketStomp
 import ssl
 import json
 from types import SimpleNamespace as Namespace
-from scripts.db_trustsec import *
-from sync.models import *
+from scripts.db_trustsec import clean_sgts, clean_sgacls, merge_sgts, merge_sgacls
+from scripts.dblog import append_log, db_log
 from asgiref.sync import sync_to_async
 from scripts.dashboard_monitor import exec_api_action
-from scripts.dblog import *
+from sync.models import ISEServer, SyncSession
 
 
 class Config:
     def __init__(self, log=None):
         dbs = ISEServer.objects.filter(pxgrid_enable=True)
-        c = '{"hostname": [], "nodename": "", "clientcert": "", "clientkey": "", "clientkeypassword": "", "servercert": "", "password": "", "description": ""}'
+        c = '{"hostname": [], "nodename": "", "clientcert": "", "clientkey": "", "clientkeypassword": "",' \
+            '"servercert": "", "password": "", "description": ""}'
         self.config = json.loads(c, object_hook=lambda d: Namespace(**d))
 
         if len(dbs) > 0:
@@ -131,7 +130,8 @@ def process_log_update(ln, ld):
 
 @sync_to_async
 def process_sgt_update(msg, sa, log):
-    # {"operation": "UPDATE", "securityGroup": {"id": "34714b20-7a6f-11ea-a6b9-26b516ce162b", "name": "new_test_tag", "description": "tttt", "tag": 867, "isReadOnly": false, "isServiceProvider": false, "defaultSgaclIds": []}}
+    # {"operation": "UPDATE", "securityGroup": {"id": "34714b20-7a6f-11ea-a6b9-26b516ce162b", "name": "new_test_tag",
+    # "description": "tttt", "tag": 867, "isReadOnly": false, "isServiceProvider": false, "defaultSgaclIds": []}}
     if msg.get("operation", "") == "DELETE":
         tags = clean_sgts("ise", [msg["securityGroup"]], sa.ise_source, sa)
     else:
@@ -160,7 +160,9 @@ def process_sgt_update(msg, sa, log):
 
 @sync_to_async
 def process_sgacl_update(msg, sa, log):
-    # {"isDeleted": false, "timestamp": "2020-04-14T11:45:19.217Z", "id": "08a4f350-5e1a-11ea-a6b9-26b516ce162b", "name": "new_ise_sgl", "description": "test", "ipVersion": "IPV4", "acl": "permit tcp src eq 5060\npermit udp src eq 5060\ndeny ip", "generationId": "6", "isReadOnly": false}
+    # {"isDeleted": false, "timestamp": "2020-04-14T11:45:19.217Z", "id": "08a4f350-5e1a-11ea-a6b9-26b516ce162b",
+    # "name": "new_ise_sgl", "description": "test", "ipVersion": "IPV4",
+    # "acl": "permit tcp src eq 5060\npermit udp src eq 5060\ndeny ip", "generationId": "6", "isReadOnly": false}
     if msg.get("isDeleted", False) is True:
         tags = clean_sgacls("ise", [msg], sa.ise_source, sa)
     else:
@@ -194,7 +196,8 @@ def run_sync_pxgrid(config):
     service = service_lookup_response['services'][0]
     pubsub_service_name = service['properties']['wsPubsubService']
     # topic = service['properties']['sessionTopic']
-    topic = ["/topic/com.cisco.ise.config.trustsec.security.group", "/topic/com.cisco.ise.config.trustsec.security.group.acl"]
+    topic = ["/topic/com.cisco.ise.config.trustsec.security.group",
+             "/topic/com.cisco.ise.config.trustsec.security.group.acl"]
 
     # lookup for pubsub service
     service_lookup_response = pxgrid.service_lookup(pubsub_service_name)
@@ -227,7 +230,8 @@ def loop_pxgrid(config, loop):
     service = service_lookup_response['services'][0]
     pubsub_service_name = service['properties']['wsPubsubService']
     # topic = service['properties']['sessionTopic']
-    topic = ["/topic/com.cisco.ise.config.trustsec.security.group", "/topic/com.cisco.ise.config.trustsec.security.group.acl"]
+    topic = ["/topic/com.cisco.ise.config.trustsec.security.group",
+             "/topic/com.cisco.ise.config.trustsec.security.group.acl"]
 
     # lookup for pubsub service
     service_lookup_response = pxgrid.service_lookup(pubsub_service_name)
@@ -237,7 +241,7 @@ def loop_pxgrid(config, loop):
     ws_url = pubsub_service['properties']['wsUrl']
 
     atexit.register(lambda: loop.stop())
-    task = asyncio.run_coroutine_threadsafe(subscribe_loop(config, secret, ws_url, topic, pubsub_node_name, log), loop)
+    asyncio.run_coroutine_threadsafe(subscribe_loop(config, secret, ws_url, topic, pubsub_node_name, log), loop)
     # asyncio.get_event_loop().run_until_complete(subscribe_loop(config, secret, ws_url, topic, pubsub_node_name))
 
 

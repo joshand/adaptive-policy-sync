@@ -1,6 +1,8 @@
-from sync.models import *
+from sync.models import Tag, ACL, Policy
+import datetime
+from django.utils.timezone import make_aware
 import json
-from scripts.dblog import *
+from scripts.dblog import append_log
 
 
 def clean_sgts(src, sgts, is_base, sync_session, log=None):
@@ -96,14 +98,16 @@ def merge_sgts(src, sgts, is_base, sync_session, log=None):
             i = Tag.objects.filter(tag_number=tag_num)
             if len(i) > 0:
                 if is_base:
-                    append_log(log, "db_trustsec::merge_sgts::sgt::" + src + "::", tag_num, "exists in database; updating...")
+                    append_log(log, "db_trustsec::merge_sgts::sgt::" + src + "::", tag_num,
+                               "exists in database; updating...")
                     t = i[0]
                     t.tag_number = tag_num
                     t.name = s["name"]
                     t.description = s["description"].replace("'", "").replace('"', "")
                     t.push_delete = False
                 else:
-                    append_log(log, "db_trustsec::merge_sgts::sgt::" + src + "::", tag_num, "exists in database; not base, only add data...")
+                    append_log(log, "db_trustsec::merge_sgts::sgt::" + src + "::", tag_num,
+                               "exists in database; not base, only add data...")
                     t = i[0]
 
                 t.syncsession = sync_session
@@ -147,13 +151,15 @@ def merge_sgacls(src, sgacls, is_base, sync_session, log=None):
             i = ACL.objects.filter(name=tag_name)
             if len(i) > 0:
                 if is_base:
-                    append_log(log, "db_trustsec::merge_sgacls::acl::" + src + "::", tag_name, "exists in database; updating...")
+                    append_log(log, "db_trustsec::merge_sgacls::acl::" + src + "::", tag_name,
+                               "exists in database; updating...")
                     t = i[0]
                     t.name = tag_name
                     t.description = s["description"].replace("'", "").replace('"', "")
                     t.push_delete = False
                 else:
-                    append_log(log, "db_trustsec::merge_sgacls::acl::" + src + "::", tag_name, "exists in database; not base, only add data...")
+                    append_log(log, "db_trustsec::merge_sgacls::acl::" + src + "::", tag_name,
+                               "exists in database; not base, only add data...")
                     t = i[0]
 
                 t.syncsession = sync_session
@@ -209,13 +215,15 @@ def merge_sgpolicies(src, sgpolicies, is_base, sync_session, log=None):
             i = Policy.objects.filter(mapping=binding_name)
             if len(i) > 0:
                 if is_base:
-                    append_log(log, "db_trustsec::merge_sgpolicies::" + src + "::policy", binding_name, "exists in database; updating...")
+                    append_log(log, "db_trustsec::merge_sgpolicies::" + src + "::policy", binding_name,
+                               "exists in database; updating...")
                     t = i[0]
                     t.mapping = binding_name
                     t.name = binding_desc
                     t.push_delete = False
                 else:
-                    append_log(log, "db_trustsec::merge_sgpolicies::" + src + "::policy", binding_name, "exists in database; not base, only add data...")
+                    append_log(log, "db_trustsec::merge_sgpolicies::" + src + "::policy", binding_name,
+                               "exists in database; not base, only add data...")
                     t = i[0]
 
                 t.syncsession = sync_session
