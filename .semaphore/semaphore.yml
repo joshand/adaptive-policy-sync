@@ -27,13 +27,13 @@ blocks:
       jobs:
         - name: Unit Tests
           commands:
-            - cd adaptive-policy-sync
+            - cd adaptive_policy_sync
             - python manage.py makemigrations
             - python manage.py migrate
             - python manage.py test
         - name: Checklist
           commands:
-            - cd adaptive-policy-sync
+            - cd adaptive_policy_sync
             - python manage.py check --deploy
         - name: Style Check
           commands:
