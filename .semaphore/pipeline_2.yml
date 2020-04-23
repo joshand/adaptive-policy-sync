@@ -19,8 +19,10 @@ blocks:
           - cache restore
           - mkdir -p .pip_cache
           - pip install --cache-dir .pip_cache -r requirements.txt
+          - cd adaptive-policy-sync
           - 'python manage.py makemigrations '
           - python manage.py migrate
+          - cd ..
 agent:
   machine:
     type: e1-standard-2
