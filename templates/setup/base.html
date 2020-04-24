@@ -34,7 +34,7 @@
             }
         }
 
-        function getdata(url, selectedval, outtype, tokenid, outputcontid, outputid, outputlabel, hiddenid, hiddenname, enablebtn) {
+        function getdata(url, apiurl, selectedval, outtype, tokenid, outputcontid, outputid, outputlabel, hiddenid, hiddenname, enablebtn) {
             document.getElementById('preloader').style = "display:inline-block;position:absolute;top:50%;left:50%;background-color:rgba(0, 0, 0, 0);z-index:6000000;overflow:auto;width:400px;height:400px;margin-left:-100px;margin-top:-100px;";
             let method = "GET";
             let async = true;
@@ -80,8 +80,8 @@
             };
             try {
                 request.open(method, url, async);
+                request.setRequestHeader("X-Cisco-Meraki-API-URL", apiurl);
                 request.setRequestHeader("X-Cisco-Meraki-API-Key", apikey);
-                request.setRequestHeader("Authorization", "Bearer " + apikey);
                 request.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
                 request.responseType = 'json';
                 request.send();

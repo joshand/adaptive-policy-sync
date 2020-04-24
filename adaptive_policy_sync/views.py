@@ -11,12 +11,11 @@ def getmerakiorgs(request):
     dashboards = Dashboard.objects.all()
     if len(dashboards) > 0:
         dashboard = dashboards[0]
-        baseurl = dashboard.baseurl
     else:
         dashboard = None
-        baseurl = "https://api-mp.meraki.com/api/v0"
 
     apikey = request.headers.get("X-Cisco-Meraki-API-Key")
+    baseurl = request.headers.get("X-Cisco-Meraki-API-URL")
 
     try:
         dashboard = meraki.DashboardAPI(base_url=baseurl, api_key=apikey,
