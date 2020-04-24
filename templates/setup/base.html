@@ -40,6 +40,7 @@
             let async = true;
             let request = new XMLHttpRequest();
             let apikey = document.getElementById(tokenid).value;
+            let apibaseurl = document.getElementById(apiurl).value;
             request.onload = function () {
                 if (request.readyState === 4) {
                     if (request.status === 200) {
@@ -80,7 +81,7 @@
             };
             try {
                 request.open(method, url, async);
-                request.setRequestHeader("X-Cisco-Meraki-API-URL", apiurl);
+                request.setRequestHeader("X-Cisco-Meraki-API-URL", apibaseurl);
                 request.setRequestHeader("X-Cisco-Meraki-API-Key", apikey);
                 request.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
                 request.responseType = 'json';
