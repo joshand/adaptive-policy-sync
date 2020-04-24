@@ -21,6 +21,7 @@ def run_tasks():
     atexit.register(lambda: cron.shutdown(wait=False))
 
     if 'runserver' not in sys.argv:
+        print("args", sys.argv)
         return None
     try:
         import scripts.clean_tasks
