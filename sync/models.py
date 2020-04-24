@@ -237,6 +237,16 @@ class ISEServer(models.Model):
     def __str__(self):
         return self.description
 
+    def base_url(self):
+        url = self.ipaddress[:]
+        if "http://" not in url and "https://" not in url:
+            url = "https://" + url
+
+        if url.count(":") > 1:
+            return url
+        else:
+            return url + ":9060"
+
 
 class ISEMatrix(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

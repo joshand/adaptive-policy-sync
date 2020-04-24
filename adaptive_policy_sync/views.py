@@ -8,13 +8,24 @@ import meraki
 
 
 def getmerakiorgs(request):
-    apikey = request.headers.get("X-Cisco-Meraki-API-Key")
-    dashboard = meraki.DashboardAPI(base_url="https://api-mp.meraki.com/api/v0", api_key=apikey,
-                                    print_console=False, output_log=False)
+    dashboards = Dashboard.objects.all()
+    if len(dashboards) > 0:
+        dashboard = dashboards[0]
+        baseurl = dashboard.baseurl
+    else:
+        dashboard = None
+        baseurl = "https://api-mp.meraki.com/api/v0"
 
-    orgs = dashboard.organizations.getOrganizations()
-    orgs_sorted = sorted(orgs, key=lambda i: i['name'])
-    return JsonResponse(orgs_sorted, safe=False)
+    apikey = request.headers.get("X-Cisco-Meraki-API-Key")
+
+    try:
+        dashboard = meraki.DashboardAPI(base_url=baseurl, api_key=apikey,
+                                        print_console=False, output_log=False)
+        orgs = dashboard.organizations.getOrganizations()
+        orgs_sorted = sorted(orgs, key=lambda i: i['name'])
+        return JsonResponse(orgs_sorted, safe=False)
+    except Exception:
+        return JsonResponse({}, safe=False)
 
 
 def dolanding(request):

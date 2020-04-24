@@ -12,32 +12,44 @@ from scripts.dblog import append_log, db_log
 
 
 def meraki_read_sgt(baseurl, orgid, headers):
-    ret = requests.get(baseurl + "/organizations/" + str(orgid) + "/adaptivePolicy/groups", headers=headers)
-    return ret.json()
+    try:
+        ret = requests.get(baseurl + "/organizations/" + str(orgid) + "/adaptivePolicy/groups", headers=headers)
+        return ret.json()
+    except Exception:
+        return {}
 
 
 def meraki_read_sgacl(baseurl, orgid, headers):
-    ret = requests.get(baseurl + "/organizations/" + str(orgid) + "/adaptivePolicy/acls", headers=headers)
-    return ret.json()
+    try:
+        ret = requests.get(baseurl + "/organizations/" + str(orgid) + "/adaptivePolicy/acls", headers=headers)
+        return ret.json()
+    except Exception:
+        return {}
 
 
 def meraki_read_sgpolicy(baseurl, orgid, headers):
-    ret = requests.get(baseurl + "/organizations/" + str(orgid) + "/adaptivePolicy/bindings", headers=headers)
-    j = ret.json()
-    outlist = []
-    for e in j:
-        newe = e
-        newe["bindingId"] = "s" + str(e["srcGroupId"]) + "-" + "d" + str(e["dstGroupId"])
-        outlist.append(newe)
-    return outlist
+    try:
+        ret = requests.get(baseurl + "/organizations/" + str(orgid) + "/adaptivePolicy/bindings", headers=headers)
+        j = ret.json()
+        outlist = []
+        for e in j:
+            newe = e
+            newe["bindingId"] = "s" + str(e["srcGroupId"]) + "-" + "d" + str(e["dstGroupId"])
+            outlist.append(newe)
+        return outlist
+    except Exception:
+        return []
 
 
 def exec_api_action(method, url, data, headers):
-    if data is None or data == "":
-        ret = requests.request(method, url, headers=headers)
-    else:
-        ret = requests.request(method, url, data=data, headers=headers)
-    return ret.content.decode("UTF-8")
+    try:
+        if data is None or data == "":
+            ret = requests.request(method, url, headers=headers)
+        else:
+            ret = requests.request(method, url, data=data, headers=headers)
+        return ret.content.decode("UTF-8")
+    except Exception:
+        return ""
 
 
 def sync_dashboard_accounts(accounts, log):
@@ -46,7 +58,8 @@ def sync_dashboard_accounts(accounts, log):
     for sa in accounts:
         a = sa.dashboard
         append_log(log, "dashboard_monitor::sync_dashboard_accounts::Resync -", a.description)
-        headers = {"X-Cisco-Meraki-API-Key": a.apikey, "Content-Type": "application/json"}
+        headers = {"X-Cisco-Meraki-API-Key": a.apikey, "Authorization": "Bearer " + a.apikey,
+                   "Content-Type": "application/json"}
         nets = meraki.getnetworklist(a.apikey, a.orgid, suppressprint=True)
         sgts = meraki_read_sgt(a.baseurl, a.orgid, headers)
         sgacls = meraki_read_sgacl(a.baseurl, a.orgid, headers)

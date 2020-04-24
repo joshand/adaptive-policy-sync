@@ -133,3 +133,4 @@ dmypy.json
 sync/migrations/
 old
 upload/*
+scripts/*.json

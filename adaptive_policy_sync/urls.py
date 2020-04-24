@@ -24,6 +24,8 @@ from sync import views
 from . import views as apsyncviews
 from scripts.dashboard_webhook import process_webhook
 from adaptive_policy_sync import tasks
+from scripts.dashboard_simulator import parse_url as meraki_parse_url
+from scripts.ise_ers_simulator import parse_url as ise_parse_url
 tasks.run_tasks()
 
 router = routers.DefaultRouter()
@@ -68,4 +70,6 @@ urlpatterns = [
     url(r'^home/config-ise$', apsyncviews.iseconfig, name='iseconfig'),
     url(r'^home/config-meraki$', apsyncviews.merakiconfig, name='merakiconfig'),
     url(r'^home/config-sync$', apsyncviews.syncconfig, name='syncconfig'),
+    url(r'^meraki/api/v1/organizations', meraki_parse_url, name='dashboardorgs'),
+    url(r'^ise/ers/config/', ise_parse_url, name='isetrustsec'),
 ]

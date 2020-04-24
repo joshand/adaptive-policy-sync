@@ -13,10 +13,10 @@ import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
-def ers_get(hostorip, url, un, pw):
+def ers_get(baseurl, url, un, pw):
     b64 = base64.b64encode((un + ':' + pw).encode()).decode()
     headers = {"Content-Type": "application/json", "Accept": "application/json", "Authorization": "Basic " + b64}
-    ret = requests.get("https://" + hostorip + ":9060/ers/config" + url, headers=headers, verify=False)
+    ret = requests.get(baseurl + "/ers/config" + url, headers=headers, verify=False)
     if ret.ok:
         rj = ret.json()
         if "SearchResult" in rj:
@@ -43,26 +43,26 @@ def sync_ise_accounts(accounts, log):
         append_log(log, "ise_monitor::sync_ise_accounts::Resync -", a.description)
         b64 = base64.b64encode((a.username + ':' + a.password).encode()).decode()
         headers = {"Content-Type": "application/json", "Accept": "application/json", "Authorization": "Basic " + b64}
-        sgts = ers_get(a.ipaddress, "/sgt", a.username, a.password)
-        sgacls = ers_get(a.ipaddress, "/sgacl", a.username, a.password)
-        sgpolicies = ers_get(a.ipaddress, "/egressmatrixcell", a.username, a.password)
+        sgts = ers_get(a.base_url(), "/sgt", a.username, a.password)
+        sgacls = ers_get(a.base_url(), "/sgacl", a.username, a.password)
+        sgpolicies = ers_get(a.base_url(), "/egressmatrixcell", a.username, a.password)
         ise = {"sgts": sgts, "sgacls": sgacls, "sgpolicies": sgpolicies}
 
         if sgts and "error" not in sgts:
             for e in sgts:
-                thise = ers_get(a.ipaddress, "/sgt/" + str(e["id"]), a.username, a.password)
+                thise = ers_get(a.base_url(), "/sgt/" + str(e["id"]), a.username, a.password)
                 merge_sgts("ise", [thise["Sgt"]], sa.ise_source, sa, log)
             clean_sgts("ise", sgts, sa.ise_source, sa, log)
 
         if sgacls and "error" not in sgacls:
             for e in sgacls:
-                thise = ers_get(a.ipaddress, "/sgacl/" + str(e["id"]), a.username, a.password)
+                thise = ers_get(a.base_url(), "/sgacl/" + str(e["id"]), a.username, a.password)
                 merge_sgacls("ise", [thise["Sgacl"]], sa.ise_source, sa, log)
             clean_sgacls("ise", sgacls, sa.ise_source, sa, log)
 
         if sgpolicies and "error" not in sgpolicies:
             for e in sgpolicies:
-                thise = ers_get(a.ipaddress, "/egressmatrixcell/" + str(e["id"]), a.username, a.password)
+                thise = ers_get(a.base_url(), "/egressmatrixcell/" + str(e["id"]), a.username, a.password)
                 merge_sgpolicies("ise", [thise["EgressMatrixCell"]], sa.ise_source, sa, log)
             clean_sgpolicies("ise", sgpolicies, sa.ise_source, sa, log)
 
