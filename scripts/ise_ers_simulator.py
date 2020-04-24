@@ -46,7 +46,6 @@ def get_rules():
     rules = []
     r_count = randint(2, 6)
     for r in range(0, r_count):
-        rule = {}
         s_choice = random.choice([0, 1, 2, 3])
         if s_choice == 1:
             srclist = []
