@@ -20,8 +20,8 @@ def run_tasks():
     # Shutdown your cron thread if the web process is stopped
     atexit.register(lambda: cron.shutdown(wait=False))
 
+    print(sys.argv)
     if 'runserver' not in sys.argv:
-        print("args", sys.argv)
         return None
     try:
         import scripts.clean_tasks
