@@ -48,6 +48,8 @@ urlpatterns = [
     path('webhook/', process_webhook),
     path(r'api/v0/', include(router.urls)),
     path('', apsyncviews.dolanding, name='landing'),
+    path('login/', apsyncviews.MyLoginView.as_view(), name='login'),
+    path('logout/', apsyncviews.MyLogoutView.as_view(), name='logout'),
     url(r'^orgs/$', apsyncviews.getmerakiorgs, name='getmerakiorgs'),
     url(r'^setup/$', apsyncviews.setup, name='setup'),
     url(r'^setup/ise$', apsyncviews.setupise, name='setupise'),

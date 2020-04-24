@@ -1,6 +1,8 @@
 from sync.models import ISEServer, Upload, UploadZip, Dashboard, Tag, ACL, Policy, SyncSession
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, reverse, render
+from django.contrib.auth import logout
 from django.http import JsonResponse
+from django.contrib.auth import views as auth_views
 from .forms import UploadForm
 import meraki
 
@@ -16,14 +18,32 @@ def getmerakiorgs(request):
 
 
 def dolanding(request):
-    return redirect("/setup")
+    if not request.user.is_authenticated:
+        return redirect('/login')
+
+    syncs = SyncSession.objects.all()
+    if len(syncs) > 0:
+        sync = syncs[0]
+    else:
+        sync = None
+
+    if sync:
+        return redirect("/home")
+    else:
+        return redirect("/setup")
 
 
 def setup(request):
+    if not request.user.is_authenticated:
+        return redirect('/login')
+
     return render(request, 'setup/landing.html', {"active": 1})
 
 
 def setupise(request):
+    if not request.user.is_authenticated:
+        return redirect('/login')
+
     iseservers = ISEServer.objects.all()
     if len(iseservers) > 0:
         iseserver = iseservers[0]
@@ -34,6 +54,9 @@ def setupise(request):
 
 
 def setupisenext(request):
+    if not request.user.is_authenticated:
+        return redirect('/login')
+
     iseservers = ISEServer.objects.all()
     if len(iseservers) > 0:
         iseserver = iseservers[0]
@@ -72,6 +95,9 @@ def setupisenext(request):
 
 
 def setupcert(request):
+    if not request.user.is_authenticated:
+        return redirect('/login')
+
     # iseservers = ISEServer.objects.all()
     # if len(iseservers) > 0:
     #     iseserver = iseservers[0]
@@ -90,6 +116,9 @@ def setupcert(request):
 
 
 def setuppxgrid(request):
+    if not request.user.is_authenticated:
+        return redirect('/login')
+
     iseservers = ISEServer.objects.all()
     if len(iseservers) > 0:
         iseserver = iseservers[0]
@@ -101,6 +130,9 @@ def setuppxgrid(request):
 
 
 def setupmeraki(request):
+    if not request.user.is_authenticated:
+        return redirect('/login')
+
     dashboards = Dashboard.objects.all()
     if len(dashboards) > 0:
         dashboard = dashboards[0]
@@ -138,6 +170,9 @@ def setupmeraki(request):
 
 
 def setupsync(request):
+    if not request.user.is_authenticated:
+        return redirect('/login')
+
     syncs = SyncSession.objects.all()
     if len(syncs) > 0:
         sync = syncs[0]
@@ -165,6 +200,9 @@ def setupsync(request):
 
 
 def setupdone(request):
+    if not request.user.is_authenticated:
+        return redirect('/login')
+
     syncs = SyncSession.objects.all()
     if len(syncs) > 0:
         sync = syncs[0]
@@ -204,11 +242,17 @@ def setupdone(request):
 
 
 def home(request):
+    if not request.user.is_authenticated:
+        return redirect('/login')
+
     crumbs = '<li class="current">Home</li>'
     return render(request, 'home/home.html', {"crumbs": crumbs})
 
 
 def sgtstatus(request):
+    if not request.user.is_authenticated:
+        return redirect('/login')
+
     pk = request.GET.get("id")
     if pk:
         sgts = Tag.objects.filter(id=pk)
@@ -228,6 +272,9 @@ def sgtstatus(request):
 
 
 def sgaclstatus(request):
+    if not request.user.is_authenticated:
+        return redirect('/login')
+
     pk = request.GET.get("id")
     if pk:
         sgacls = ACL.objects.filter(id=pk)
@@ -247,6 +294,9 @@ def sgaclstatus(request):
 
 
 def policystatus(request):
+    if not request.user.is_authenticated:
+        return redirect('/login')
+
     pk = request.GET.get("id")
     if pk:
         policies = Policy.objects.filter(id=pk)
@@ -266,6 +316,9 @@ def policystatus(request):
 
 
 def certconfig(request):
+    if not request.user.is_authenticated:
+        return redirect('/login')
+
     uploadzip = UploadZip.objects.all()
     upload = Upload.objects.all()
 
@@ -275,6 +328,9 @@ def certconfig(request):
 
 
 def iseconfig(request):
+    if not request.user.is_authenticated:
+        return redirect('/login')
+
     iseservers = ISEServer.objects.all()
     if len(iseservers) > 0:
         iseserver = iseservers[0]
@@ -286,6 +342,9 @@ def iseconfig(request):
 
 
 def merakiconfig(request):
+    if not request.user.is_authenticated:
+        return redirect('/login')
+
     dashboards = Dashboard.objects.all()
     if len(dashboards) > 0:
         dashboard = dashboards[0]
@@ -297,6 +356,9 @@ def merakiconfig(request):
 
 
 def syncconfig(request):
+    if not request.user.is_authenticated:
+        return redirect('/login')
+
     syncs = SyncSession.objects.all()
     if len(syncs) > 0:
         sync = syncs[0]
@@ -305,3 +367,20 @@ def syncconfig(request):
 
     crumbs = '<li class="current">Configuration</li><li class="current">Synchronization</li>'
     return render(request, 'home/syncconfig.html', {"crumbs": crumbs, "menuopen": 2, "data": sync})
+
+
+class MyLoginView(auth_views.LoginView):
+    template_name = "general/login.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(MyLoginView, self).get_context_data(**kwargs)
+        return context
+
+    def get_success_url(self):
+        return reverse('landing')
+
+
+class MyLogoutView(auth_views.LogoutView):
+    def dispatch(self, request, *args, **kwargs):
+        logout(request)
+        return redirect('/')
