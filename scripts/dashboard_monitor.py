@@ -44,7 +44,7 @@ def sync_dashboard_accounts(accounts, log):
     dt = make_aware(datetime.datetime.now())
 
     for sa in accounts:
-        a = sa.dashboardmerge_sgpolicies
+        a = sa.dashboard
         append_log(log, "dashboard_monitor::sync_dashboard_accounts::Resync -", a.description)
         headers = {"X-Cisco-Meraki-API-Key": a.apikey, "Content-Type": "application/json"}
         nets = meraki.getnetworklist(a.apikey, a.orgid, suppressprint=True)
