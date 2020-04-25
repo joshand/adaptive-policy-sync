@@ -877,10 +877,16 @@ class Policy(models.Model):
     def get_sgts(self, update_dest):
         if update_dest == "ise":
             m_sgt_src, m_sgt_dst = self.lookup_meraki_sgts()
-            return m_sgt_src.ise_id, m_sgt_dst.ise_id
+            if m_sgt_src and m_sgt_dst:
+                return m_sgt_src.ise_id, m_sgt_dst.ise_id
+            else:
+                return None, None
         elif update_dest == "meraki":
             i_sgt_src, i_sgt_dst = self.lookup_ise_sgts()
-            return i_sgt_src.meraki_id, i_sgt_dst.meraki_id
+            if i_sgt_src and i_sgt_dst:
+                return i_sgt_src.meraki_id, i_sgt_dst.meraki_id
+            else:
+                return None, None
         return "", ""
 
     def get_sgacls(self, update_dest):
