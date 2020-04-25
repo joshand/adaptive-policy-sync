@@ -196,6 +196,7 @@ def setupsync(request):
         dashboard = None
 
     if request.method == 'POST':
+        apiurl = request.POST.get("apiUrl")
         apikey = request.POST.get("apiKey")
         orgid = request.POST.get("orgid")
         if apikey and orgid:
@@ -204,7 +205,7 @@ def setupsync(request):
                 dashboard.orgid = orgid
                 dashboard.save()
             else:
-                Dashboard.objects.create(description="Meraki Dashboard", apikey=apikey, orgid=orgid)
+                Dashboard.objects.create(description="Meraki Dashboard", apikey=apikey, orgid=orgid, baseurl=apiurl)
 
     return render(request, 'setup/sync.html', {"active": 6, "data": sync})
 
