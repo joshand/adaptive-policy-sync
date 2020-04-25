@@ -11,7 +11,7 @@ from scripts.dblog import append_log, db_log
 def run():
     log = []
     dbs = Dashboard.objects.filter(webhook_enable=True)
-    if len(dbs) > 0:
+    if dbs and len(dbs) > 0:
         db = dbs[0]
         dashboard = meraki.DashboardAPI(api_key=db.apikey, print_console=False, output_log=False)
         if db.webhook_ngrok:
