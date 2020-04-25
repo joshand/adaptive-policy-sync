@@ -67,7 +67,7 @@ def sync_dashboard_accounts(accounts, log):
         append_log(log, "dashboard_monitor::sync_dashboard_accounts::Resync -", a.description)
         headers = {"X-Cisco-Meraki-API-Key": a.apikey, "Authorization": "Bearer " + a.apikey,
                    "Content-Type": "application/json"}
-        nets = meraki.getnetworklist(a.apikey, a.orgid, suppressprint=True)
+        # nets = meraki.getnetworklist(a.apikey, a.orgid, suppressprint=True)
         sgts = meraki_read_sgt(a.baseurl, a.orgid, headers)
         sgacls = meraki_read_sgacl(a.baseurl, a.orgid, headers)
         sgpolicies = meraki_read_sgpolicy(a.baseurl, a.orgid, headers)
@@ -79,7 +79,7 @@ def sync_dashboard_accounts(accounts, log):
         clean_sgacls("meraki", sgacls, not sa.ise_source, sa, log)
         clean_sgpolicies("meraki", sgpolicies, not sa.ise_source, sa, log)
 
-        a.raw_data = json.dumps(nets)
+        a.raw_data = json.dumps({"groups": sgts, "acls": sgacls, "bindings": sgpolicies})
         a.force_rebuild = False
         a.last_sync = dt
         a.last_update = dt
