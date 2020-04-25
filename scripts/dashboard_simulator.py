@@ -1,3 +1,4 @@
+from django.views.decorators.csrf import csrf_exempt
 import string
 import random
 import json
@@ -157,6 +158,7 @@ def run(orgs, tags, acls, policies):
     write_file("bindings.json", json.dumps(newpolicies, indent=4))
 
 
+@csrf_exempt
 def parse_url(request):
     baseurl = "/".join(request.build_absolute_uri().split("/")[:3])
     p = request.path.replace("/meraki/api/v1/organizations/", "").replace("/meraki/api/v1/organizations", "")

@@ -1,3 +1,4 @@
+from django.views.decorators.csrf import csrf_exempt
 import string
 import random
 import json
@@ -203,6 +204,7 @@ def run(tags, acls, policies):
     write_file("egressmatrixcell.json", json.dumps(newpolicies, indent=4))
 
 
+@csrf_exempt
 def parse_url(request):
     baseurl = "/".join(request.build_absolute_uri().split("/")[:3])
     p = request.path.replace("/ise/ers/config/", "").replace("/ise/ers/config", "")
