@@ -2,17 +2,22 @@
 # from apscheduler.schedulers.background import BackgroundScheduler
 # import threading
 # import asyncio
-# import sys
+import sys
 # import os
-import scripts.dashboard_monitor
-import scripts.ise_monitor
-import scripts.clean_tasks
-import scripts.pxgrid_websocket
-import scripts.dashboard_webhook
+if 'runscript' not in sys.argv:
+    try:
+        import scripts.dashboard_monitor
+        import scripts.ise_monitor
+        import scripts.clean_tasks
+        import scripts.pxgrid_websocket
+        import scripts.dashboard_webhook
+    except Exception:
+        print("# Exception loading background tasks")
 
 
 def run_tasks():
-    scripts.dashboard_webhook.run()
+    if 'runscript' not in sys.argv:
+        scripts.dashboard_webhook.run()
 
 # def old_run_tasks():
 #     skiptasks = os.getenv('SKIPTASKS')
