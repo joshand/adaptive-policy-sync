@@ -1,5 +1,9 @@
-import atexit
+# import atexit
+# from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.schedulers.background import BackgroundScheduler
+from django_apscheduler.jobstores import DjangoJobStore
+from django_apscheduler.jobstores import register_events
+
 from sync.models import SyncSession, Tag, ACL, Policy
 from django.db.models import F, Q
 from django.utils.timezone import make_aware
@@ -9,6 +13,9 @@ import datetime
 import json
 from scripts.db_trustsec import clean_sgts, clean_sgacls, clean_sgpolicies, merge_sgts, merge_sgacls, merge_sgpolicies
 from scripts.dblog import append_log, db_log
+
+scheduler = BackgroundScheduler()
+scheduler.add_jobstore(DjangoJobStore(), "default")
 
 
 def meraki_read_sgt(baseurl, orgid, headers):
@@ -177,14 +184,24 @@ def sync_dashboard():
 
 
 def run():
-    # Enable the job scheduler to run schedule jobs
-    cron = BackgroundScheduler()
+    pass
+    # # Enable the job scheduler to run schedule jobs
+    # cron = BackgroundScheduler()
+    #
+    # # Explicitly kick off the background thread
+    # cron.start()
+    # cron.remove_all_jobs()
+    # cron.add_job(sync_dashboard)
+    # cron.add_job(sync_dashboard, 'interval', seconds=10)
+    #
+    # # Shutdown your cron thread if the web process is stopped
+    # atexit.register(lambda: cron.shutdown(wait=False))
 
-    # Explicitly kick off the background thread
-    cron.start()
-    cron.remove_all_jobs()
-    cron.add_job(sync_dashboard)
-    cron.add_job(sync_dashboard, 'interval', seconds=10)
 
-    # Shutdown your cron thread if the web process is stopped
-    atexit.register(lambda: cron.shutdown(wait=False))
+@scheduler.scheduled_job("interval", seconds=10, id="dashboard_monitor")
+def job():
+    sync_dashboard()
+
+
+register_events(scheduler)
+scheduler.start()

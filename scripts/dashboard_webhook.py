@@ -61,15 +61,17 @@ def run():
 @csrf_exempt
 def process_webhook(request):
     log = []
-    whdata = json.loads(request.body)
-    append_log(log, "webhook post", whdata)
+    if request.method == 'POST':
+        whdata = json.loads(request.body)
+        append_log(log, "webhook post", whdata)
 
-    dbs = Dashboard.objects.filter(webhook_enable=True)
-    if len(dbs) > 0:
-        db = dbs[0]
-        db.force_rebuild = True
-        db.save()
-        append_log(log, "setting dashboard to force rebuild")
+        dbs = Dashboard.objects.filter(webhook_enable=True)
+        if len(dbs) > 0:
+            db = dbs[0]
+            db.force_rebuild = True
+            db.save()
+            append_log(log, "setting dashboard to force rebuild")
 
-    db_log("dashboard_webhook", log)
+        db_log("dashboard_webhook", log)
+
     return HttpResponse("Send webhooks here as POST requests.")

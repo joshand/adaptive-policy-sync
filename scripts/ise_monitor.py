@@ -1,5 +1,9 @@
-import atexit
+# import atexit
+# from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.schedulers.background import BackgroundScheduler
+from django_apscheduler.jobstores import DjangoJobStore
+from django_apscheduler.jobstores import register_events
+
 from sync.models import SyncSession, Tag, ACL, Policy
 from django.db.models import F, Q
 from django.utils.timezone import make_aware
@@ -11,6 +15,9 @@ from scripts.db_trustsec import clean_sgts, clean_sgacls, clean_sgpolicies, merg
 from scripts.dblog import append_log, db_log
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+scheduler = BackgroundScheduler()
+scheduler.add_jobstore(DjangoJobStore(), "default")
 
 
 def ers_get(baseurl, url, un, pw):
@@ -163,14 +170,24 @@ def sync_ise():
 
 
 def run():
-    # Enable the job scheduler to run schedule jobs
-    cron = BackgroundScheduler()
+    pass
+    # # Enable the job scheduler to run schedule jobs
+    # cron = BackgroundScheduler()
+    #
+    # # Explicitly kick off the background thread
+    # cron.start()
+    # cron.remove_all_jobs()
+    # cron.add_job(sync_ise)
+    # cron.add_job(sync_ise, 'interval', seconds=10)
+    #
+    # # Shutdown your cron thread if the web process is stopped
+    # atexit.register(lambda: cron.shutdown(wait=False))
 
-    # Explicitly kick off the background thread
-    cron.start()
-    cron.remove_all_jobs()
-    cron.add_job(sync_ise)
-    cron.add_job(sync_ise, 'interval', seconds=10)
 
-    # Shutdown your cron thread if the web process is stopped
-    atexit.register(lambda: cron.shutdown(wait=False))
+@scheduler.scheduled_job("interval", seconds=10, id="ise_monitor")
+def job():
+    sync_ise()
+
+
+register_events(scheduler)
+scheduler.start()

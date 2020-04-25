@@ -1,4 +1,9 @@
-import atexit
+# import atexit
+from apscheduler.schedulers.background import BackgroundScheduler
+from django_apscheduler.jobstores import DjangoJobStore
+from django_apscheduler.jobstores import register_events
+
+import threading
 import asyncio
 from asyncio.tasks import FIRST_COMPLETED
 from scripts.pxgrid import PxgridControl
@@ -14,6 +19,10 @@ from scripts.dblog import append_log, db_log
 from asgiref.sync import sync_to_async
 from scripts.dashboard_monitor import exec_api_action
 from sync.models import ISEServer, SyncSession
+
+scheduler = BackgroundScheduler()
+scheduler.add_jobstore(DjangoJobStore(), "default")
+loop = asyncio.new_event_loop()
 
 
 class Config:
@@ -213,7 +222,7 @@ def run():
     run_sync_pxgrid(Config())
 
 
-def sync_pxgrid(loop, log):
+def sync_pxgrid(loop, log=None):
     loop_pxgrid(Config(log), loop)
 
 
@@ -240,7 +249,7 @@ def loop_pxgrid(config, loop):
     secret = pxgrid.get_access_secret(pubsub_node_name)['secret']
     ws_url = pubsub_service['properties']['wsUrl']
 
-    atexit.register(lambda: loop.stop())
+    # atexit.register(lambda: loop.stop())
     asyncio.run_coroutine_threadsafe(subscribe_loop(config, secret, ws_url, topic, pubsub_node_name, log), loop)
     # asyncio.get_event_loop().run_until_complete(subscribe_loop(config, secret, ws_url, topic, pubsub_node_name))
 
@@ -248,3 +257,20 @@ def loop_pxgrid(config, loop):
 def start_background_loop(loop: asyncio.AbstractEventLoop) -> None:
     asyncio.set_event_loop(loop)
     loop.run_forever()
+
+
+@scheduler.scheduled_job("interval", seconds=10, id="pxgrid_monitor")
+def job():
+    try:
+        loop = asyncio.new_event_loop()
+        th = threading.Thread(target=start_background_loop, args=(loop,))
+        th.start()
+        log = []
+        sync_pxgrid(loop, log)
+        scheduler.remove_job("pxgrid_monitor")
+    except Exception as e:
+        print("#### Exception starting scheduled job: sync_pxgrid", e)
+
+
+register_events(scheduler)
+scheduler.start()
