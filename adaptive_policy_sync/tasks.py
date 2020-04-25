@@ -5,14 +5,11 @@
 import sys
 # import os
 if 'runscript' not in sys.argv:
-    try:
-        import scripts.dashboard_monitor
-        import scripts.ise_monitor
-        import scripts.clean_tasks
-        import scripts.pxgrid_websocket
-        import scripts.dashboard_webhook
-    except Exception:
-        print("# Exception loading background tasks")
+    import scripts.dashboard_monitor
+    import scripts.ise_monitor
+    import scripts.clean_tasks
+    import scripts.pxgrid_websocket
+    import scripts.dashboard_webhook
 
 
 def run_tasks():
