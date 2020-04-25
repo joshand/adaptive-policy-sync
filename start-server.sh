@@ -10,4 +10,7 @@ if [ -n "$DJANGO_SUPERUSER_USERNAME" ] && [ -n "$DJANGO_SUPERUSER_PASSWORD" ] &&
     (cd adaptive_policy_sync; python manage.py runscript dashboard_simulator --script-args 10 10 10 10; python manage.py runscript ise_ers_simulator --script-args 10 10 10; echo ====================================================; echo Use $SIMULATED_ENVIRONMENT_URL/meraki/api/v1 for Meraki Dashboard; echo Use $SIMULATED_ENVIRONMENT_URL/ise for Cisco ISE; echo ====================================================; cd scripts; chown www-data:www-data *.json)
 fi
 (cd adaptive_policy_sync; gunicorn adaptive_policy_sync.wsgi --user www-data --bind 0.0.0.0:8010 --workers 3) &
+(cd adaptive_policy_sync; python manage.py runscript dashboard_monitor) &
+(cd adaptive_policy_sync; python manage.py runscript ise_monitor) &
+(cd adaptive_policy_sync; python manage.py runscript clean_tasks) &
 nginx -g "daemon off;"
