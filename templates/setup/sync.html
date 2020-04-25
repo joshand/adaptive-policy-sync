@@ -11,20 +11,7 @@
                             <span style="float:left">Authoritative Source</span>
                         </label>
                         <div class="md-input__wrapper" style="float:left">
-                            {% if data.ise_source %}
-                                <div class="md-input-container md-radio" style="float:left">
-                                    <input value="ise" type="radio" class="md-input md-radio__input" tabindex="10" id="basicRadio1" name="basicRadio" checked>
-                                    <label class="md-radio__label" for="basicRadio1">
-                                        <span>Cisco ISE</span>
-                                    </label>
-                                </div>
-                                <div class="md-input-container md-radio" style="float:left">
-                                    <input value="meraki" type="radio" class="md-input md-radio__input" tabindex="20" id="basicRadio2" name="basicRadio">
-                                    <label class="md-radio__label" for="basicRadio2">
-                                        <span>Meraki Dashboard</span>
-                                    </label>
-                                </div>
-                            {% else %}
+                            {% if not data.ise_source %}
                                 <div class="md-input-container md-radio" style="float:left">
                                     <input value="ise" type="radio" class="md-input md-radio__input" tabindex="10" id="basicRadio1" name="basicRadio">
                                     <label class="md-radio__label" for="basicRadio1">
@@ -33,6 +20,19 @@
                                 </div>
                                 <div class="md-input-container md-radio" style="float:left">
                                     <input value="meraki" type="radio" class="md-input md-radio__input" tabindex="20" id="basicRadio2" name="basicRadio" checked>
+                                    <label class="md-radio__label" for="basicRadio2">
+                                        <span>Meraki Dashboard</span>
+                                    </label>
+                                </div>
+                            {% else %}
+                                <div class="md-input-container md-radio" style="float:left">
+                                    <input value="ise" type="radio" class="md-input md-radio__input" tabindex="10" id="basicRadio1" name="basicRadio" checked>
+                                    <label class="md-radio__label" for="basicRadio1">
+                                        <span>Cisco ISE</span>
+                                    </label>
+                                </div>
+                                <div class="md-input-container md-radio" style="float:left">
+                                    <input value="meraki" type="radio" class="md-input md-radio__input" tabindex="20" id="basicRadio2" name="basicRadio">
                                     <label class="md-radio__label" for="basicRadio2">
                                         <span>Meraki Dashboard</span>
                                     </label>
@@ -47,7 +47,11 @@
                             <span style="float:left">Manual Synchronization Interval</span>
                         </label>
                         <div class="md-input__wrapper">
-                            <input class="md-input md-input--after md-dirty" tabindex="30" type="text" id="syncInterval" name="syncInterval" placeholder="Interval (seconds)" value="{{ data.sync_interval }}">
+                            {% if data.sync_interval %}
+                                <input class="md-input md-input--after md-dirty" tabindex="30" type="text" id="syncInterval" name="syncInterval" placeholder="Interval (seconds)" value="300">
+                            {% else %}
+                                <input class="md-input md-input--after md-dirty" tabindex="30" type="text" id="syncInterval" name="syncInterval" placeholder="Interval (seconds)" value="{{ data.sync_interval }}">
+                            {% endif %}
                             <span class="md-input__after">
                                 <button class="md-button md-button--36 md-button--icon md-input__icon-clear" id="md-button-50" data-md-event-key="md-button-50" alt="clear input" type="button" aria-label="clear input" aria-pressed="" tabindex="11" onclick="clearinput('syncInterval')">
                                     <span class="md-button__children" style="opacity: 1;"><i class="md-icon icon icon-clear-active_16" style="font-size: 16px;"></i></span>
