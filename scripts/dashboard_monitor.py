@@ -7,7 +7,6 @@ from django_apscheduler.jobstores import register_events
 from sync.models import SyncSession, Tag, ACL, Policy
 from django.db.models import F, Q
 from django.utils.timezone import make_aware
-import meraki
 import requests
 import datetime
 import json
