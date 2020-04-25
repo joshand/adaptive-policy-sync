@@ -323,9 +323,9 @@ class Tag(models.Model):
             mdata = json.loads(self.meraki_data)
             idata = json.loads(self.ise_data)
 
-            name_match = mdata["name"] == idata["name"]
+            name_match = mdata.get("name", "mdata") == idata.get("name", "idata")
             name_match_cl = self.cleaned_name() == idata["name"]
-            desc_match = mdata["description"] == idata["description"]
+            desc_match = mdata.get("description", "mdata") == idata.get("description", "idata")
 
             outtxt += "name:" + str(name_match) + "\n"
             outtxt += "cleaned name:" + str(name_match_cl) + "\n"
@@ -569,8 +569,8 @@ class ACL(models.Model):
             mdata = json.loads(self.meraki_data)
             idata = json.loads(self.ise_data)
 
-            name_match = mdata["name"] == idata["name"]
-            desc_match = mdata["description"] == idata["description"]
+            name_match = mdata.get("name", "mdata") == idata.get("name", "idata")
+            desc_match = mdata.get("description", "mdata") == idata.get("description", "idata")
             acl_match = self.normalize_meraki_rules(mdata["rules"]) == self.normalize_ise_rules(idata["aclcontent"])
             if "ipVersion" not in idata and mdata["ipVersion"] == "agnostic":
                 # IP Agnostic
@@ -799,7 +799,7 @@ class Policy(models.Model):
             for m in m_sgacls:
                 m_sgacls_o.append(m.name)
 
-            name_match = mdata["name"] == idata["name"]
+            name_match = mdata.get("name", "mdata") == idata.get("name", "idata")
             if mdata["catchAllRule"] == "global" and idata["defaultRule"] == "NONE":
                 default_match = True
             elif mdata["catchAllRule"] == "deny all" and idata["defaultRule"] == "DENY_IP":
