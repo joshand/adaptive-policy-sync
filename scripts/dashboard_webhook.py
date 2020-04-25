@@ -18,7 +18,11 @@ def run():
             try:
                 public_url = ngrok.connect(sys.argv[-1], "http")
             except Exception:
-                public_url = ngrok.connect(8000, "http")
+                try:
+                    public_url = ngrok.connect(8000, "http")
+                except Exception:
+                    print("# Unable to launch ngrok")
+                    return None
 
             db.webhook_url = public_url.replace("http://", "https://") + "/webhook/"
             db.save()

@@ -15,7 +15,10 @@ from scripts.db_trustsec import clean_sgts, clean_sgacls, clean_sgpolicies, merg
 from scripts.dblog import append_log, db_log
 
 scheduler = BackgroundScheduler()
-scheduler.add_jobstore(DjangoJobStore(), "default")
+try:
+    scheduler.add_jobstore(DjangoJobStore(), "default")
+except Exception:
+    print("# Exception trying to initalize job store")
 
 
 def meraki_read_sgt(baseurl, orgid, headers):
