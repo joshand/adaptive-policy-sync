@@ -11,10 +11,7 @@ from sync.models import Task
 from scripts.dblog import append_log
 
 scheduler = BackgroundScheduler()
-try:
-    scheduler.add_jobstore(DjangoJobStore(), "default")
-except Exception:
-    print("# Exception trying to initalize job store")
+scheduler.add_jobstore(DjangoJobStore(), "default")
 
 
 def cleanup():

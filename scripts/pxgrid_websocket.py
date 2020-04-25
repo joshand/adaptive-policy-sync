@@ -21,10 +21,7 @@ from scripts.dashboard_monitor import exec_api_action
 from sync.models import ISEServer, SyncSession
 
 scheduler = BackgroundScheduler()
-try:
-    scheduler.add_jobstore(DjangoJobStore(), "default")
-except Exception:
-    print("# Exception trying to initalize job store")
+scheduler.add_jobstore(DjangoJobStore(), "default")
 loop = asyncio.new_event_loop()
 
 

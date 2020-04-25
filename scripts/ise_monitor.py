@@ -17,10 +17,7 @@ import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 scheduler = BackgroundScheduler()
-try:
-    scheduler.add_jobstore(DjangoJobStore(), "default")
-except Exception:
-    print("# Exception trying to initalize job store")
+scheduler.add_jobstore(DjangoJobStore(), "default")
 
 
 def ers_get(baseurl, url, un, pw):

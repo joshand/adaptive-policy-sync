@@ -26,8 +26,12 @@ from scripts.dashboard_webhook import process_webhook
 # from adaptive_policy_sync import tasks
 from scripts.dashboard_simulator import parse_url as meraki_parse_url
 from scripts.ise_ers_simulator import parse_url as ise_parse_url
-import adaptive_policy_sync.tasks
-adaptive_policy_sync.tasks.run_tasks()
+try:
+    import adaptive_policy_sync.tasks
+    adaptive_policy_sync.tasks.run_tasks()
+except Exception:
+    print("# Exception loading background tasks")
+
 
 router = routers.DefaultRouter()
 router.register(r'uploadzip', views.UploadZipViewSet)
