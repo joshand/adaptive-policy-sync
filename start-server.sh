@@ -7,7 +7,7 @@ if [ -n "$DJANGO_SUPERUSER_USERNAME" ] && [ -n "$DJANGO_SUPERUSER_PASSWORD" ] &&
     (cd adaptive_policy_sync; python manage.py runscript import_token --script-args $DJANGO_SUPERUSER_USERNAME $DJANGO_SUPERUSER_APIKEY)
 fi
 if [ -n "$DJANGO_SUPERUSER_USERNAME" ] && [ -n "$DJANGO_SUPERUSER_PASSWORD" ] && [ -n "$SIMULATED_ENVIRONMENT_URL" ] ; then
-    (cd adaptive_policy_sync; python manage.py runscript dashboard_simulator --script-args 10 5 5 5; python manage.py runscript ise_ers_simulator --script-args 5 5 5; cd scripts; chown www-data:www-data *.json)
+    (cd adaptive_policy_sync; python manage.py runscript dashboard_simulator --script-args 10 2 2 2; python manage.py runscript ise_ers_simulator --script-args 5 5 5; cd scripts; chown www-data:www-data *.json)
     echo "===================================================="
     echo "For Cisco ISE, use the following settings:"
     echo "1) IP Address: $SIMULATED_ENVIRONMENT_URL/ise"
@@ -19,7 +19,4 @@ if [ -n "$DJANGO_SUPERUSER_USERNAME" ] && [ -n "$DJANGO_SUPERUSER_PASSWORD" ] &&
     echo "===================================================="
 fi
 (cd adaptive_policy_sync; gunicorn adaptive_policy_sync.wsgi --user www-data --bind 0.0.0.0:8010 --workers 3 --preload) &
-#(cd adaptive_policy_sync; python manage.py runscript dashboard_monitor) &
-#(cd adaptive_policy_sync; python manage.py runscript ise_monitor) &
-#(cd adaptive_policy_sync; python manage.py runscript clean_tasks) &
 nginx -g "daemon off;"
