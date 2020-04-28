@@ -4,6 +4,7 @@ import random
 import json
 import os
 import datetime
+import time
 from random import randint
 from django.http import HttpResponseBadRequest
 from .base_simulator import handle_request
@@ -93,6 +94,12 @@ def get_rules():
 
 
 def run(orgs, tags, acls, policies):
+    t = int(time.time() * 1000.0)
+    random.seed(((t & 0xff000000) >> 24) +
+                ((t & 0x00ff0000) >> 8) +
+                ((t & 0x0000ff00) << 8) +
+                ((t & 0x000000ff) << 24))
+
     neworgs = []
     newtags = {}
     newacls = {}
