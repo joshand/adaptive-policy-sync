@@ -447,7 +447,7 @@ class ACL(models.Model):
                         p_list.append(x)
                 else:
                     p_list.append(l)
-            return " ".join(p_list)
+            return "eq ".join(p_list)
         if "-" in port_range:
             r_range = port_range.split("-")
             return "range " + str(r_range[0]) + " " + str(r_range[1])
@@ -469,9 +469,9 @@ class ACL(models.Model):
                 else:
                     outtxt += r["protocol"].lower().strip()
                     if r["srcPort"] != "any":
-                        outtxt += " src eq " + self.make_port_list(r["srcPort"])
+                        outtxt += " src " + self.make_port_list(r["srcPort"])
                     if r["dstPort"] != "any":
-                        outtxt += " dst eq " + self.make_port_list(r["dstPort"])
+                        outtxt += " dst " + self.make_port_list(r["dstPort"])
 
                 outtxt = outtxt.strip() + "\n"
             return outtxt[:-1].strip()
@@ -487,9 +487,9 @@ class ACL(models.Model):
                 else:
                     outtxt += r["protocol"].lower().strip()
                     if r["srcPort"] != "any":
-                        outtxt += " src eq " + self.make_port_list(r["srcPort"])
+                        outtxt += " src " + self.make_port_list(r["srcPort"])
                     if r["dstPort"] != "any":
-                        outtxt += " dst eq " + self.make_port_list(r["dstPort"])
+                        outtxt += " dst " + self.make_port_list(r["dstPort"])
 
                 outtxt = outtxt.strip() + "\n"
             return outtxt[:-1]
