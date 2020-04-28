@@ -53,7 +53,7 @@ def get_rules():
 
     rules = []
     r_count = randint(2, 6)
-    hasicmp = False
+    has_anyany = False
     for r in range(0, r_count):
         s_choice = random.choice([0, 1, 2, 3])
         if s_choice == 1:
@@ -90,13 +90,13 @@ def get_rules():
             dst = "any"
 
         rule_pol = random.choice(["permit", "deny"])
-        if hasicmp:
-            rule_proto = random.choice(["any", "tcp", "udp"])
+        if has_anyany:
+            rule_proto = random.choice(["tcp", "udp"])
         else:
             rule_proto = random.choice(["any", "tcp", "udp", "icmp"])
 
-        if rule_proto == "icmp":
-            hasicmp = True
+        if rule_proto == "icmp" or rule_proto == "any":
+            has_anyany = True
             rules.append(rule_pol + " " + rule_proto)
         else:
             rules.append(rule_pol + " " + rule_proto + " src " + src + " dst " + dst)
