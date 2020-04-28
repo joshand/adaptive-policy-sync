@@ -330,7 +330,11 @@ class Tag(models.Model):
             outtxt += "name:" + str(name_match) + "\n"
             outtxt += "cleaned name:" + str(name_match_cl) + "\n"
             outtxt += "description:" + str(desc_match) + "\n"
-            if self.tag_number == 2:
+            if self.tag_number == 0:
+                outtxt += "\n" + "NOTE:THIS TAG (0) WILL ALWAYS RETURN Matches:True. WE DO NOT WANT TO SYNC IT." + "\n"
+                if bool_only:
+                    return True
+            elif self.tag_number == 2:
                 outtxt += "\n" + "NOTE:THIS TAG (2) WILL ALWAYS RETURN Matches:True. WE DO NOT WANT TO SYNC IT." + "\n"
                 if bool_only:
                     return True
@@ -944,7 +948,8 @@ class Policy(models.Model):
 
             return thismeth, url, json.dumps({"EgressMatrixCell": {"sourceSgtId": src, "destinationSgtId": dst,
                                                                    "matrixCellStatus": "ENABLED",
-                                                                   "defaultRule": self.get_catchall(d), "sgacls": acl}})
+                                                                   "defaultRule": self.get_catchall(d), "sgacls": acl,
+                                                                   "name": self.name, "description": self.description}})
         elif d == "meraki":
             thismeth = "PUT"
             url = self.syncsession.dashboard.baseurl + "/organizations/" + str(self.syncsession.dashboard.orgid) +\
@@ -995,7 +1000,7 @@ class Task(models.Model):
     last_update = models.DateTimeField(default=django.utils.timezone.now)
 
     def __str__(self):
-        return str(self.last_update) + "::" + self.description
+        return str(self.last_update) + "::" + self.description + " (" + str(len(str(self.task_data))) + ")"
 
     class Meta:
         ordering = ('-last_update',)
