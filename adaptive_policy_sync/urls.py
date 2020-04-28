@@ -69,6 +69,7 @@ urlpatterns = [
     # url(r'^home$', apsyncviews.home, name='home'),
     path('home/', apsyncviews.home, name='home'),
     url(r'^home/status-sgt$', apsyncviews.sgtstatus, name='sgtstatus'),
+    url(r'^home/sgtsave$', apsyncviews.sgtsave, name='sgtsave'),
     url(r'^home/status-sgacl$', apsyncviews.sgaclstatus, name='sgaclstatus'),
     url(r'^home/status-policy$', apsyncviews.policystatus, name='policystatus'),
     url(r'^home/config-cert$', apsyncviews.certconfig, name='certconfig'),
