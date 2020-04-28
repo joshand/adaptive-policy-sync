@@ -5,7 +5,8 @@ import json
 import os
 import datetime
 from random import randint
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseBadRequest, HttpResponse
+from .base_simulator import handle_request
 
 
 def write_file(out_filename, content):
@@ -163,10 +164,58 @@ def parse_url(request):
     baseurl = "/".join(request.build_absolute_uri().split("/")[:3])
     p = request.path.replace("/meraki/api/v1/organizations/", "").replace("/meraki/api/v1/organizations", "")
     arr = p.split("/")
-    if len(arr) > 1:
-        org_id = arr[0]
-        file_type = arr[2] + ".json"
-        ret = json.loads(read_file_all(file_type).replace("{{url}}", baseurl)).get(org_id, {})
+
+    isotime = datetime.datetime.now().isoformat()
+    org_id = arr[0]
+
+    fixedvals = {"organizations": {"id": "{{id-num:18}}", "url": "{{url}}/o/{{id-mix:7}}/manage/organization/overview"},
+                 "groups": {"groupId": "{{length}}", "versionNum": 0, "createdAt": isotime, "updatedAt": isotime},
+                 "acls": {"aclId": "{{length}}", "versionNum": 0, "createdAt": isotime, "updatedAt": isotime},
+                 "bindings": {"versionNum": 0, "updatedAt": isotime}}
+    postvals = {"organizations": {"name": None},
+                "groups": {"name": None, "description": None, "value": None, "networkObjectId": None},
+                "acls": {"name": None, "description": None, "ipVersion": None, "rules": None},
+                "bindings": {"srcGroupId": None, "dstGroupId": None, "name": None, "description": None, "aclIds": None,
+                             "catchAllRule": None, "bindingEnabled": None, "monitorModeEnabled": None}}
+    info = {"organizations": {"id": "id", "unique": [{"id": []}]},
+            "groups": {"id": "groupId", "unique": [{"value": [], "groupId": []}]},
+            "acls": {"id": "aclId", "unique": [{"name": [], "aclId": []}]},
+            "bindings": {"none_as_delete_key": "aclIds", "put_unique": ["srcGroupId", "dstGroupId"],
+                         "unique_results": []}}
+
+    if len(arr) == 1:
+        file_type = "orgs.json"
+        full_dataset = []
+        dataset = json.loads(read_file_all(file_type))
+        if arr[0] == "":
+            elem_id = None
+        else:
+            elem_id = arr[0]
+        endpoint = "organizations"
     else:
-        ret = json.loads(read_file_all("orgs.json").replace("{{url}}", baseurl))
-    return JsonResponse(ret, safe=False)
+        file_type = arr[2] + ".json"
+        # dataset = json.loads(read_file_all(file_type).replace("{{url}}", baseurl)).get(org_id, [])
+        full_dataset = json.loads(read_file_all(file_type))
+        dataset = full_dataset.pop(org_id, [])
+        if len(arr) == 3 or request.method == "POST":
+            elem_id = None
+        else:
+            elem_id = arr[3]
+        endpoint = arr[2]
+        if endpoint == "bindings" and (request.method == "POST" or request.method == "DELETE"):
+            return HttpResponseBadRequest("Unsupported Method")
+
+    if request.body:
+        jd = json.loads(request.body)
+    else:
+        jd = None
+
+    updated_data, ret = handle_request(request.method, jd, baseurl, endpoint, elem_id, dataset, fixedvals, postvals,
+                                       info)
+    if updated_data:
+        if isinstance(full_dataset, list):
+            write_file(file_type, json.dumps(full_dataset + [updated_data], indent=4))
+        else:
+            full_dataset[org_id] = updated_data
+            write_file(file_type, json.dumps(full_dataset, indent=4))
+    return ret
