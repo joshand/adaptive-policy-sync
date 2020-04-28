@@ -5,7 +5,7 @@ import json
 import os
 import datetime
 from random import randint
-from django.http import JsonResponse, HttpResponseBadRequest, HttpResponse
+from django.http import HttpResponseBadRequest
 from .base_simulator import handle_request
 
 

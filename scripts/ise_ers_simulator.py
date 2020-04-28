@@ -4,7 +4,6 @@ import random
 import json
 import os
 from random import randint
-from django.http import JsonResponse
 import uuid
 from .base_simulator import handle_request
 

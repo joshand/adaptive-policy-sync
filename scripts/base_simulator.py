@@ -4,7 +4,6 @@ import os
 import uuid
 import string
 import random
-from operator import itemgetter
 
 
 def string_num_generator(size):
