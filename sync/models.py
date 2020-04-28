@@ -574,47 +574,50 @@ class ACL(models.Model):
     def match_report(self, bool_only=False):
         outtxt = ""
         if self.ise_id and self.ise_data and self.meraki_id and self.meraki_data:
-            mdata = json.loads(self.meraki_data)
-            idata = json.loads(self.ise_data)
+            try:
+                mdata = json.loads(self.meraki_data)
+                idata = json.loads(self.ise_data)
 
-            name_match = mdata.get("name", "mdata") == idata.get("name", "idata")
-            desc_match = mdata.get("description", "mdata") == idata.get("description", "idata")
-            acl_match = self.normalize_meraki_rules(mdata["rules"]) == self.normalize_ise_rules(idata["aclcontent"])
-            if "ipVersion" not in idata and mdata["ipVersion"] == "agnostic":
-                # IP Agnostic
-                ver_match = True
-            elif idata.get("ipVersion", "").lower() == mdata.get("ipVersion", ""):
-                # Version matches
-                ver_match = True
-            else:
-                ver_match = False
+                name_match = mdata.get("name", "mdata") == idata.get("name", "idata")
+                desc_match = mdata.get("description", "mdata") == idata.get("description", "idata")
+                acl_match = self.normalize_meraki_rules(mdata["rules"]) == self.normalize_ise_rules(idata["aclcontent"])
+                if "ipVersion" not in idata and mdata["ipVersion"] == "agnostic":
+                    # IP Agnostic
+                    ver_match = True
+                elif idata.get("ipVersion", "").lower() == mdata.get("ipVersion", ""):
+                    # Version matches
+                    ver_match = True
+                else:
+                    ver_match = False
 
-            outtxt += "name:" + str(name_match) + "\n"
-            outtxt += "description:" + str(desc_match) + "\n"
+                outtxt += "name:" + str(name_match) + "\n"
+                outtxt += "description:" + str(desc_match) + "\n"
 
-            test_ise_acl_1 = self.normalize_ise_rules(idata["aclcontent"]).strip().replace("\n", ";")
-            # print(idata["aclcontent"], "=====", test_ise_acl_1)
-            test_meraki_acl = self.normalize_ise_rules(idata["aclcontent"], mode="convert")
-            # print("----content---", idata["aclcontent"], test_meraki_acl)
-            test_ise_acl_2 = self.normalize_meraki_rules(test_meraki_acl, mode="convert").strip().replace("\n", ";")
-            # print(test_meraki_acl, test_ise_acl_2)
-            test_ise_acl_3 = self.normalize_ise_rules(test_ise_acl_2)
-            ise_valid_config = test_ise_acl_1 == test_ise_acl_3
-            # print(test_ise_acl_1, test_ise_acl_2, len(test_ise_acl_1), len(test_ise_acl_2), ise_valid_config)
-            outtxt += "----Filtered ISE Config:\n" + test_ise_acl_1 + "\n----Converted to ISE:\n" +\
-                      test_ise_acl_3 + "\n----\n"
-            outtxt += "ise_valid_acl?:" + str(ise_valid_config) + "\n"
+                test_ise_acl_1 = self.normalize_ise_rules(idata["aclcontent"]).strip().replace("\n", ";")
+                # print(idata["aclcontent"], "=====", test_ise_acl_1)
+                test_meraki_acl = self.normalize_ise_rules(idata["aclcontent"], mode="convert")
+                # print("----content---", idata["aclcontent"], test_meraki_acl)
+                test_ise_acl_2 = self.normalize_meraki_rules(test_meraki_acl, mode="convert").strip().replace("\n", ";")
+                # print(test_meraki_acl, test_ise_acl_2)
+                test_ise_acl_3 = self.normalize_ise_rules(test_ise_acl_2)
+                ise_valid_config = test_ise_acl_1 == test_ise_acl_3
+                # print(test_ise_acl_1, test_ise_acl_2, len(test_ise_acl_1), len(test_ise_acl_2), ise_valid_config)
+                outtxt += "----Filtered ISE Config:\n" + test_ise_acl_1 + "\n----Converted to ISE:\n" +\
+                          test_ise_acl_3 + "\n----\n"
+                outtxt += "ise_valid_acl?:" + str(ise_valid_config) + "\n"
 
-            outtxt += "meraki_acl:" + self.normalize_meraki_rules(mdata["rules"]) + "\n"
-            outtxt += "ise_acl:" + self.normalize_ise_rules(idata["aclcontent"]) + "\n"
-            outtxt += "acl:" + str(acl_match) + "\n"
-            outtxt += "version:" + str(ver_match) + "\n"
-            outtxt += "delete?:" + str(self.push_delete) + "\n"
+                outtxt += "meraki_acl:" + self.normalize_meraki_rules(mdata["rules"]) + "\n"
+                outtxt += "ise_acl:" + self.normalize_ise_rules(idata["aclcontent"]) + "\n"
+                outtxt += "acl:" + str(acl_match) + "\n"
+                outtxt += "version:" + str(ver_match) + "\n"
+                outtxt += "delete?:" + str(self.push_delete) + "\n"
 
-            if bool_only:
-                return name_match and desc_match and acl_match and ver_match and not self.push_delete
-            else:
-                return outtxt
+                if bool_only:
+                    return name_match and desc_match and acl_match and ver_match and not self.push_delete
+                else:
+                    return outtxt
+            except Exception:
+                return False
 
         if bool_only:
             return False
@@ -623,14 +626,17 @@ class ACL(models.Model):
 
     def is_valid_config(self):
         if self.ise_id and self.ise_data and self.meraki_id and self.meraki_data:
-            idata = json.loads(self.ise_data)
+            try:
+                idata = json.loads(self.ise_data)
 
-            test_ise_acl_1 = self.normalize_ise_rules(idata["aclcontent"]).strip().replace("\n", ";")
-            test_meraki_acl = self.normalize_ise_rules(idata["aclcontent"], mode="convert")
-            test_ise_acl_2 = self.normalize_meraki_rules(test_meraki_acl, mode="convert").strip().replace("\n", ";")
-            test_ise_acl_3 = self.normalize_ise_rules(test_ise_acl_2)
-            ise_valid_config = test_ise_acl_1 == test_ise_acl_3
-            return ise_valid_config
+                test_ise_acl_1 = self.normalize_ise_rules(idata["aclcontent"]).strip().replace("\n", ";")
+                test_meraki_acl = self.normalize_ise_rules(idata["aclcontent"], mode="convert")
+                test_ise_acl_2 = self.normalize_meraki_rules(test_meraki_acl, mode="convert").strip().replace("\n", ";")
+                test_ise_acl_3 = self.normalize_ise_rules(test_ise_acl_2)
+                ise_valid_config = test_ise_acl_1 == test_ise_acl_3
+                return ise_valid_config
+            except Exception:
+                return False
 
         return True
 
