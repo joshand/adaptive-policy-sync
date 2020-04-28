@@ -233,7 +233,7 @@ def run(tags, acls, policies):
 
 @csrf_exempt
 def parse_url(request):
-    baseurl = "/".join(request.build_absolute_uri().split("/")[:4])
+    baseurl = "/".join(request.build_absolute_uri().split("/")[:5])
     p = request.path.replace("/ise/ers/config/", "").replace("/ise/ers/config", "")
     arr = p.split("/")
 
