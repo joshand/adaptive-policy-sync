@@ -127,7 +127,7 @@ def sync_ise_accounts(accounts, log):
                     if o.push_delete:
                         o.delete()
                 else:
-                    append_log("ise_monitor::sync_ise_accounts::policy needs API push", o.push_config())
+                    append_log(log, "ise_monitor::sync_ise_accounts::policy needs API push", o.push_config())
 
 
 def sync_ise():

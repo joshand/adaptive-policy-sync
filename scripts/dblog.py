@@ -6,6 +6,8 @@ dodebug = False
 def append_log(log, *data):
     if log is None:
         log = []
+    if not isinstance(log, list):
+        log = [log]
 
     if (isinstance(data, list) or isinstance(data, tuple)) and len(data) > 1:
         if dodebug:
