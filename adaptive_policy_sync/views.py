@@ -292,6 +292,27 @@ def sgtstatus(request):
     return render(request, 'home/sgtstatus.html', {"crumbs": crumbs, "menuopen": 1, "data": {"sgt": sgts}})
 
 
+def sgtsave(request):
+    if not request.user.is_authenticated:
+        return redirect('/login')
+
+    add = (";" + request.POST.get("addlist", ""))[:-1]
+    sub = (";" + request.POST.get("sublist", ""))[:-1]
+    addlist = add.split(";;check-")[1:]
+    sublist = sub.split(";;check-")[1:]
+    sgts = Tag.objects.filter(id__in=addlist)
+    for s in sgts:
+        s.do_sync = True
+        s.save()
+
+    sgts = Tag.objects.filter(id__in=sublist)
+    for s in sgts:
+        s.do_sync = False
+        s.save()
+
+    return redirect("/home/status-sgt")
+
+
 def sgaclstatus(request):
     if not request.user.is_authenticated:
         return redirect('/login')
