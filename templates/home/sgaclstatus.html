@@ -9,7 +9,7 @@
                         <th style="width: 8rem">Name</th>
                         <th style="width: 12rem">Description</th>
                         <th style="width: 6rem">Valid?</th>
-                        <th style="width: 6rem">Matches?</th>
+                        <th style="width: 10rem">Matches?</th>
                         <th style="width: 12rem">Last Update</th>
                         <th style="width: 16rem">ID</th>
                     </tr>
@@ -24,8 +24,12 @@
                         {% endif %}
                         {% if d.in_sync %}
                             <td style="background-color:#55dd55"> {{ d.in_sync }} </td>
-                        {% else %}
+                        {% elif d.ise_id and d.meraki_id %}
                             <td style="background-color:#dd5555"> {{ d.in_sync }} </td>
+                        {% elif d.ise_id %}
+                            <td style="background-color:#dd5555"> Meraki Missing </td>
+                        {% else %}
+                            <td style="background-color:#dd5555"> ISE Missing </td>
                         {% endif %}
                         <td> {{ d.last_update }} </td><td><a href="{{ request.url }}?id={{ d.id }}"> {{ d.id }} </a></td></tr>
                     {% endfor %}
