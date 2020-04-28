@@ -237,6 +237,12 @@ def setupdone(request):
     if request.method == 'POST':
         source = request.POST.get("basicRadio")
         sync_int = request.POST.get("syncInterval")
+        post_dosync = request.POST.get("do_sync")
+        if post_dosync:
+            dosync = True
+        else:
+            dosync = False
+
         if source.lower() == "ise":
             ise_source = True
         else:
@@ -246,10 +252,11 @@ def setupdone(request):
             if sync and iseserver and dashboard:
                 sync.ise_source = ise_source
                 sync.sync_interval = sync_int
+                sync.sync_enabled = dosync
                 sync.save()
             else:
                 SyncSession.objects.create(description="TrustSec Sync", dashboard=dashboard, iseserver=iseserver,
-                                           ise_source=ise_source, sync_interval=sync_int, sync_enabled=True)
+                                           ise_source=ise_source, sync_interval=sync_int)
 
     return redirect("/home")
 
