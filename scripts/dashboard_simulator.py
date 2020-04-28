@@ -48,6 +48,7 @@ def string_generator(size):
 def get_rules():
     rules = []
     r_count = randint(2, 6)
+    hasicmp = False
     for r in range(0, r_count):
         rule = {}
         s_choice = random.choice([0, 1, 2, 3])
@@ -85,9 +86,17 @@ def get_rules():
             dst = "any"
 
         rule["policy"] = random.choice(["allow", "deny"])
-        rule["protocol"] = random.choice(["any", "tcp", "udp", "icmp"])
-        rule["srcPort"] = src
-        rule["dstPort"] = dst
+        if hasicmp:
+            rule["protocol"] = random.choice(["any", "tcp", "udp"])
+        else:
+            rule["protocol"] = random.choice(["any", "tcp", "udp", "icmp"])
+        if rule["protocol"] == "icmp":
+            hasicmp = True
+            rule["srcPort"] = "any"
+            rule["dstPort"] = "any"
+        else:
+            rule["srcPort"] = src
+            rule["dstPort"] = dst
         rules.append(rule)
 
     return rules
