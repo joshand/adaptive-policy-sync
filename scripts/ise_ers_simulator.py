@@ -90,7 +90,7 @@ def get_rules():
 
         rule_pol = random.choice(["permit", "deny"])
         rule_proto = random.choice(["any", "tcp", "udp", "icmp"])
-        rules.append(rule_pol + " " + rule_proto + " " + src + " " + dst)
+        rules.append(rule_pol + " " + rule_proto + " src " + src + " dst " + dst)
 
     return "\n".join(rules)
 
