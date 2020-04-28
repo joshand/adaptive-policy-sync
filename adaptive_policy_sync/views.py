@@ -252,11 +252,11 @@ def setupdone(request):
             if sync and iseserver and dashboard:
                 sync.ise_source = ise_source
                 sync.sync_interval = sync_int
-                sync.sync_enabled = dosync
+                sync.apply_changes = dosync
                 sync.save()
             else:
                 SyncSession.objects.create(description="TrustSec Sync", dashboard=dashboard, iseserver=iseserver,
-                                           ise_source=ise_source, sync_interval=sync_int)
+                                           ise_source=ise_source, sync_interval=sync_int, sync_enabled=True)
 
     return redirect("/home")
 
