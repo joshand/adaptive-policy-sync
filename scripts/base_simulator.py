@@ -37,6 +37,8 @@ def fix_urls(json_txt, baseurl):
 
 def handle_request(method, postdata, baseurl, endpoint, elem_id, dataset, fixedvals, postvals, info):
     out_data = {}
+    if postdata == None:
+        postdata = {}
     r = {}, HttpResponseBadRequest("An Error Ocurred")
     if method == 'POST' or method == 'PUT' or method == 'DELETE':
         # If data has headers, unwrap headers to get raw data
@@ -51,7 +53,7 @@ def handle_request(method, postdata, baseurl, endpoint, elem_id, dataset, fixedv
                         datapos = datapos[k]
                     headtest = v
                     if v == "{{results}}":
-                        datain = postdata[k]
+                        datain = postdata.get(k, {})
         else:
             datain = postdata
 
