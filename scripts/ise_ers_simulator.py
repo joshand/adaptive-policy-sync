@@ -211,8 +211,10 @@ def run(tags, acls, policies):
         pol_acls = []
         apply_acl = random.choice([True, False])
         if apply_acl:
-            for x in range(0, randint(2, 6)):
-                pol_acls.append(random.choice(newacls)["id"])
+            for x in range(0, randint(2, 9)):
+                newpol = random.choice(newacls)["id"]
+                if newpol not in pol_acls:
+                    pol_acls.append(newpol)
         pol_src = random.choice(newtags)["id"]
         pol_dst = random.choice(newtags)["id"]
         newpolicies.append({"id": pol_id, "name": pol_name, "description": pol_desc,
