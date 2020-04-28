@@ -968,12 +968,8 @@ class Policy(models.Model):
                         "srcGroupId": src,
                         "dstGroupId": dst
                     })
-            if self.meraki_id:
-                thisdesc = "Updated from ISE"
-            else:
-                thisdesc = "Imported from ISE"
             return thismeth, url, json.dumps({
-                    "description": thisdesc,
+                    "description": self.description,
                     "name": self.name,
                     "monitorModeEnabled": False,
                     "catchAllRule": self.get_catchall(d),
