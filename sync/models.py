@@ -370,14 +370,14 @@ class Tag(models.Model):
         if d == "ise":
             if self.push_delete:
                 thismeth = "DELETE"
-                url = "https://" + self.syncsession.iseserver.ipaddress + ":9060/ers/config/sgt/" + self.ise_id
+                url = self.syncsession.iseserver.base_url() + "/ers/config/sgt/" + self.ise_id
                 return thismeth, url, None
             elif self.ise_id is not None and self.ise_id != "":
                 thismeth = "PUT"
-                url = "https://" + self.syncsession.iseserver.ipaddress + ":9060/ers/config/sgt/" + self.ise_id
+                url = self.syncsession.iseserver.base_url() + "/ers/config/sgt/" + self.ise_id
             else:
                 thismeth = "POST"
-                url = "https://" + self.syncsession.iseserver.ipaddress + ":9060/ers/config/sgt"
+                url = self.syncsession.iseserver.base_url() + "/ers/config/sgt"
 
             return thismeth, url, json.dumps({"Sgt": {"name": self.cleaned_name(), "description": self.description,
                                                       "value": self.tag_number, "propogateToApic": False,
@@ -674,14 +674,14 @@ class ACL(models.Model):
         if d == "ise":
             if self.push_delete:
                 thismeth = "DELETE"
-                url = "https://" + self.syncsession.iseserver.ipaddress + ":9060/ers/config/sgacl/" + self.ise_id
+                url = self.syncsession.iseserver.base_url() + "/ers/config/sgacl/" + self.ise_id
                 return thismeth, url, None
             elif self.ise_id is not None and self.ise_id != "":
                 thismeth = "PUT"
-                url = "https://" + self.syncsession.iseserver.ipaddress + ":9060/ers/config/sgacl/" + self.ise_id
+                url = self.syncsession.iseserver.base_url() + "/ers/config/sgacl/" + self.ise_id
             else:
                 thismeth = "POST"
-                url = "https://" + self.syncsession.iseserver.ipaddress + ":9060/ers/config/sgacl"
+                url = self.syncsession.iseserver.base_url() + "/ers/config/sgacl"
 
             return thismeth, url, json.dumps({"Sgacl": {"name": self.name, "description": self.description,
                                                         "ipVersion": self.get_version(d), "readOnly": False,
@@ -915,14 +915,14 @@ class Policy(models.Model):
         if d == "ise":
             if self.push_delete:
                 thismeth = "DELETE"
-                url = "https://" + self.syncsession.iseserver.ipaddress + ":9060/ers/config/egressmatrixcell"
+                url = self.syncsession.iseserver.base_url() + "/ers/config/egressmatrixcell"
                 return thismeth, url, None
             elif self.ise_id is not None and self.ise_id != "":
                 thismeth = "PUT"
-                url = "https://" + self.syncsession.iseserver.ipaddress + ":9060/ers/config/egressmatrixcell"
+                url = self.syncsession.iseserver.base_url() + "/ers/config/egressmatrixcell"
             else:
                 thismeth = "POST"
-                url = "https://" + self.syncsession.iseserver.ipaddress + ":9060/ers/config/egressmatrixcell"
+                url = self.syncsession.iseserver.base_url() + "/ers/config/egressmatrixcell"
 
             return thismeth, url, json.dumps({"EgressMatrixCell": {"sourceSgtId": src, "destinationSgtId": dst,
                                                                    "matrixCellStatus": "ENABLED",
