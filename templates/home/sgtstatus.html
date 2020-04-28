@@ -44,7 +44,15 @@
                                 <td style="background-color:#dd5555"> ISE Missing </td>
                             {% endif %}
                         {% else %}
+                            {% if d.in_sync %}
                                 <td> {{ d.in_sync }} </td>
+                            {% elif d.ise_id and d.meraki_id %}
+                                <td> {{ d.in_sync }} </td>
+                            {% elif d.ise_id %}
+                                <td> Meraki Missing </td>
+                            {% else %}
+                                <td> ISE Missing </td>
+                            {% endif %}
                         {% endif %}
                         <td> {{ d.last_update }} </td><td><a href="{{ request.url }}?id={{ d.id }}"> {{ d.id }} </a></td></tr>
                     {% endfor %}
