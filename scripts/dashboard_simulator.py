@@ -161,8 +161,10 @@ def run(orgs, tags, acls, policies):
             pol_acls = []
             apply_acl = random.choice([True, False])
             if apply_acl:
-                for x in range(0, randint(2, 6)):
-                    pol_acls.append(random.choice(newacls[org_id])["aclId"])
+                for x in range(0, randint(2, 9)):
+                    newpol = random.choice(newacls[org_id])["aclId"]
+                    if newpol not in pol_acls:
+                        pol_acls.append(newpol)
             pol_src = random.choice(newtags[org_id])["groupId"]
             pol_dst = random.choice(newtags[org_id])["groupId"]
             newpolicies[org_id].append({"name": pol_name, "description": pol_desc, "monitorModeEnabled": False,
