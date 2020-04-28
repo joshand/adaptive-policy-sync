@@ -43,6 +43,7 @@ class Config:
             self.config.servercert = str(db.pxgrid_isecert.file)
             self.config.id = db.id
         else:
+            self.config.id = None
             append_log(log, "pxgrid_monitor::pxgrid_config::No pxGrid servers configured...")
 
     def get_id(self):
@@ -223,7 +224,11 @@ def run():
 
 
 def sync_pxgrid(loop, log=None):
-    loop_pxgrid(Config(log), loop)
+    cfg = Config(log)
+    if cfg.config.id:
+        loop_pxgrid(Config(log), loop)
+
+    return False
 
 
 def loop_pxgrid(config, loop):
@@ -266,8 +271,11 @@ def job():
         th = threading.Thread(target=start_background_loop, args=(loop,))
         th.start()
         log = []
-        sync_pxgrid(loop, log)
-        scheduler.remove_job("pxgrid_monitor")
+        ret = sync_pxgrid(loop, log)
+        if ret is not False:
+            scheduler.remove_job("pxgrid_monitor")
+        else:
+            print("pxGrid configuration not present. Will check again...")
     except Exception as e:
         print("#### Exception starting scheduled job: sync_pxgrid", e)
 
