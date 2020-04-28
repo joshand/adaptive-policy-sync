@@ -11,20 +11,7 @@
                             <span style="float:left">Authoritative Source</span>
                         </label>
                         <div class="md-input__wrapper" style="float:left">
-                            {% if not data.ise_source %}
-                                <div class="md-input-container md-radio" style="float:left">
-                                    <input value="ise" type="radio" class="md-input md-radio__input" tabindex="10" id="basicRadio1" name="basicRadio">
-                                    <label class="md-radio__label" for="basicRadio1">
-                                        <span>Cisco ISE</span>
-                                    </label>
-                                </div>
-                                <div class="md-input-container md-radio" style="float:left">
-                                    <input value="meraki" type="radio" class="md-input md-radio__input" tabindex="20" id="basicRadio2" name="basicRadio" checked>
-                                    <label class="md-radio__label" for="basicRadio2">
-                                        <span>Meraki Dashboard</span>
-                                    </label>
-                                </div>
-                            {% else %}
+                            {% if data.ise_source or default_sync %}
                                 <div class="md-input-container md-radio" style="float:left">
                                     <input value="ise" type="radio" class="md-input md-radio__input" tabindex="10" id="basicRadio1" name="basicRadio" checked>
                                     <label class="md-radio__label" for="basicRadio1">
@@ -33,6 +20,19 @@
                                 </div>
                                 <div class="md-input-container md-radio" style="float:left">
                                     <input value="meraki" type="radio" class="md-input md-radio__input" tabindex="20" id="basicRadio2" name="basicRadio">
+                                    <label class="md-radio__label" for="basicRadio2">
+                                        <span>Meraki Dashboard</span>
+                                    </label>
+                                </div>
+                            {% else %}
+                                <div class="md-input-container md-radio" style="float:left">
+                                    <input value="ise" type="radio" class="md-input md-radio__input" tabindex="10" id="basicRadio1" name="basicRadio">
+                                    <label class="md-radio__label" for="basicRadio1">
+                                        <span>Cisco ISE</span>
+                                    </label>
+                                </div>
+                                <div class="md-input-container md-radio" style="float:left">
+                                    <input value="meraki" type="radio" class="md-input md-radio__input" tabindex="20" id="basicRadio2" name="basicRadio" checked>
                                     <label class="md-radio__label" for="basicRadio2">
                                         <span>Meraki Dashboard</span>
                                     </label>
@@ -47,7 +47,7 @@
                             <span style="float:left">Manual Synchronization Interval</span>
                         </label>
                         <div class="md-input__wrapper">
-                            {% if data.sync_interval %}
+                            {% if not data.sync_interval or default_sync %}
                                 <input class="md-input md-input--after md-dirty" tabindex="30" type="text" id="syncInterval" name="syncInterval" placeholder="Interval (seconds)" value="300">
                             {% else %}
                                 <input class="md-input md-input--after md-dirty" tabindex="30" type="text" id="syncInterval" name="syncInterval" placeholder="Interval (seconds)" value="{{ data.sync_interval }}">
@@ -69,7 +69,7 @@
                                 <input name="do_sync" value="true" id="do_sync" type="checkbox" class="md-input md-checkbox__input" tabindex="40">
                             {% endif %}
                             <label class="md-checkbox__label" for="use_pxgrid">
-                                <span>Enable Automatic Synchronization</span>
+                                <span>Enable Synchronization</span>
                             </label>
                         </div>
                     </div>
