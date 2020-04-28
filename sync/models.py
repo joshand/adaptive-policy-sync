@@ -452,7 +452,7 @@ class ACL(models.Model):
             r_range = port_range.split("-")
             return "range " + str(r_range[0]) + " " + str(r_range[1])
 
-        return str(port_range)
+        return "eq " + str(port_range)
 
     def normalize_meraki_rules(self, rule_list, mode="compare"):
         if mode == "compare":
@@ -530,7 +530,7 @@ class ACL(models.Model):
                         for b in br_rule:
                             if b.lower() == "src":
                                 s_start = True
-                            elif b.lower() == "range":
+                            elif s_start and b.lower() == "range":
                                 s_range = True
                             elif b.lower() == "dst":
                                 s_start = False
@@ -549,7 +549,7 @@ class ACL(models.Model):
                         for b in br_rule:
                             if b.lower() == "dst":
                                 d_start = True
-                            elif b.lower() == "range":
+                            elif d_start and b.lower() == "range":
                                 d_range = True
                             elif d_start and b.lower() != "eq" and b.lower() != "log":
                                 the_range.append(b)
@@ -585,13 +585,17 @@ class ACL(models.Model):
             outtxt += "description:" + str(desc_match) + "\n"
 
             test_ise_acl_1 = self.normalize_ise_rules(idata["aclcontent"]).strip().replace("\n", ";")
+            # print(idata["aclcontent"], test_ise_acl_1)
+            # print(test_ise_acl_1)
             test_meraki_acl = self.normalize_ise_rules(idata["aclcontent"], mode="convert")
+            # print("----content---", idata["aclcontent"], test_meraki_acl)
             test_ise_acl_2 = self.normalize_meraki_rules(test_meraki_acl, mode="convert").strip().replace("\n", ";")
+            # print(test_meraki_acl, test_ise_acl_2)
             test_ise_acl_3 = self.normalize_ise_rules(test_ise_acl_2)
             ise_valid_config = test_ise_acl_1 == test_ise_acl_3
             # print(test_ise_acl_1, test_ise_acl_2, len(test_ise_acl_1), len(test_ise_acl_2), ise_valid_config)
-            outtxt += "----Filtered ISE Config:\n" + test_ise_acl_1 + "\n----Converted to Meraki:\n" +\
-                      test_ise_acl_2 + "\n----Converted to ISE:\n" + test_ise_acl_3 + "\n----\n"
+            outtxt += "----Filtered ISE Config:\n" + test_ise_acl_1 + "\n----Converted to ISE:\n" +\
+                      test_ise_acl_3 + "\n----\n"
             outtxt += "ise_valid_acl?:" + str(ise_valid_config) + "\n"
 
             outtxt += "meraki_acl:" + self.normalize_meraki_rules(mdata["rules"]) + "\n"
