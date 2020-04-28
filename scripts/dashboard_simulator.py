@@ -10,6 +10,9 @@ from django.http import HttpResponseBadRequest
 from .base_simulator import handle_request
 
 
+first_db_record = 0
+
+
 def write_file(out_filename, content):
     with open(os.path.join("scripts", out_filename), 'w') as out_file:
         out_file.write(content)
@@ -127,12 +130,12 @@ def run(orgs, tags, acls, policies):
         newtags[org_id] = []
         t0_desc = "Unknown group applies when a policy is specified for unsuccessful group classification"
         t2_desc = "MerakiInternal group is used by Meraki devices for internal and dashboard communication"
-        newtags[org_id].append({"groupId": 0, "value": 0, "name": "Unknown", "description": t0_desc,
+        newtags[org_id].append({"groupId": 0 + first_db_record, "value": 0, "name": "Unknown", "description": t0_desc,
                                 "versionNum": 0, "networkObjectId": None, "createdAt": isotime,
                                 "updatedAt": isotime})
-        newtags[org_id].append({"groupId": 1, "value": 2, "name": "MerakiInternal", "description": t2_desc,
-                                "versionNum": 0, "networkObjectId": None, "createdAt": isotime,
-                                "updatedAt": isotime})
+        newtags[org_id].append({"groupId": 1 + first_db_record, "value": 2, "name": "MerakiInternal",
+                                "description": t2_desc, "versionNum": 0, "networkObjectId": None,
+                                "createdAt": isotime, "updatedAt": isotime})
         for t in range(0, int(tags)):
             tw = random_words(6)
             tag_name = (tw[0] + " " + tw[1]).title()
@@ -149,8 +152,9 @@ def run(orgs, tags, acls, policies):
             acl_desc = (tw[2] + " " + tw[3] + " " + tw[4] + " " + tw[5]).title()
             acl_ver = random.choice(["ipv4", "ipv6", "agnostic"])
             acl_rules = get_rules()
-            newacls[org_id].append({"aclId": a, "name": acl_name, "description": acl_desc, "ipVersion": acl_ver,
-                                    "rules": acl_rules, "versionNum": 0, "createdAt": isotime, "updatedAt": isotime})
+            newacls[org_id].append({"aclId": a + first_db_record, "name": acl_name, "description": acl_desc,
+                                    "ipVersion": acl_ver, "rules": acl_rules, "versionNum": 0, "createdAt": isotime,
+                                    "updatedAt": isotime})
 
         newpolicies[org_id] = []
         for b in range(0, int(policies)):
