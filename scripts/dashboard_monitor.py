@@ -95,8 +95,8 @@ def sync_dashboard_accounts(accounts, log):
                         ret = exec_api_action(m, u, d, headers)
                         o.last_update_data = ret
                         o.save()
-                        sa.dashboard.force_rebuild = True
-                        sa.dashboard.save()
+                        # sa.dashboard.force_rebuild = True
+                        # sa.dashboard.save()
                     if o.push_delete:
                         o.delete()
                 else:
@@ -113,8 +113,8 @@ def sync_dashboard_accounts(accounts, log):
                         ret = exec_api_action(m, u, d, headers)
                         o.last_update_data = ret
                         o.save()
-                        sa.dashboard.force_rebuild = True
-                        sa.dashboard.save()
+                        # sa.dashboard.force_rebuild = True
+                        # sa.dashboard.save()
                     if o.push_delete:
                         o.delete()
                 else:
@@ -131,8 +131,8 @@ def sync_dashboard_accounts(accounts, log):
                         ret = exec_api_action(m, u, d, headers)
                         o.last_update_data = ret
                         o.save()
-                        sa.dashboard.force_rebuild = True
-                        sa.dashboard.save()
+                        # sa.dashboard.force_rebuild = True
+                        # sa.dashboard.save()
                     if o.push_delete:
                         o.delete()
                 else:
