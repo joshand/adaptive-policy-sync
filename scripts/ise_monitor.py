@@ -133,38 +133,45 @@ def sync_ise_accounts(accounts, log):
 def sync_ise():
     log = []
     append_log(log, "ise_monitor::sync_ise::Checking ISE Accounts for re-sync...")
-    sync_list = []
-    # dbs = ISEServer.objects.filter(force_rebuild=True)
-    dbs = SyncSession.objects.filter(Q(iseserver__force_rebuild=True) | Q(force_rebuild=True))
-    for db in dbs:
-        append_log(log, "ise_monitor::sync_ise::Force Rebuild -", db)
-        # sync_ise_accounts(dbs.iseserver)
-        sync_list.append(db)
 
-    # dbs = ISEServer.objects.all().exclude(last_sync=F('last_update'))
-    dbs = SyncSession.objects.all().exclude(iseserver__last_sync=F('iseserver__last_update'))
-    for db in dbs:
-        if db not in sync_list:
-            append_log(log, "ise_monitor::sync_ise::Out of Sync -", db)
-            # sync_dashboard_accounts(dbs)
+    # Ensure that either ISE is source of truth or that Meraki Dashboard has already completed a sync.
+    stat = SyncSession.objects.filter(Q(ise_source=True) | Q(dashboard__last_sync__isnull=False))
+    if len(stat) <= 0:
+        append_log(log, "ise_monitor::sync_ise::Skipping sync as Meraki is primary and hasn't synced.")
+    else:
+        sync_list = []
+        # dbs = ISEServer.objects.filter(force_rebuild=True)
+        dbs = SyncSession.objects.filter(Q(iseserver__force_rebuild=True) | Q(force_rebuild=True))
+        for db in dbs:
+            append_log(log, "ise_monitor::sync_ise::Force Rebuild -", db)
+            # sync_ise_accounts(dbs.iseserver)
             sync_list.append(db)
 
-    ss = SyncSession.objects.all()
-    for s in ss:
-        ctime = make_aware(datetime.datetime.now()) - datetime.timedelta(seconds=s.sync_interval)
-        dbs = SyncSession.objects.filter(iseserver__last_sync__lte=ctime)
+        # dbs = ISEServer.objects.all().exclude(last_sync=F('last_update'))
+        dbs = SyncSession.objects.all().exclude(iseserver__last_sync=F('iseserver__last_update'))
         for db in dbs:
             if db not in sync_list:
-                append_log(log, "ise_monitor::sync_ise::Past sync interval -", dbs)
-                sync_list.append(db)
+                append_log(log, "ise_monitor::sync_ise::Out of Sync -", db)
                 # sync_dashboard_accounts(dbs)
+                sync_list.append(db)
 
-    for s in sync_list:
-        if not s.sync_enabled:
-            append_log(log, "ise_monitor::sync_ise::Sync Disabled -", s)
-            sync_list.remove(s)
+        ss = SyncSession.objects.all()
+        for s in ss:
+            ctime = make_aware(datetime.datetime.now()) - datetime.timedelta(seconds=s.sync_interval)
+            dbs = SyncSession.objects.filter(iseserver__last_sync__lte=ctime)
+            for db in dbs:
+                if db not in sync_list:
+                    append_log(log, "ise_monitor::sync_ise::Past sync interval -", dbs)
+                    sync_list.append(db)
+                    # sync_dashboard_accounts(dbs)
 
-    sync_ise_accounts(sync_list, log)
+        for s in sync_list:
+            if not s.sync_enabled:
+                append_log(log, "ise_monitor::sync_ise::Sync Disabled -", s)
+                sync_list.remove(s)
+
+        sync_ise_accounts(sync_list, log)
+
     append_log(log, "ise_monitor::sync_ise::Done")
     db_log("ise_monitor", log)
 

@@ -145,39 +145,46 @@ def sync_dashboard_accounts(accounts, log):
 def sync_dashboard():
     log = []
     append_log(log, "dashboard_monitor::sync_dashboard::Checking Dashboard Accounts for re-sync...")
-    sync_list = []
-    # dbs = Dashboard.objects.filter(force_rebuild=True)
-    dbs = SyncSession.objects.filter(Q(dashboard__force_rebuild=True) | Q(force_rebuild=True))
-    for db in dbs:
-        append_log(log, "dashboard_monitor::sync_dashboard::Force Rebuild -", db)
-        # sync_dashboard_accounts(dbs)
-        db.force_rebuild = False
-        db.save()
-        sync_list.append(db)
 
-    # dbs = Dashboard.objects.all().exclude(last_sync=F('last_update'))
-    dbs = SyncSession.objects.all().exclude(dashboard__last_sync=F('dashboard__last_update'))
-    for db in dbs:
-        if db not in sync_list:
-            append_log(log, "dashboard_monitor::sync_dashboard::Out of Sync -", db)
+    # Ensure that either Meraki Dashboard is source of truth or that ISE has already completed a sync.
+    stat = SyncSession.objects.filter(Q(ise_source=False) | Q(iseserver__last_sync__isnull=False))
+    if len(stat) <= 0:
+        append_log(log, "dashboard_monitor::sync_dashboard::Skipping sync as ISE is primary and hasn't synced.")
+    else:
+        sync_list = []
+        # dbs = Dashboard.objects.filter(force_rebuild=True)
+        dbs = SyncSession.objects.filter(Q(dashboard__force_rebuild=True) | Q(force_rebuild=True))
+        for db in dbs:
+            append_log(log, "dashboard_monitor::sync_dashboard::Force Rebuild -", db)
             # sync_dashboard_accounts(dbs)
+            db.force_rebuild = False
+            db.save()
             sync_list.append(db)
 
-    ss = SyncSession.objects.all()
-    for s in ss:
-        ctime = make_aware(datetime.datetime.now()) - datetime.timedelta(seconds=s.sync_interval)
-        dbs = SyncSession.objects.filter(dashboard__last_sync__lte=ctime)
+        # dbs = Dashboard.objects.all().exclude(last_sync=F('last_update'))
+        dbs = SyncSession.objects.all().exclude(dashboard__last_sync=F('dashboard__last_update'))
         for db in dbs:
             if db not in sync_list:
-                append_log(log, "dashboard_monitor::sync_dashboard::Past sync interval -", dbs)
-                sync_list.append(db)
+                append_log(log, "dashboard_monitor::sync_dashboard::Out of Sync -", db)
                 # sync_dashboard_accounts(dbs)
+                sync_list.append(db)
 
-    for s in sync_list:
-        if not s.sync_enabled:
-            sync_list.remove(s)
+        ss = SyncSession.objects.all()
+        for s in ss:
+            ctime = make_aware(datetime.datetime.now()) - datetime.timedelta(seconds=s.sync_interval)
+            dbs = SyncSession.objects.filter(dashboard__last_sync__lte=ctime)
+            for db in dbs:
+                if db not in sync_list:
+                    append_log(log, "dashboard_monitor::sync_dashboard::Past sync interval -", dbs)
+                    sync_list.append(db)
+                    # sync_dashboard_accounts(dbs)
 
-    sync_dashboard_accounts(sync_list, log)
+        for s in sync_list:
+            if not s.sync_enabled:
+                sync_list.remove(s)
+
+        sync_dashboard_accounts(sync_list, log)
+
     append_log(log, "dashboard_monitor::sync_dashboard::Done")
     db_log("dashboard_monitor", log)
 
