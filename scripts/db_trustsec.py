@@ -195,33 +195,36 @@ def merge_sgacls(src, sgacls, is_base, sync_session, log=None):
 def merge_sgpolicies(src, sgpolicies, is_base, sync_session, log=None):
     changed_objs = []
     for s in sgpolicies:
-        binding_name = binding_desc = None
+        binding_name = policy_name = policy_desc = None
         if src == "meraki":
             p_src = Tag.objects.filter(meraki_id=s["srcGroupId"])
             p_dst = Tag.objects.filter(meraki_id=s["dstGroupId"])
             if len(p_src) > 0 and len(p_dst) > 0:
+                binding_name = str(p_src[0].tag_number) + "-" + str(p_dst[0].tag_number)
                 if p_src[0].name:
-                    binding_name = p_src[0].name
+                    policy_name = p_src[0].name
                 else:
-                    binding_name = str(p_src[0].tag_number) + "-" + str(p_dst[0].tag_number)
+                    policy_name = str(p_src[0].tag_number) + "-" + str(p_dst[0].tag_number)
                 if p_src[0].description:
-                    binding_desc = p_src[0].description
+                    policy_desc = p_src[0].description
                 else:
-                    binding_desc = str(p_src[0].name) + "-" + str(p_dst[0].name)
+                    policy_desc = str(p_src[0].name) + "-" + str(p_dst[0].name)
         elif src == "ise":
             p_src = Tag.objects.filter(ise_id=s["sourceSgtId"])
             p_dst = Tag.objects.filter(ise_id=s["destinationSgtId"])
             if len(p_src) > 0 and len(p_dst) > 0:
                 if p_src[0].tag_number == 65535 and p_dst[0].tag_number == 65535:
                     return None
+
+                binding_name = str(p_src[0].tag_number) + "-" + str(p_dst[0].tag_number)
                 if p_src[0].name:
-                    binding_name = p_src[0].name
+                    policy_name = p_src[0].name
                 else:
-                    binding_name = str(p_src[0].tag_number) + "-" + str(p_dst[0].tag_number)
+                    policy_name = str(p_src[0].tag_number) + "-" + str(p_dst[0].tag_number)
                 if p_src[0].description:
-                    binding_desc = p_src[0].description
+                    policy_desc = p_src[0].description
                 else:
-                    binding_desc = s["name"]
+                    policy_desc = s["name"]
 
         if binding_name:
             i = Policy.objects.filter(mapping=binding_name)
@@ -231,7 +234,8 @@ def merge_sgpolicies(src, sgpolicies, is_base, sync_session, log=None):
                                "exists in database; updating...")
                     t = i[0]
                     t.mapping = binding_name
-                    t.name = binding_desc
+                    t.name = policy_name
+                    t.description = policy_desc
                     t.push_delete = False
                 else:
                     append_log(log, "db_trustsec::merge_sgpolicies::" + src + "::policy", binding_name,
@@ -252,7 +256,8 @@ def merge_sgpolicies(src, sgpolicies, is_base, sync_session, log=None):
                 append_log(log, "db_trustsec::merge_sgacls::creating policy", binding_name, "...")
                 t = Policy()
                 t.mapping = binding_name
-                t.name = binding_desc
+                t.name = policy_name
+                t.description = policy_desc
                 t.syncsession = sync_session
                 if src == "meraki":
                     t.meraki_id = s["bindingId"]
