@@ -1,12 +1,19 @@
 {% extends 'home/base.html' %}
 
 {% block content %}
-    <div class="md-data-table" style="width: 100%;">
+    <div class="md-data-table" style="width:100%;border-color:gray;border-style:solid;border-width:1px">
         <div class="md-data-table__wrapper">
             <table class="testTableClass">
                 <thead class="md-data-table__thead">
                     <tr>
-                        <th style="width: 2rem">&nbsp;</th>
+                        <th style="width: 2rem">
+                            <div class="md-input-group md-checkbox">
+                                <input id="check-all" name="check-all" type="checkbox" class="md-input md-checkbox__input" onchange="checkAll('md-checkbox__input', 'check-all')">
+                                <label class="md-checkbox__label" for="check-all">
+                                    <span>&nbsp;</span>
+                                </label>
+                             </div>
+                        </th>
                         <th style="width: 4rem">Num</th>
                         <th style="width: 8rem">Name</th>
                         <th style="width: 12rem">Description</th>
@@ -24,9 +31,9 @@
                         {% endif %}
                             <div class="md-input-group md-checkbox">
                                 {% if d.do_sync %}
-                                    <input id="check-{{ d.id }}" name="check-{{ d.id }}" type="checkbox" class="md-input md-checkbox__input" checked>
+                                    <input id="check-{{ d.id }}" name="check-{{ d.id }}" type="checkbox" class="md-input md-checkbox__input startchecked" onchange="checkOpt('check-{{ d.id }}')" checked>
                                 {% else %}
-                                    <input id="check-{{ d.id }}" name="check-{{ d.id }}" type="checkbox" class="md-input md-checkbox__input">
+                                    <input id="check-{{ d.id }}" name="check-{{ d.id }}" type="checkbox" class="md-input md-checkbox__input startunchecked" onchange="checkOpt('check-{{ d.id }}')">
                                 {% endif %}
                                 <label class="md-checkbox__label" for="check-{{ d.id }}">
                                     <span>&nbsp;</span>
@@ -59,5 +66,41 @@
                 </tbody>
             </table>
         </div>
+    </div>
+    <div class="row">&nbsp;</div>
+    <div id="bottom_save" style="display:none">
+        <form class="md-panel md-panel__form" method="POST" action="/home/sgtsave" style="width:100%;padding:0px">
+            {% csrf_token %}
+            <div class="md-input-group" style="width:100%;padding:20px;background-color:#FFF5E0;border-color:#cbb013;border-width:1px;border-style:solid">
+                <div class="md-input__icon-container">
+                    <div class="row" style="align-content:center; display:flex">
+                        <div class="md-input-container columns medium-6">
+                            <div class="md-input__wrapper">
+                                <button class="md-button md-button--blue" tabindex="50">Save Changes</button> or <a href="/home/status-sgt">cancel</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div id="corner_save" style="display:none">
+        <form class="md-panel__form" method="POST" action="/home/sgtsave" style="position:fixed;bottom:0;right:0;background-color:transparent;margin:0 0 0 0">
+            {% csrf_token %}
+            <div class="md-input-group" style="width:250px;padding:20px 0 20px 0;background-color:#FFF5E0;border-color:#cbb013;border-width:1px;border-style:solid">
+                <div class="md-input__icon-container">
+                    <div class="row" style="align-content:center;display:flex">
+                        <div class="md-input-container columns medium-6" style="margin:0 0 0 0">
+                            <div class="md-input__wrapper" style="text-align:center;white-space:nowrap;">
+                                <b style="font-size:14px">You have unsaved changes.</b><br>
+                                <button class="md-button md-button--blue" tabindex="50">Save</button> or <a href="/home/status-sgt">cancel</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <input type="hidden" id="addlist" name="addlist" value="" />
+            <input type="hidden" id="sublist" name="sublist" value="" />
+        </form>
     </div>
 {% endblock %}
