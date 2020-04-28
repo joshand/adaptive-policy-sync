@@ -23,7 +23,7 @@ def cleanup():
         Task.objects.filter(description=t).exclude(pk__in=list(tasks)).delete()
         append_log(log, "task_cleanup::", t)
 
-    t1 = Task.objects.query(description="task_cleanup")
+    t1 = Task.objects.filter(description="task_cleanup")
     if len(t1) > 0:
         thetask = t1[0]
         thetask.task_data = "\n".join(log)
