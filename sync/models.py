@@ -470,8 +470,12 @@ class ACL(models.Model):
                     outtxt += r["protocol"].lower().strip()
                     if r["srcPort"] != "any":
                         outtxt += " src " + self.make_port_list(r["srcPort"])
+                    # else:
+                    #     outtxt += " src any"
                     if r["dstPort"] != "any":
                         outtxt += " dst " + self.make_port_list(r["dstPort"])
+                    # else:
+                    #     outtxt += " dst any"
 
                 outtxt = outtxt.strip() + "\n"
             return outtxt[:-1].strip()
@@ -488,8 +492,12 @@ class ACL(models.Model):
                     outtxt += r["protocol"].lower().strip()
                     if r["srcPort"] != "any":
                         outtxt += " src " + self.make_port_list(r["srcPort"])
+                    # else:
+                    #     outtxt += " src any"
                     if r["dstPort"] != "any":
                         outtxt += " dst " + self.make_port_list(r["dstPort"])
+                    # else:
+                    #     outtxt += " dst any"
 
                 outtxt = outtxt.strip() + "\n"
             return outtxt[:-1]
@@ -585,8 +593,7 @@ class ACL(models.Model):
             outtxt += "description:" + str(desc_match) + "\n"
 
             test_ise_acl_1 = self.normalize_ise_rules(idata["aclcontent"]).strip().replace("\n", ";")
-            # print(idata["aclcontent"], test_ise_acl_1)
-            # print(test_ise_acl_1)
+            # print(idata["aclcontent"], "=====", test_ise_acl_1)
             test_meraki_acl = self.normalize_ise_rules(idata["aclcontent"], mode="convert")
             # print("----content---", idata["aclcontent"], test_meraki_acl)
             test_ise_acl_2 = self.normalize_meraki_rules(test_meraki_acl, mode="convert").strip().replace("\n", ";")

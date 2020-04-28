@@ -99,7 +99,13 @@ def get_rules():
             has_anyany = True
             rules.append(rule_pol + " " + rule_proto)
         else:
-            rules.append(rule_pol + " " + rule_proto + " src " + src + " dst " + dst)
+            srctxt = ""
+            dsttxt = ""
+            if src != "any":
+                srctxt = " src " + src
+            if dst != "any":
+                dsttxt = " dst " + dst
+            rules.append(rule_pol + " " + rule_proto + srctxt + dsttxt)
 
     return "\n".join(rules)
 
