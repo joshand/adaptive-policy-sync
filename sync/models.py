@@ -447,7 +447,7 @@ class ACL(models.Model):
                         p_list.append(x)
                 else:
                     p_list.append(l)
-            return "eq ".join(p_list)
+            return "eq" + " ".join(p_list)
         if "-" in port_range:
             r_range = port_range.split("-")
             return "range " + str(r_range[0]) + " " + str(r_range[1])
