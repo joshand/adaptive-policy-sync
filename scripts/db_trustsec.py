@@ -94,7 +94,7 @@ def merge_sgts(src, sgts, is_base, sync_session, log=None):
         elif "tag" in s:
             tag_num = s["tag"]
 
-        if tag_num:
+        if tag_num is not None:
             i = Tag.objects.filter(tag_number=tag_num)
             if len(i) > 0:
                 if is_base:
@@ -195,14 +195,15 @@ def merge_sgacls(src, sgacls, is_base, sync_session, log=None):
 def merge_sgpolicies(src, sgpolicies, is_base, sync_session, log=None):
     changed_objs = []
     for s in sgpolicies:
-        binding_name = policy_name = policy_desc = None
+        binding_name = binding_desc = policy_name = policy_desc = None
         if src == "meraki":
             p_src = Tag.objects.filter(meraki_id=s["srcGroupId"])
             p_dst = Tag.objects.filter(meraki_id=s["dstGroupId"])
             if len(p_src) > 0 and len(p_dst) > 0:
                 binding_name = str(p_src[0].tag_number) + "-" + str(p_dst[0].tag_number)
-                policy_name = s["name"]
-                policy_desc = s["description"]
+                binding_desc = str(p_src[0].name) + "-" + str(p_dst[0].name)
+                policy_name = s.get("name", "")
+                policy_desc = s.get("description", "")
         elif src == "ise":
             p_src = Tag.objects.filter(ise_id=s["sourceSgtId"])
             p_dst = Tag.objects.filter(ise_id=s["destinationSgtId"])
@@ -211,10 +212,16 @@ def merge_sgpolicies(src, sgpolicies, is_base, sync_session, log=None):
                     return None
 
                 binding_name = str(p_src[0].tag_number) + "-" + str(p_dst[0].tag_number)
-                policy_name = s["name"]
-                policy_desc = s["description"]
+                binding_desc = str(p_src[0].name) + "-" + str(p_dst[0].name)
+                policy_name = s.get("name", "")
+                policy_desc = s.get("description", "")
 
         if binding_name:
+            if policy_name is None or policy_name == "":
+                policy_name = binding_name
+            if policy_desc is None or policy_desc == "":
+                policy_desc = binding_desc
+
             i = Policy.objects.filter(mapping=binding_name)
             if len(i) > 0:
                 if is_base:
