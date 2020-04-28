@@ -590,8 +590,8 @@ class ACL(models.Model):
             test_ise_acl_3 = self.normalize_ise_rules(test_ise_acl_2)
             ise_valid_config = test_ise_acl_1 == test_ise_acl_3
             # print(test_ise_acl_1, test_ise_acl_2, len(test_ise_acl_1), len(test_ise_acl_2), ise_valid_config)
-            outtxt += "----Filtered ISE Config:\n" + test_ise_acl_1 + "\n----Converted ISE Config:\n" +\
-                test_ise_acl_3 + "\n----\n"
+            outtxt += "----Filtered ISE Config:\n" + test_ise_acl_1 + "\n----Converted to Meraki:\n" +\
+                      test_ise_acl_2 + "\n----Converted to ISE:\n" + test_ise_acl_3 + "\n----\n"
             outtxt += "ise_valid_acl?:" + str(ise_valid_config) + "\n"
 
             outtxt += "meraki_acl:" + self.normalize_meraki_rules(mdata["rules"]) + "\n"
