@@ -200,16 +200,28 @@ def merge_sgpolicies(src, sgpolicies, is_base, sync_session, log=None):
             p_src = Tag.objects.filter(meraki_id=s["srcGroupId"])
             p_dst = Tag.objects.filter(meraki_id=s["dstGroupId"])
             if len(p_src) > 0 and len(p_dst) > 0:
-                binding_name = str(p_src[0].tag_number) + "-" + str(p_dst[0].tag_number)
-                binding_desc = str(p_src[0].name) + "-" + str(p_dst[0].name)
+                if p_src[0].name:
+                    binding_name = p_src[0].name
+                else:
+                    binding_name = str(p_src[0].tag_number) + "-" + str(p_dst[0].tag_number)
+                if p_src[0].description:
+                    binding_desc = p_src[0].description
+                else:
+                    binding_desc = str(p_src[0].name) + "-" + str(p_dst[0].name)
         elif src == "ise":
             p_src = Tag.objects.filter(ise_id=s["sourceSgtId"])
             p_dst = Tag.objects.filter(ise_id=s["destinationSgtId"])
             if len(p_src) > 0 and len(p_dst) > 0:
                 if p_src[0].tag_number == 65535 and p_dst[0].tag_number == 65535:
                     return None
-                binding_name = str(p_src[0].tag_number) + "-" + str(p_dst[0].tag_number)
-                binding_desc = s["name"]
+                if p_src[0].name:
+                    binding_name = p_src[0].name
+                else:
+                    binding_name = str(p_src[0].tag_number) + "-" + str(p_dst[0].tag_number)
+                if p_src[0].description:
+                    binding_desc = p_src[0].description
+                else:
+                    binding_desc = s["name"]
 
         if binding_name:
             i = Policy.objects.filter(mapping=binding_name)
