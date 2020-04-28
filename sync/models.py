@@ -575,7 +575,7 @@ class ACL(models.Model):
             if "ipVersion" not in idata and mdata["ipVersion"] == "agnostic":
                 # IP Agnostic
                 ver_match = True
-            elif idata["ipVersion"].lower() == mdata["ipVersion"]:
+            elif idata.get("ipVersion", "").lower() == mdata.get("ipVersion", ""):
                 # Version matches
                 ver_match = True
             else:
