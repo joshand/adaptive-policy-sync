@@ -826,6 +826,8 @@ class Policy(models.Model):
                 default_match = True
             elif mdata["catchAllRule"] == "deny all" and idata["defaultRule"] == "DENY_IP":
                 default_match = True
+            elif mdata["catchAllRule"] == "permit all" and idata["defaultRule"] == "PERMIT_IP":
+                default_match = True
             else:
                 default_match = False
             if i_sgt_src == m_sgt_src and i_sgt_dst == m_sgt_dst:
