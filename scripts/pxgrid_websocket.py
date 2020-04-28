@@ -275,7 +275,8 @@ def job():
         if ret is not False:
             scheduler.remove_job("pxgrid_monitor")
         else:
-            print("pxGrid configuration not present. Will check again...")
+            append_log(log, "pxGrid configuration not present. Will check again...")
+            db_log("pxgrid_monitor", log)
     except Exception as e:
         print("#### Exception starting scheduled job: sync_pxgrid", e)
 
