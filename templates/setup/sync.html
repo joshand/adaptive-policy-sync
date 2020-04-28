@@ -60,6 +60,20 @@
                         </div>
                     </div>
                 </div>
+                <div class="row" style="align-content:center; display:flex">
+                    <div class="md-input-container columns medium-6">
+                        <div class="md-input-group md-checkbox">
+                            {% if data.sync_enabled or default_sync %}
+                                <input name="do_sync" value="true" id="do_sync" type="checkbox" class="md-input md-checkbox__input" tabindex="40" checked>
+                            {% else %}
+                                <input name="do_sync" value="true" id="do_sync" type="checkbox" class="md-input md-checkbox__input" tabindex="40">
+                            {% endif %}
+                            <label class="md-checkbox__label" for="use_pxgrid">
+                                <span>Enable Automatic Synchronization</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
                 <div class="row"><br></div>
                 <div class="row" style="align-content:center; display:flex">
                     <div class="md-input-container columns medium-6">

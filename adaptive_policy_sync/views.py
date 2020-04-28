@@ -186,8 +186,10 @@ def setupsync(request):
     syncs = SyncSession.objects.all()
     if len(syncs) > 0:
         sync = syncs[0]
+        defsync = False
     else:
         sync = None
+        defsync = True
 
     dashboards = Dashboard.objects.all()
     if len(dashboards) > 0:
@@ -207,7 +209,7 @@ def setupsync(request):
             else:
                 Dashboard.objects.create(description="Meraki Dashboard", apikey=apikey, orgid=orgid, baseurl=apiurl)
 
-    return render(request, 'setup/sync.html', {"active": 6, "data": sync})
+    return render(request, 'setup/sync.html', {"active": 6, "data": sync, "default_sync": defsync})
 
 
 def setupdone(request):
