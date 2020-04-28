@@ -23,12 +23,19 @@ def cleanup():
         Task.objects.filter(description=t).exclude(pk__in=list(tasks)).delete()
         append_log(log, "task_cleanup::", t)
 
-    t1, _ = Task.objects.get_or_create(
-        description="task_cleanup"
-    )
-    t1.task_data = "\n".join(log)
-    t1.last_update = make_aware(datetime.datetime.now())
-    t1.save()
+    t1 = Task.objects.query(description="task_cleanup")
+    if len(t1) > 0:
+        thetask = t1[0]
+        thetask.task_data = "\n".join(log)
+        thetask.last_update = make_aware(datetime.datetime.now())
+        thetask.save()
+
+    # t1, _ = Task.objects.get_or_create(
+    #     description="task_cleanup"
+    # )
+    # t1.task_data = "\n".join(log)
+    # t1.last_update = make_aware(datetime.datetime.now())
+    # t1.save()
 
 
 def run():
