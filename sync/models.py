@@ -731,6 +731,7 @@ class Policy(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     mapping = models.CharField("Policy Mapping", max_length=50, blank=False, null=False)
     name = models.CharField("Policy Name", max_length=100, blank=False, null=False)
+    description = models.CharField("Policy Description", max_length=100, blank=True, null=True)
     # do_sync = models.BooleanField("Sync this Tag?", default=False, editable=True)
     syncsession = models.ForeignKey(SyncSession, on_delete=models.SET_NULL, null=True, blank=True)
     meraki_id = models.CharField(max_length=36, blank=True, null=True, default=None)
@@ -945,8 +946,8 @@ class Policy(models.Model):
 
             if self.push_delete:
                 return thismeth, url, json.dumps({
-                        "description": "",
-                        "name": "",
+                        "description": self.name,
+                        "name": self.description,
                         "monitorModeEnabled": False,
                         "catchAllRule": "global",
                         "bindingEnabled": True,
