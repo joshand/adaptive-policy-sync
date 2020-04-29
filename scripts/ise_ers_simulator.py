@@ -260,14 +260,14 @@ def parse_url(request):
     arr = p.split("/")
 
     fixedvals = {"sgt": {"id": "{{uuid}}", "generationId": 0,
-                         "link": {"rel": "self", "href": "{{url}}/ise/ers/config/sgt/{{uuid}}",
+                         "link": {"rel": "self", "href": "{{url}}/ers/config/sgt/{{uuid}}",
                                   "type": "application/json"}},
                  "sgacl": {"id": "{{uuid}}", "generationId": 0,
-                           "link": {"rel": "self", "href": "{{url}}/ise/ers/config/sgacl/{{uuid}}",
+                           "link": {"rel": "self", "href": "{{url}}/ers/config/sgacl/{{uuid}}",
                                     "type": "application/json"}},
                  "egressmatrixcell": {"id": "{{uuid}}", "name": None,
                                       "link": {"rel": "self",
-                                               "href": "{{url}}/ise/ers/config/egressmatrixcell/{{uuid}}",
+                                               "href": "{{url}}/ers/config/egressmatrixcell/{{uuid}}",
                                                "type": "application/json"}}}
     postvals = {"sgt": {"name": None, "description": None, "value": None, "propogateToApic": None},
                 "sgacl": {"name": None, "description": None, "aclcontent": None},
