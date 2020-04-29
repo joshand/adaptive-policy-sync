@@ -91,8 +91,8 @@ def sync_ise_accounts(accounts, log):
                         append_log(log, "ise_monitor::sync_ise_accounts::", ret.status_code, ret.content)
                         o.last_update_data = ret.content.decode("UTF-8")
                         o.save()
-                        sa.iseserver.force_rebuild = True
-                        sa.iseserver.save()
+                        # sa.iseserver.force_rebuild = True
+                        # sa.iseserver.save()
                     if o.push_delete:
                         o.delete()
                 else:
@@ -108,8 +108,8 @@ def sync_ise_accounts(accounts, log):
                         append_log(log, "ise_monitor::sync_ise_accounts::", ret.status_code, ret.content)
                         o.last_update_data = ret.content.decode("UTF-8")
                         o.save()
-                        sa.iseserver.force_rebuild = True
-                        sa.iseserver.save()
+                        # sa.iseserver.force_rebuild = True
+                        # sa.iseserver.save()
                     if o.push_delete:
                         o.delete()
                 else:
@@ -125,8 +125,8 @@ def sync_ise_accounts(accounts, log):
                         append_log(log, "ise_monitor::sync_ise_accounts::", ret.status_code, ret.content)
                         o.last_update_data = ret.content.decode("UTF-8")
                         o.save()
-                        sa.iseserver.force_rebuild = True
-                        sa.iseserver.save()
+                        # sa.iseserver.force_rebuild = True
+                        # sa.iseserver.save()
                     if o.push_delete:
                         o.delete()
                 else:
