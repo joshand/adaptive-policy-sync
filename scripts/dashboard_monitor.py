@@ -53,9 +53,9 @@ def exec_api_action(method, url, data, headers):
             ret = requests.request(method, url, headers=headers)
         else:
             ret = requests.request(method, url, data=data, headers=headers)
-        return ret.content.decode("UTF-8")
+        return ret
     except Exception:
-        return ""
+        return None
 
 
 def sync_dashboard_accounts(accounts, log):
@@ -93,7 +93,12 @@ def sync_dashboard_accounts(accounts, log):
                     if m != "":
                         append_log(log, "dashboard_monitor::sync_dashboard_accounts::tag API push", o.push_config())
                         ret = exec_api_action(m, u, d, headers)
-                        o.last_update_data = ret
+                        if ret:
+                            append_log(log, "dashboard_monitor::sync_dashboard_accounts::", ret.status_code,
+                                       ret.content)
+                            o.last_update_data = ret
+                        else:
+                            append_log(log, "dashboard_monitor::sync_dashboard_accounts::Exception")
                         o.save()
                         # sa.dashboard.force_rebuild = True
                         # sa.dashboard.save()
@@ -111,7 +116,12 @@ def sync_dashboard_accounts(accounts, log):
                     if m != "":
                         append_log(log, "dashboard_monitor::sync_dashboard_accounts::acl API push", o.push_config())
                         ret = exec_api_action(m, u, d, headers)
-                        o.last_update_data = ret
+                        if ret:
+                            append_log(log, "dashboard_monitor::sync_dashboard_accounts::", ret.status_code,
+                                       ret.content)
+                            o.last_update_data = ret
+                        else:
+                            append_log(log, "dashboard_monitor::sync_dashboard_accounts::Exception")
                         o.save()
                         # sa.dashboard.force_rebuild = True
                         # sa.dashboard.save()
@@ -129,7 +139,12 @@ def sync_dashboard_accounts(accounts, log):
                     if m != "":
                         append_log(log, "dashboard_monitor::sync_dashboard_accounts::policy API push", o.push_config())
                         ret = exec_api_action(m, u, d, headers)
-                        o.last_update_data = ret
+                        if ret:
+                            append_log(log, "dashboard_monitor::sync_dashboard_accounts::", ret.status_code,
+                                       ret.content)
+                            o.last_update_data = ret
+                        else:
+                            append_log(log, "dashboard_monitor::sync_dashboard_accounts::Exception")
                         o.save()
                         # sa.dashboard.force_rebuild = True
                         # sa.dashboard.save()
