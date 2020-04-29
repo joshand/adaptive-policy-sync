@@ -264,21 +264,23 @@ def start_background_loop(loop: asyncio.AbstractEventLoop) -> None:
     loop.run_forever()
 
 
-@scheduler.scheduled_job("interval", seconds=10, id="pxgrid_monitor")
+@scheduler.scheduled_job("interval", seconds=60, id="pxgrid_monitor")
 def job():
+    log = []
     try:
         loop = asyncio.new_event_loop()
         th = threading.Thread(target=start_background_loop, args=(loop,))
         th.start()
-        log = []
         ret = sync_pxgrid(loop, log)
         if ret is not False:
             scheduler.remove_job("pxgrid_monitor")
+            append_log(log, "pxGrid Monitor started")
         else:
             append_log(log, "pxGrid configuration not present. Will check again...")
-            db_log("pxgrid_monitor", log)
+        db_log("pxgrid_monitor", log)
     except Exception as e:
-        print("#### Exception starting scheduled job: sync_pxgrid", e)
+        append_log(log, "#### Exception starting scheduled job: sync_pxgrid", e)
+        db_log("pxgrid_monitor", log)
 
 
 register_events(scheduler)
