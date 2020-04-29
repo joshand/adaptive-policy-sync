@@ -310,6 +310,11 @@ def sgtsave(request):
         s.do_sync = False
         s.save()
 
+    ss = SyncSession.objects.all()
+    if len(ss) > 0:
+        ss[0].force_rebuild = True
+        ss[0].save()
+
     return redirect("/home/status-sgt")
 
 
