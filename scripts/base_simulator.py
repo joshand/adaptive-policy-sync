@@ -37,7 +37,7 @@ def fix_urls(json_txt, baseurl):
 
 def handle_request(method, postdata, baseurl, endpoint, elem_id, dataset, fixedvals, postvals, info):
     out_data = {}
-    if postdata == None:
+    if postdata is None:
         postdata = {}
     r = {}, HttpResponseBadRequest("An Error Ocurred")
     if method == 'POST' or method == 'PUT' or method == 'DELETE':
