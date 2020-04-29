@@ -113,7 +113,6 @@ def merge_sgts(src, sgts, is_base, sync_session, log=None):
                     t = i[0]
 
                 t.syncsession = sync_session
-                t.sourced_from = src
                 if src == "meraki":
                     t.meraki_id = s["groupId"]
                     t.meraki_data = json.dumps(s)
@@ -170,7 +169,6 @@ def merge_sgacls(src, sgacls, is_base, sync_session, log=None):
                     t = i[0]
 
                 t.syncsession = sync_session
-                t.sourced_from = src
                 if src == "meraki":
                     t.meraki_id = s["aclId"]
                     t.meraki_data = json.dumps(s)
@@ -251,7 +249,6 @@ def merge_sgpolicies(src, sgpolicies, is_base, sync_session, log=None):
                     t = i[0]
 
                 t.syncsession = sync_session
-                t.sourced_from = src
                 if src == "meraki":
                     t.meraki_id = s["bindingId"]
                     t.meraki_data = json.dumps(s)
