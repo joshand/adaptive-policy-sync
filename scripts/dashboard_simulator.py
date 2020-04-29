@@ -242,7 +242,7 @@ def parse_url(request):
             "bindings": {"none_as_delete_key": "aclIds", "put_unique": ["srcGroupId", "dstGroupId"],
                          "unique_results": []}}
 
-    append_log(log, "dashboard_simulator::")
+    append_log(log, "dashboard_simulator::", request.path)
 
     if len(arr) == 1:
         file_type = "orgs.json"

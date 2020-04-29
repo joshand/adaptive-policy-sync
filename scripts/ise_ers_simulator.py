@@ -299,6 +299,8 @@ def parse_url(request):
                                  "multi_header": {"SearchResult": {"total": "{{length}}", "resources": "{{results}}"}},
                                  "list_get_fields": ["id", "name", "description", "link"]}}
 
+    append_log(log, "ise_ers_simulator::", request.path)
+
     file_type = arr[0] + ".json"
     # dataset = json.loads(read_file_all(file_type).replace("{{url}}", baseurl))
     dataset = read_json_file(file_type, log)
