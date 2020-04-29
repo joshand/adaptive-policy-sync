@@ -10,6 +10,7 @@ from io import BytesIO
 import os
 from rest_framework import authentication
 import re
+import string
 
 
 class BearerAuthentication(authentication.TokenAuthentication):
@@ -326,11 +327,17 @@ class Tag(models.Model):
 
             name_match = mdata.get("name", "mdata") == idata.get("name", "idata")
             name_match_cl = self.cleaned_name() == idata.get("name", "idata")
-            desc_match = mdata.get("description", "mdata") == idata.get("description", "idata")
+            m_desc = mdata.get("description", "mdata")
+            i_desc = idata.get("description", "idata")
+            desc_match = m_desc == i_desc
+            m_desc = m_desc.translate(str.maketrans('', '', string.punctuation))
+            i_desc = i_desc.translate(str.maketrans('', '', string.punctuation))
+            desc_match_fuzzy = m_desc == i_desc
 
             outtxt += "name:" + str(name_match) + "\n"
             outtxt += "cleaned name:" + str(name_match_cl) + "\n"
             outtxt += "description:" + str(desc_match) + "\n"
+            outtxt += "fuzzy description:" + str(desc_match_fuzzy) + "\n"
             if self.tag_number == 0:
                 outtxt += "\n" + "NOTE:THIS TAG (0) WILL ALWAYS RETURN Matches:True. WE DO NOT WANT TO SYNC IT." + "\n"
                 if bool_only:
@@ -342,7 +349,7 @@ class Tag(models.Model):
             outtxt += "delete?:" + str(self.push_delete) + "\n"
 
             if bool_only:
-                return (name_match or name_match_cl) and desc_match and not self.push_delete
+                return (name_match or name_match_cl) and (desc_match or desc_match_fuzzy) and not self.push_delete
             else:
                 return outtxt
 
@@ -592,8 +599,13 @@ class ACL(models.Model):
 
                 name_match = mdata.get("name", "mdata") == idata.get("name", "idata")
                 name_match_cl = self.cleaned_name() == idata.get("name", "idata")
+                m_desc = mdata.get("description", "mdata")
+                i_desc = idata.get("description", "idata")
+                desc_match = m_desc == i_desc
+                m_desc = m_desc.translate(str.maketrans('', '', string.punctuation))
+                i_desc = i_desc.translate(str.maketrans('', '', string.punctuation))
+                desc_match_fuzzy = m_desc == i_desc
 
-                desc_match = mdata.get("description", "mdata") == idata.get("description", "idata")
                 acl_match = self.normalize_meraki_rules(mdata["rules"]) == self.normalize_ise_rules(idata["aclcontent"])
                 if "ipVersion" not in idata and mdata["ipVersion"] == "agnostic":
                     # IP Agnostic
@@ -607,16 +619,13 @@ class ACL(models.Model):
                 outtxt += "name:" + str(name_match) + "\n"
                 outtxt += "cleaned name:" + str(name_match_cl) + "\n"
                 outtxt += "description:" + str(desc_match) + "\n"
+                outtxt += "fuzzy description:" + str(desc_match_fuzzy) + "\n"
 
                 test_ise_acl_1 = self.normalize_ise_rules(idata["aclcontent"]).strip().replace("\n", ";")
-                # print(idata["aclcontent"], "=====", test_ise_acl_1)
                 test_meraki_acl = self.normalize_ise_rules(idata["aclcontent"], mode="convert")
-                # print("----content---", idata["aclcontent"], test_meraki_acl)
                 test_ise_acl_2 = self.normalize_meraki_rules(test_meraki_acl, mode="convert").strip().replace("\n", ";")
-                # print(test_meraki_acl, test_ise_acl_2)
                 test_ise_acl_3 = self.normalize_ise_rules(test_ise_acl_2)
                 ise_valid_config = test_ise_acl_1 == test_ise_acl_3
-                # print(test_ise_acl_1, test_ise_acl_2, len(test_ise_acl_1), len(test_ise_acl_2), ise_valid_config)
                 outtxt += "----Filtered ISE Config:\n" + test_ise_acl_1 + "\n----Converted to ISE:\n" +\
                           test_ise_acl_3 + "\n----\n"
                 outtxt += "ise_valid_acl?:" + str(ise_valid_config) + "\n"
@@ -629,7 +638,7 @@ class ACL(models.Model):
 
                 if bool_only:
                     return (name_match or name_match_cl) and \
-                           desc_match and acl_match and ver_match and not self.push_delete
+                           (desc_match or desc_match_fuzzy) and acl_match and ver_match and not self.push_delete
                 else:
                     return outtxt
             except Exception:
