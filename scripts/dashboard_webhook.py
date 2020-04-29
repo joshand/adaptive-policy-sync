@@ -1,11 +1,18 @@
-from django.http import HttpResponse
-from django.views.decorators.csrf import csrf_exempt
+from apscheduler.schedulers.background import BackgroundScheduler
+from django_apscheduler.jobstores import DjangoJobStore
+from django_apscheduler.jobstores import register_events
+
+# import threading
+# import asyncio
 from sync.models import Dashboard
 from pyngrok import ngrok
-import json
 import sys
 import meraki
 from scripts.dblog import append_log, db_log
+
+scheduler = BackgroundScheduler()
+scheduler.add_jobstore(DjangoJobStore(), "default")
+# loop = asyncio.new_event_loop()
 
 
 def run():
@@ -57,25 +64,28 @@ def run():
                                                                         alerts=al["alerts"])
                 append_log(log, "update response", r)
     else:
+        append_log(log, "Dashboard webhooks are not configured")
+        db_log("dashboard_webhook", log)
         raise Exception("Dashboard webhooks are not configured")
 
     db_log("dashboard_webhook", log)
 
 
-@csrf_exempt
-def process_webhook(request):
+@scheduler.scheduled_job("interval", seconds=60, id="dashboard_webhook")
+def job():
     log = []
-    if request.method == 'POST':
-        whdata = json.loads(request.body)
-        append_log(log, "webhook post", whdata)
-
-        dbs = Dashboard.objects.filter(webhook_enable=True)
-        if len(dbs) > 0:
-            db = dbs[0]
-            db.force_rebuild = True
-            db.save()
-            append_log(log, "setting dashboard to force rebuild")
-
+    try:
+        ret = run()
+        if ret is not False:
+            scheduler.remove_job("dashboard_webhook")
+            append_log(log, "Webhook Monitor started")
+        else:
+            append_log(log, "Dashboard webhook configuration not present. Will check again...")
+        db_log("dashboard_webhook", log)
+    except Exception as e:
+        append_log(log, "#### Dashboard webhooks are not configured: dashboard_webhook", e)
         db_log("dashboard_webhook", log)
 
-    return HttpResponse("Send webhooks here as POST requests.")
+
+register_events(scheduler)
+scheduler.start()
