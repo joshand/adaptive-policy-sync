@@ -330,8 +330,8 @@ class Tag(models.Model):
             m_desc = mdata.get("description", "mdata")
             i_desc = idata.get("description", "idata")
             desc_match = m_desc == i_desc
-            m_desc = m_desc.translate(str.maketrans('', '', string.punctuation))
-            i_desc = i_desc.translate(str.maketrans('', '', string.punctuation))
+            m_desc = m_desc.translate(str.maketrans('', '', string.punctuation)).lower()
+            i_desc = i_desc.translate(str.maketrans('', '', string.punctuation)).lower()
             desc_match_fuzzy = m_desc == i_desc
 
             outtxt += "name:" + str(name_match) + "\n"
@@ -602,8 +602,8 @@ class ACL(models.Model):
                 m_desc = mdata.get("description", "mdata")
                 i_desc = idata.get("description", "idata")
                 desc_match = m_desc == i_desc
-                m_desc = m_desc.translate(str.maketrans('', '', string.punctuation))
-                i_desc = i_desc.translate(str.maketrans('', '', string.punctuation))
+                m_desc = m_desc.translate(str.maketrans('', '', string.punctuation)).lower()
+                i_desc = i_desc.translate(str.maketrans('', '', string.punctuation)).lower()
                 desc_match_fuzzy = m_desc == i_desc
 
                 acl_match = self.normalize_meraki_rules(mdata["rules"]) == self.normalize_ise_rules(idata["aclcontent"])
