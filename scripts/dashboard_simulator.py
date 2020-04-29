@@ -8,6 +8,7 @@ import time
 from random import randint
 from django.http import HttpResponseBadRequest
 from .base_simulator import handle_request
+from scripts.dblog import append_log, db_log
 
 
 first_db_record = 0
@@ -26,6 +27,19 @@ def read_file(in_filename):
 def read_file_all(in_filename):
     with open(os.path.join("scripts", in_filename), 'r+') as in_file:
         return in_file.read()
+
+
+def read_json_file(in_filename, log):
+    fail_count = 0
+    while True:
+        try:
+            r = read_file_all(in_filename)
+            out = json.loads(r)
+            return out
+        except Exception as e:
+            fail_count += 1
+            time.sleep(1)
+            append_log(log, "dashboard_monitor::read_json_file::", fail_count, e)
 
 
 def random_words(size):
@@ -205,6 +219,7 @@ def run(orgs, tags, acls, policies):
 
 @csrf_exempt
 def parse_url(request):
+    log = []
     baseurl = "/".join(request.build_absolute_uri().split("/")[:3])
     p = request.path.replace("/meraki/api/v1/organizations/", "").replace("/meraki/api/v1/organizations", "")
     arr = p.split("/")
@@ -227,10 +242,12 @@ def parse_url(request):
             "bindings": {"none_as_delete_key": "aclIds", "put_unique": ["srcGroupId", "dstGroupId"],
                          "unique_results": []}}
 
+    append_log(log, "dashboard_simulator::")
+
     if len(arr) == 1:
         file_type = "orgs.json"
         full_dataset = []
-        dataset = json.loads(read_file_all(file_type))
+        dataset = read_json_file(file_type, log)
         if arr[0] == "":
             elem_id = None
         else:
@@ -238,8 +255,7 @@ def parse_url(request):
         endpoint = "organizations"
     else:
         file_type = arr[2] + ".json"
-        # dataset = json.loads(read_file_all(file_type).replace("{{url}}", baseurl)).get(org_id, [])
-        full_dataset = json.loads(read_file_all(file_type))
+        full_dataset = read_json_file(file_type, log)
         dataset = full_dataset.pop(org_id, [])
         if len(arr) == 3 or request.method == "POST":
             elem_id = None
@@ -247,6 +263,8 @@ def parse_url(request):
             elem_id = arr[3]
         endpoint = arr[2]
         if endpoint == "bindings" and (request.method == "POST" or request.method == "DELETE"):
+            append_log(log, "dashboard_monitor::bindings::Unsupported Method")
+            db_log("dashboard_simulator", log)
             return HttpResponseBadRequest("Unsupported Method")
 
     if request.body:
@@ -262,4 +280,6 @@ def parse_url(request):
         else:
             full_dataset[org_id] = updated_data
             write_file(file_type, json.dumps(full_dataset, indent=4))
+
+    db_log("dashboard_simulator", log)
     return ret

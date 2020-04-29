@@ -8,6 +8,7 @@ from random import randint
 import uuid
 from .base_simulator import handle_request
 import time
+from scripts.dblog import append_log, db_log
 
 
 def write_file(out_filename, content):
@@ -23,6 +24,19 @@ def read_file(in_filename):
 def read_file_all(in_filename):
     with open(os.path.join("scripts", in_filename), 'r+') as in_file:
         return in_file.read()
+
+
+def read_json_file(in_filename, log):
+    fail_count = 0
+    while True:
+        try:
+            r = read_file_all(in_filename)
+            out = json.loads(r)
+            return out
+        except Exception as e:
+            fail_count += 1
+            time.sleep(1)
+            append_log(log, "dashboard_monitor::read_json_file::", fail_count, e)
 
 
 def random_words(size):
@@ -255,6 +269,7 @@ def run(tags, acls, policies):
 
 @csrf_exempt
 def parse_url(request):
+    log = []
     baseurl = "/".join(request.build_absolute_uri().split("/")[:4])
     p = request.path.replace("/ise/ers/config/", "").replace("/ise/ers/config", "")
     arr = p.split("/")
@@ -286,7 +301,7 @@ def parse_url(request):
 
     file_type = arr[0] + ".json"
     # dataset = json.loads(read_file_all(file_type).replace("{{url}}", baseurl))
-    dataset = json.loads(read_file_all(file_type))
+    dataset = read_json_file(file_type, log)
     if len(arr) > 1:
         elem_id = arr[1]
     else:
@@ -299,7 +314,7 @@ def parse_url(request):
             dstsgt = jd.get("EgressMatrixCell", {}).get("destinationSgtId", None)
             srcname = None
             dstname = None
-            sgtset = json.loads(read_file_all("sgt.json"))
+            sgtset = read_json_file("sgt.json", log)
             if srcsgt and dstsgt:
                 for s in sgtset:
                     if s["id"] == srcsgt:
@@ -309,6 +324,7 @@ def parse_url(request):
                     if srcname is not None and dstname is not None:
                         break
             if srcname is None or dstname is None:
+                db_log("ise_ers_simulator", log)
                 return JsonResponse({"error": "Error. Unable to match Sgts."})
             fixedvals["egressmatrixcell"]["name"] = srcname + "-" + dstname
     else:
@@ -317,4 +333,6 @@ def parse_url(request):
     updated_data, ret = handle_request(request.method, jd, baseurl, arr[0], elem_id, dataset, fixedvals, postvals, info)
     if updated_data:
         write_file(file_type, json.dumps(updated_data, indent=4))
+
+    db_log("ise_ers_simulator", log)
     return ret
