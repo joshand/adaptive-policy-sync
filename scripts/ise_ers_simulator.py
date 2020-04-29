@@ -185,7 +185,6 @@ def run(tags, acls, policies):
                 used_names.append(acl_name)
                 break
 
-
         acl_id = str(uuid.uuid4())
         acl_desc = (tw[2] + " " + tw[3] + " " + tw[4] + " " + tw[5]).title()
         acl_v = random.choice(["IPV4", "IPV6", ""])
