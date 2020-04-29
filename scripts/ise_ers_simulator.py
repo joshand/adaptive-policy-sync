@@ -172,7 +172,7 @@ def run(tags, acls, policies):
     acl_desc = "Deny IP SGACL"
     acl_rules = "deny ip"
     newacls.append({"id": acl_id, "name": acl_name, "description": acl_desc,
-                    "generationId": 0, "aclcontent": acl_rules,
+                    "generationId": "0", "aclcontent": acl_rules,
                     "link": {"rel": "self", "type": "application/json",
                              "href": "{{url}}/ers/config/sgacl/" + acl_id}
                     })
@@ -191,13 +191,13 @@ def run(tags, acls, policies):
         acl_rules = get_rules()
         if acl_v == "":
             newacls.append({"id": acl_id, "name": acl_name, "description": acl_desc,
-                            "generationId": 0, "aclcontent": acl_rules,
+                            "generationId": "1", "aclcontent": acl_rules,
                             "link": {"rel": "self", "type": "application/json",
                                      "href": "{{url}}/ers/config/sgacl/" + acl_id}
                             })
         else:
             newacls.append({"id": acl_id, "name": acl_name, "description": acl_desc,
-                            "generationId": 0, "ipVersion": acl_v, "aclcontent": acl_rules,
+                            "generationId": "1", "ipVersion": acl_v, "aclcontent": acl_rules,
                             "link": {"rel": "self", "type": "application/json",
                                      "href": "{{url}}/ers/config/sgacl/" + acl_id}
                             })
