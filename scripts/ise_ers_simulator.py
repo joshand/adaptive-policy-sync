@@ -300,41 +300,45 @@ def parse_url(request):
                                  "list_get_fields": ["id", "name", "description", "link"]}}
 
     append_log(log, "ise_ers_simulator::", request.path)
+    ret = None
+    try:
+        file_type = arr[0] + ".json"
+        # dataset = json.loads(read_file_all(file_type).replace("{{url}}", baseurl))
+        dataset = read_json_file(file_type, log)
+        if len(arr) > 1:
+            elem_id = arr[1]
+        else:
+            elem_id = None
 
-    file_type = arr[0] + ".json"
-    # dataset = json.loads(read_file_all(file_type).replace("{{url}}", baseurl))
-    dataset = read_json_file(file_type, log)
-    if len(arr) > 1:
-        elem_id = arr[1]
-    else:
-        elem_id = None
+        if request.body:
+            jd = json.loads(request.body)
+            if arr[0] == "egressmatrixcell" and (request.method == "POST" or request.method == "PUT"):
+                srcsgt = jd.get("EgressMatrixCell", {}).get("sourceSgtId", None)
+                dstsgt = jd.get("EgressMatrixCell", {}).get("destinationSgtId", None)
+                srcname = None
+                dstname = None
+                sgtset = read_json_file("sgt.json", log)
+                if srcsgt and dstsgt:
+                    for s in sgtset:
+                        if s["id"] == srcsgt:
+                            srcname = s["name"]
+                        if s["id"] == dstsgt:
+                            dstname = s["name"]
+                        if srcname is not None and dstname is not None:
+                            break
+                if srcname is None or dstname is None:
+                    append_log(log, "ise_ers_simulator::Error. Unable to match Sgts.")
+                    db_log("ise_ers_simulator", log)
+                    return JsonResponse({"error": "Error. Unable to match Sgts."})
+                fixedvals["egressmatrixcell"]["name"] = srcname + "-" + dstname
+        else:
+            jd = None
 
-    if request.body:
-        jd = json.loads(request.body)
-        if arr[0] == "egressmatrixcell" and (request.method == "POST" or request.method == "PUT"):
-            srcsgt = jd.get("EgressMatrixCell", {}).get("sourceSgtId", None)
-            dstsgt = jd.get("EgressMatrixCell", {}).get("destinationSgtId", None)
-            srcname = None
-            dstname = None
-            sgtset = read_json_file("sgt.json", log)
-            if srcsgt and dstsgt:
-                for s in sgtset:
-                    if s["id"] == srcsgt:
-                        srcname = s["name"]
-                    if s["id"] == dstsgt:
-                        dstname = s["name"]
-                    if srcname is not None and dstname is not None:
-                        break
-            if srcname is None or dstname is None:
-                db_log("ise_ers_simulator", log)
-                return JsonResponse({"error": "Error. Unable to match Sgts."})
-            fixedvals["egressmatrixcell"]["name"] = srcname + "-" + dstname
-    else:
-        jd = None
-
-    updated_data, ret = handle_request(request.method, jd, baseurl, arr[0], elem_id, dataset, fixedvals, postvals, info)
-    if updated_data:
-        write_file(file_type, json.dumps(updated_data, indent=4))
+        updated_data, ret = handle_request(request.method, jd, baseurl, arr[0], elem_id, dataset, fixedvals, postvals, info)
+        if updated_data:
+            write_file(file_type, json.dumps(updated_data, indent=4))
+    except Exception as e:
+        append_log(log, "ise_ers_simulator::Exception.", e)
 
     db_log("ise_ers_simulator", log)
     return ret

@@ -243,43 +243,46 @@ def parse_url(request):
                          "unique_results": []}}
 
     append_log(log, "dashboard_simulator::", request.path)
-
-    if len(arr) == 1:
-        file_type = "orgs.json"
-        full_dataset = []
-        dataset = read_json_file(file_type, log)
-        if arr[0] == "":
-            elem_id = None
+    ret = None
+    try:
+        if len(arr) == 1:
+            file_type = "orgs.json"
+            full_dataset = []
+            dataset = read_json_file(file_type, log)
+            if arr[0] == "":
+                elem_id = None
+            else:
+                elem_id = arr[0]
+            endpoint = "organizations"
         else:
-            elem_id = arr[0]
-        endpoint = "organizations"
-    else:
-        file_type = arr[2] + ".json"
-        full_dataset = read_json_file(file_type, log)
-        dataset = full_dataset.pop(org_id, [])
-        if len(arr) == 3 or request.method == "POST":
-            elem_id = None
-        else:
-            elem_id = arr[3]
-        endpoint = arr[2]
-        if endpoint == "bindings" and (request.method == "POST" or request.method == "DELETE"):
-            append_log(log, "dashboard_monitor::bindings::Unsupported Method")
-            db_log("dashboard_simulator", log)
-            return HttpResponseBadRequest("Unsupported Method")
+            file_type = arr[2] + ".json"
+            full_dataset = read_json_file(file_type, log)
+            dataset = full_dataset.pop(org_id, [])
+            if len(arr) == 3 or request.method == "POST":
+                elem_id = None
+            else:
+                elem_id = arr[3]
+            endpoint = arr[2]
+            if endpoint == "bindings" and (request.method == "POST" or request.method == "DELETE"):
+                append_log(log, "dashboard_monitor::bindings::Unsupported Method")
+                db_log("dashboard_simulator", log)
+                return HttpResponseBadRequest("Unsupported Method")
 
-    if request.body:
-        jd = json.loads(request.body)
-    else:
-        jd = None
-
-    updated_data, ret = handle_request(request.method, jd, baseurl, endpoint, elem_id, dataset, fixedvals, postvals,
-                                       info)
-    if updated_data:
-        if isinstance(full_dataset, list):
-            write_file(file_type, json.dumps(full_dataset + [updated_data], indent=4))
+        if request.body:
+            jd = json.loads(request.body)
         else:
-            full_dataset[org_id] = updated_data
-            write_file(file_type, json.dumps(full_dataset, indent=4))
+            jd = None
+
+        updated_data, ret = handle_request(request.method, jd, baseurl, endpoint, elem_id, dataset, fixedvals, postvals,
+                                           info)
+        if updated_data:
+            if isinstance(full_dataset, list):
+                write_file(file_type, json.dumps(full_dataset + [updated_data], indent=4))
+            else:
+                full_dataset[org_id] = updated_data
+                write_file(file_type, json.dumps(full_dataset, indent=4))
+    except Exception as e:
+        append_log(log, "dashboard_simulator::Exception.", e)
 
     db_log("dashboard_simulator", log)
     return ret
