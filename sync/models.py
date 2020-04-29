@@ -303,7 +303,7 @@ class Tag(models.Model):
     last_update = models.DateTimeField(default=django.utils.timezone.now)
     last_update_data = models.TextField(blank=True, null=True, default=None)
     push_delete = models.BooleanField(default=False, editable=False)
-    sourced_from = models.TextField(blank=True, null=True, default=None)
+    sourced_from = models.CharField(max_length=20, blank=True, null=True, default=None)
 
     def __str__(self):
         if self.do_sync:
@@ -437,7 +437,7 @@ class ACL(models.Model):
     last_update = models.DateTimeField(default=django.utils.timezone.now)
     last_update_data = models.TextField(blank=True, null=True, default=None)
     push_delete = models.BooleanField(default=False, editable=False)
-    sourced_from = models.TextField(blank=True, null=True, default=None)
+    sourced_from = models.CharField(max_length=20, blank=True, null=True, default=None)
     visible = models.BooleanField(default=True, editable=False)
 
     class Meta:
@@ -636,6 +636,11 @@ class ACL(models.Model):
                 outtxt += "version:" + str(ver_match) + "\n"
                 outtxt += "delete?:" + str(self.push_delete) + "\n"
 
+                if self.visible is False:
+                    outtxt += "\n" + "NOTE:THIS SGACL WILL ALWAYS RETURN Matches:True SINCE IT IS BUILT-IN." + "\n"
+                    if bool_only:
+                        return True
+
                 if bool_only:
                     return (name_match or name_match_cl) and \
                            (desc_match or desc_match_fuzzy) and acl_match and ver_match and not self.push_delete
@@ -772,7 +777,7 @@ class Policy(models.Model):
     last_update = models.DateTimeField(default=django.utils.timezone.now)
     last_update_data = models.TextField(blank=True, null=True, default=None)
     push_delete = models.BooleanField(default=False, editable=False)
-    sourced_from = models.TextField(blank=True, null=True, default=None)
+    sourced_from = models.CharField(max_length=20, blank=True, null=True, default=None)
 
     class Meta:
         verbose_name_plural = "policies"
