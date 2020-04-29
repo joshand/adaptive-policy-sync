@@ -71,7 +71,7 @@
         </div>
         {% if data.apikey %}
             <script>
-                getdata('/orgs', '{{ data.baseurl }}', '{{ data.orgid }}', 1, 'apiKey', 'orgcontainer', 'orgcontent', 'orglabel', 'orgid', 'orgname', 'nextbtn')
+                getdata('/orgs', 'apiUrl', '{{ data.orgid }}', 1, 'apiKey', 'orgcontainer', 'orgcontent', 'orglabel', 'orgid', 'orgname', 'nextbtn')
             </script>
         {% endif %}
         <input type="hidden" id="orgid" name="orgid" value="{{ data.orgid }}" />
