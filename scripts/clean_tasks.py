@@ -10,25 +10,25 @@ import datetime
 from sync.models import Task
 from scripts.dblog import append_log
 
-scheduler = BackgroundScheduler()
-scheduler.add_jobstore(DjangoJobStore(), "default")
+# scheduler = BackgroundScheduler()
+# scheduler.add_jobstore(DjangoJobStore(), "default")
 
 
 def cleanup():
     DjangoJobExecution.objects.delete_old_job_executions(3600)
-    log = []
-    task_types = ["ise_monitor", "dashboard_monitor", "pxgrid_websocket", "dashboard_webhook"]
-    for t in task_types:
-        tasks = Task.objects.filter(description=t)[:25].values_list("id", flat=True)
-        Task.objects.filter(description=t).exclude(pk__in=list(tasks)).delete()
-        append_log(log, "task_cleanup::", t)
-
-    t1 = Task.objects.filter(description="task_cleanup")
-    if len(t1) > 0:
-        thetask = t1[0]
-        thetask.task_data = "\n".join(log)
-        thetask.last_update = make_aware(datetime.datetime.now())
-        thetask.save()
+    # log = []
+    # task_types = ["ise_monitor", "dashboard_monitor", "pxgrid_websocket", "dashboard_webhook"]
+    # for t in task_types:
+    #     tasks = Task.objects.filter(description=t)[:25].values_list("id", flat=True)
+    #     Task.objects.filter(description=t).exclude(pk__in=list(tasks)).delete()
+    #     append_log(log, "task_cleanup::", t)
+    #
+    # t1 = Task.objects.filter(description="task_cleanup")
+    # if len(t1) > 0:
+    #     thetask = t1[0]
+    #     thetask.task_data = "\n".join(log)
+    #     thetask.last_update = make_aware(datetime.datetime.now())
+    #     thetask.save()
 
     # t1, _ = Task.objects.get_or_create(
     #     description="task_cleanup"
@@ -53,10 +53,10 @@ def run():
     # atexit.register(lambda: cron.shutdown(wait=False))
 
 
-@scheduler.scheduled_job("interval", seconds=10, id="task_cleanup")
-def job():
-    cleanup()
-
-
-register_events(scheduler)
-scheduler.start()
+# @scheduler.scheduled_job("interval", seconds=10, id="task_cleanup")
+# def job():
+#     cleanup()
+#
+#
+# register_events(scheduler)
+# scheduler.start()
