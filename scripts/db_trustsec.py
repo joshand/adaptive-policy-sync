@@ -113,6 +113,7 @@ def merge_sgts(src, sgts, is_base, sync_session, log=None):
                     t = i[0]
 
                 t.syncsession = sync_session
+                t.sourced_from = src
                 if src == "meraki":
                     t.meraki_id = s["groupId"]
                     t.meraki_data = json.dumps(s)
@@ -129,6 +130,7 @@ def merge_sgts(src, sgts, is_base, sync_session, log=None):
                 t.name = s["name"]
                 t.description = s["description"].replace("'", "").replace('"', "")
                 t.syncsession = sync_session
+                t.sourced_from = src
                 if src == "meraki":
                     t.meraki_id = s["groupId"]
                     t.meraki_data = json.dumps(s)
@@ -168,12 +170,15 @@ def merge_sgacls(src, sgacls, is_base, sync_session, log=None):
                     t = i[0]
 
                 t.syncsession = sync_session
+                t.sourced_from = src
                 if src == "meraki":
                     t.meraki_id = s["aclId"]
                     t.meraki_data = json.dumps(s)
                 elif src == "ise":
                     t.ise_id = s["id"]
                     t.ise_data = json.dumps(s)
+                    if s.get("generationId", "") == "0":
+                        t.visible = False
                 t.last_update = make_aware(datetime.datetime.now())
                 changed_objs.append(t)
                 t.save()
@@ -183,12 +188,15 @@ def merge_sgacls(src, sgacls, is_base, sync_session, log=None):
                 t.name = tag_name
                 t.description = s["description"].replace("'", "").replace('"', "")
                 t.syncsession = sync_session
+                t.sourced_from = src
                 if src == "meraki":
                     t.meraki_id = s["aclId"]
                     t.meraki_data = json.dumps(s)
                 elif src == "ise":
                     t.ise_id = s["id"]
                     t.ise_data = json.dumps(s)
+                    if s.get("generationId", "") == "0":
+                        t.visible = False
                 t.last_update = make_aware(datetime.datetime.now())
                 changed_objs.append(t)
                 t.save()
@@ -243,6 +251,7 @@ def merge_sgpolicies(src, sgpolicies, is_base, sync_session, log=None):
                     t = i[0]
 
                 t.syncsession = sync_session
+                t.sourced_from = src
                 if src == "meraki":
                     t.meraki_id = s["bindingId"]
                     t.meraki_data = json.dumps(s)
@@ -259,6 +268,7 @@ def merge_sgpolicies(src, sgpolicies, is_base, sync_session, log=None):
                 t.name = policy_name
                 t.description = policy_desc
                 t.syncsession = sync_session
+                t.sourced_from = src
                 if src == "meraki":
                     t.meraki_id = s["bindingId"]
                     t.meraki_data = json.dumps(s)
