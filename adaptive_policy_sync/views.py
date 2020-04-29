@@ -335,7 +335,7 @@ def sgaclstatus(request):
             '''
             return render(request, 'home/showsgacl.html', {"crumbs": crumbs, "menuopen": 1, "data": sgacl})
 
-    sgacls = ACL.objects.all()
+    sgacls = ACL.objects.filter(visible=True)
     crumbs = '<li class="current">Status</li><li class="current">SGACLs</li>'
     return render(request, 'home/sgaclstatus.html', {"crumbs": crumbs, "menuopen": 1, "data": {"sgacl": sgacls}})
 
