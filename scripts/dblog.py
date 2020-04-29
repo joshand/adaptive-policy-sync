@@ -27,4 +27,10 @@ def db_log(logtype, logdata):
         ld = str("\n".join(logdata))
     except Exception:
         ld = str(logdata)
-    Task.objects.create(description=logtype, task_data=ld)
+
+    t = Task.objects.filter(description=logtype)
+    if len(t) > 0:
+        t[0].task_data += "\n" + ld
+        t[0].save()
+    else:
+        Task.objects.create(description=logtype, task_data=ld)
