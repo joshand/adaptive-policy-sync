@@ -125,7 +125,7 @@ def run(tags, acls, policies):
     tag_desc = "TrustSec Devices Security Group"
     tag_num = 2
     newtags.append({"id": tag_id, "name": tag_name, "description": tag_desc,
-                    "value": tag_num, "generationId": 0, "propogateToApic": False,
+                    "value": tag_num, "generationId": "0", "propogateToApic": False,
                     "link": {"rel": "self", "type": "application/json",
                              "href": "{{url}}/ers/config/sgt/" + tag_id}
                     })
@@ -134,7 +134,7 @@ def run(tags, acls, policies):
     tag_desc = "Unknown Security Group"
     tag_num = 0
     newtags.append({"id": tag_id, "name": tag_name, "description": tag_desc,
-                    "value": tag_num, "generationId": 0, "propogateToApic": False,
+                    "value": tag_num, "generationId": "0", "propogateToApic": False,
                     "link": {"rel": "self", "type": "application/json",
                              "href": "{{url}}/ers/config/sgt/" + tag_id}
                     })
@@ -151,7 +151,7 @@ def run(tags, acls, policies):
         tag_desc = (tw[2] + " " + tw[3] + " " + tw[4] + " " + tw[5]).title()
         tag_num = randint(3, 65529)
         newtags.append({"id": tag_id, "name": tag_name, "description": tag_desc,
-                        "value": tag_num, "generationId": 0, "propogateToApic": False,
+                        "value": tag_num, "generationId": "1", "propogateToApic": False,
                         "link": {"rel": "self", "type": "application/json",
                                  "href": "{{url}}/ers/config/sgt/" + tag_id}
                         })
@@ -163,7 +163,7 @@ def run(tags, acls, policies):
     acl_desc = "Permit IP SGACL"
     acl_rules = "permit ip"
     newacls.append({"id": acl_id, "name": acl_name, "description": acl_desc,
-                    "generationId": 0, "aclcontent": acl_rules,
+                    "generationId": "0", "aclcontent": acl_rules,
                     "link": {"rel": "self", "type": "application/json",
                              "href": "{{url}}/ers/config/sgacl/" + acl_id}
                     })
@@ -233,9 +233,9 @@ def run(tags, acls, policies):
         apply_acl = random.choice([True, False])
         if apply_acl:
             for x in range(0, randint(2, 9)):
-                newpol = random.choice(newacls)["id"]
-                if newpol not in pol_acls:
-                    pol_acls.append(newpol)
+                newpol = random.choice(newacls)
+                if newpol["id"] not in pol_acls and newpol["generationId"] == "1":
+                    pol_acls.append(newpol["id"])
         pol_src = random.choice(newtags)
         pol_dst = random.choice(newtags)
         pol_name = pol_src["name"] + "-" + pol_dst["name"]
@@ -255,7 +255,7 @@ def run(tags, acls, policies):
 
 @csrf_exempt
 def parse_url(request):
-    baseurl = "/".join(request.build_absolute_uri().split("/")[:2])
+    baseurl = "/".join(request.build_absolute_uri().split("/")[:4])
     p = request.path.replace("/ise/ers/config/", "").replace("/ise/ers/config", "")
     arr = p.split("/")
 
