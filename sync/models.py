@@ -887,6 +887,8 @@ class Policy(models.Model):
                     return "PERMIT_IP"
                 elif mdata["catchAllRule"] == "global":
                     return "NONE"
+                else:
+                    return "NONE"
         elif update_dest == "meraki":
             if self.ise_id and self.ise_data:
                 idata = json.loads(self.ise_data)
@@ -895,6 +897,8 @@ class Policy(models.Model):
                 elif idata["defaultRule"] == "PERMIT_IP":
                     return "permit all"
                 elif idata["defaultRule"] == "NONE":
+                    return "global"
+                else:
                     return "global"
         return ""
 
