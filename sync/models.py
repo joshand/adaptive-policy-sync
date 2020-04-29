@@ -830,7 +830,7 @@ class Policy(models.Model):
             for m in m_sgacls:
                 m_sgacls_o.append(m.name)
 
-            name_match = mdata.get("name", "mdata") == idata.get("name", "idata")
+            # name_match = mdata.get("name", "mdata") == idata.get("name", "idata")
             if mdata["catchAllRule"] == "global" and idata["defaultRule"] == "NONE":
                 default_match = True
             elif mdata["catchAllRule"] == "deny all" and idata["defaultRule"] == "DENY_IP":
