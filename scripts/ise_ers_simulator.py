@@ -1,3 +1,4 @@
+from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import string
 import random
@@ -141,7 +142,7 @@ def run(tags, acls, policies):
     for t in range(0, int(tags)):
         while True:
             tw = random_words(6)
-            tag_name = (tw[0] + " " + tw[1]).title()
+            tag_name = (tw[0] + "_" + tw[1]).title()
             if tag_name not in used_names:
                 used_names.append(tag_name)
                 break
@@ -158,7 +159,7 @@ def run(tags, acls, policies):
     used_names.append("Permit IP")
     used_names.append("Deny IP")
     acl_id = "92951ac0-8c01-11e6-996c-525400b48521"
-    acl_name = "Permit IP"
+    acl_name = "Permit_IP"
     acl_desc = "Permit IP SGACL"
     acl_rules = "permit ip"
     newacls.append({"id": acl_id, "name": acl_name, "description": acl_desc,
@@ -167,7 +168,7 @@ def run(tags, acls, policies):
                              "href": "{{url}}/ers/config/sgacl/" + acl_id}
                     })
     acl_id = "92919850-8c01-11e6-996c-525400b48521"
-    acl_name = "Deny IP"
+    acl_name = "Deny_IP"
     acl_desc = "Deny IP SGACL"
     acl_rules = "deny ip"
     newacls.append({"id": acl_id, "name": acl_name, "description": acl_desc,
@@ -179,7 +180,7 @@ def run(tags, acls, policies):
     for a in range(0, int(acls)):
         while True:
             tw = random_words(6)
-            acl_name = (tw[0] + " " + tw[1]).title()
+            acl_name = (tw[0] + "_" + tw[1]).title()
             if acl_name not in used_names:
                 used_names.append(acl_name)
                 break
@@ -218,12 +219,13 @@ def run(tags, acls, policies):
                         })
 
     for b in range(0, int(policies)):
-        while True:
-            tw = random_words(6)
-            pol_name = (tw[0] + " " + tw[1]).title()
-            if pol_name not in used_names:
-                used_names.append(pol_name)
-                break
+        # Use sgt names instead
+        # while True:
+        #     tw = random_words(6)
+        #     pol_name = (tw[0] + " " + tw[1]).title()
+        #     if pol_name not in used_names:
+        #         used_names.append(pol_name)
+        #         break
 
         pol_id = str(uuid.uuid4())
         pol_desc = (tw[2] + " " + tw[3] + " " + tw[4] + " " + tw[5]).title()
@@ -235,10 +237,11 @@ def run(tags, acls, policies):
                 newpol = random.choice(newacls)["id"]
                 if newpol not in pol_acls:
                     pol_acls.append(newpol)
-        pol_src = random.choice(newtags)["id"]
-        pol_dst = random.choice(newtags)["id"]
+        pol_src = random.choice(newtags)
+        pol_dst = random.choice(newtags)
+        pol_name = pol_src["name"] + "-" + pol_dst["name"]
         newpolicies.append({"id": pol_id, "name": pol_name, "description": pol_desc,
-                            "sourceSgtId": pol_src, "destinationSgtId": pol_dst,
+                            "sourceSgtId": pol_src["id"], "destinationSgtId": pol_dst["id"],
                             "matrixCellStatus": "ENABLED", "defaultRule": pol_catch,
                             "sgacls": pol_acls,
                             "link": {"rel": "self", "type": "application/json",
@@ -263,13 +266,13 @@ def parse_url(request):
                  "sgacl": {"id": "{{uuid}}", "generationId": 0,
                            "link": {"rel": "self", "href": "{{url}}/ise/ers/config/sgacl/{{uuid}}",
                                     "type": "application/json"}},
-                 "egressmatrixcell": {"id": "{{uuid}}",
+                 "egressmatrixcell": {"id": "{{uuid}}", "name": None,
                                       "link": {"rel": "self",
                                                "href": "{{url}}/ise/ers/config/egressmatrixcell/{{uuid}}",
                                                "type": "application/json"}}}
     postvals = {"sgt": {"name": None, "description": None, "value": None, "propogateToApic": None},
                 "sgacl": {"name": None, "description": None, "aclcontent": None},
-                "egressmatrixcell": {"name": None, "description": None, "sourceSgtId": None, "destinationSgtId": None,
+                "egressmatrixcell": {"description": None, "sourceSgtId": None, "destinationSgtId": None,
                                      "matrixCellStatus": None, "defaultRule": None, "sgacls": None}}
     info = {"sgt": {"id": "id", "unique": [{"value": [], "id": []}], "single_header": {"Sgt": "{{results}}"},
                     "multi_header": {"SearchResult": {"total": "{{length}}", "resources": "{{results}}"}},
@@ -292,6 +295,23 @@ def parse_url(request):
 
     if request.body:
         jd = json.loads(request.body)
+        if arr[0] == "egressmatrixcell" and (request.method == "POST" or request.method == "PUT"):
+            srcsgt = jd.get("EgressMatrixCell", {}).get("sourceSgtId", None)
+            dstsgt = jd.get("EgressMatrixCell", {}).get("destinationSgtId", None)
+            srcname = None
+            dstname = None
+            sgtset = json.loads(read_file_all("sgt.json"))
+            if srcsgt and dstsgt:
+                for s in sgtset:
+                    if s["id"] == srcsgt:
+                        srcname = s["name"]
+                    if s["id"] == dstsgt:
+                        dstname = s["name"]
+                    if srcname is not None and dstname is not None:
+                        break
+            if srcname is None or dstname is None:
+                return JsonResponse({"error": "Error. Unable to match Sgts."})
+            fixedvals["egressmatrixcell"]["name"] = srcname + "-" + dstname
     else:
         jd = None
 
