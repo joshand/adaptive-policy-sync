@@ -118,6 +118,7 @@ def run(tags, acls, policies):
     newacls = []
     newpolicies = []
 
+    used_names = ["TrustSec_Devices", "Unknown"]
     tag_id = "947832a0-8c01-11e6-996c-525400b48521"
     tag_name = "TrustSec_Devices"
     tag_desc = "TrustSec Devices Security Group"
@@ -138,9 +139,14 @@ def run(tags, acls, policies):
                     })
 
     for t in range(0, int(tags)):
-        tw = random_words(6)
+        while True:
+            tw = random_words(6)
+            tag_name = (tw[0] + " " + tw[1]).title()
+            if tag_name not in used_names:
+                used_names.append(tag_name)
+                break
+
         tag_id = str(uuid.uuid4())
-        tag_name = (tw[0] + " " + tw[1]).title()
         tag_desc = (tw[2] + " " + tw[3] + " " + tw[4] + " " + tw[5]).title()
         tag_num = randint(3, 65529)
         newtags.append({"id": tag_id, "name": tag_name, "description": tag_desc,
@@ -149,6 +155,8 @@ def run(tags, acls, policies):
                                  "href": "{{url}}/ers/config/sgt/" + tag_id}
                         })
 
+    used_names.append("Permit IP")
+    used_names.append("Deny IP")
     acl_id = "92951ac0-8c01-11e6-996c-525400b48521"
     acl_name = "Permit IP"
     acl_desc = "Permit IP SGACL"
@@ -169,9 +177,15 @@ def run(tags, acls, policies):
                     })
 
     for a in range(0, int(acls)):
-        tw = random_words(6)
+        while True:
+            tw = random_words(6)
+            acl_name = (tw[0] + " " + tw[1]).title()
+            if acl_name not in used_names:
+                used_names.append(acl_name)
+                break
+
+
         acl_id = str(uuid.uuid4())
-        acl_name = (tw[0] + " " + tw[1]).title()
         acl_desc = (tw[2] + " " + tw[3] + " " + tw[4] + " " + tw[5]).title()
         acl_v = random.choice(["IPV4", "IPV6", ""])
         acl_rules = get_rules()
@@ -188,6 +202,7 @@ def run(tags, acls, policies):
                                      "href": "{{url}}/ers/config/sgacl/" + acl_id}
                             })
 
+    used_names.append("ANY-ANY")
     pol_id = "92c1a900-8c01-11e6-996c-525400b48521"
     pol_src = pol_dst = "92bb1950-8c01-11e6-996c-525400b48521"
     pol_name = "ANY-ANY"
@@ -203,9 +218,14 @@ def run(tags, acls, policies):
                         })
 
     for b in range(0, int(policies)):
-        tw = random_words(6)
+        while True:
+            tw = random_words(6)
+            pol_name = (tw[0] + " " + tw[1]).title()
+            if pol_name not in used_names:
+                used_names.append(pol_name)
+                break
+
         pol_id = str(uuid.uuid4())
-        pol_name = (tw[0] + " " + tw[1]).title()
         pol_desc = (tw[2] + " " + tw[3] + " " + tw[4] + " " + tw[5]).title()
         pol_catch = random.choice(["NONE", "PERMIT_IP", "DENY_IP"])
         pol_acls = []
@@ -233,7 +253,7 @@ def run(tags, acls, policies):
 
 @csrf_exempt
 def parse_url(request):
-    baseurl = "/".join(request.build_absolute_uri().split("/")[:4])
+    baseurl = "/".join(request.build_absolute_uri().split("/")[:2])
     p = request.path.replace("/ise/ers/config/", "").replace("/ise/ers/config", "")
     arr = p.split("/")
 
