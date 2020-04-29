@@ -175,7 +175,7 @@ def merge_sgacls(src, sgacls, is_base, sync_session, log=None):
                 elif src == "ise":
                     t.ise_id = s["id"]
                     t.ise_data = json.dumps(s)
-                    if s.get("generationId", "") == "0":
+                    if str(s.get("generationId", "")) == "0":
                         t.visible = False
                 t.last_update = make_aware(datetime.datetime.now())
                 changed_objs.append(t)
@@ -193,7 +193,7 @@ def merge_sgacls(src, sgacls, is_base, sync_session, log=None):
                 elif src == "ise":
                     t.ise_id = s["id"]
                     t.ise_data = json.dumps(s)
-                    if s.get("generationId", "") == "0":
+                    if str(s.get("generationId", "")) == "0":
                         t.visible = False
                 t.last_update = make_aware(datetime.datetime.now())
                 changed_objs.append(t)
