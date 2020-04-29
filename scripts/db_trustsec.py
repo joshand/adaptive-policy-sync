@@ -139,8 +139,8 @@ def merge_sgts(src, sgts, is_base, sync_session, log=None):
                 t.last_update = make_aware(datetime.datetime.now())
                 changed_objs.append(t)
                 t.save()
-            sync_session.dashboard.force_rebuild = True
-            sync_session.dashboard.save()
+            # sync_session.dashboard.force_rebuild = True
+            # sync_session.dashboard.save()
     return changed_objs
 
 
@@ -201,8 +201,8 @@ def merge_sgacls(src, sgacls, is_base, sync_session, log=None):
                 t.last_update = make_aware(datetime.datetime.now())
                 changed_objs.append(t)
                 t.save()
-            sync_session.dashboard.force_rebuild = True
-            sync_session.dashboard.save()
+            # sync_session.dashboard.force_rebuild = True
+            # sync_session.dashboard.save()
     return changed_objs
 
 
@@ -278,6 +278,6 @@ def merge_sgpolicies(src, sgpolicies, is_base, sync_session, log=None):
                 t.last_update = make_aware(datetime.datetime.now())
                 changed_objs.append(t)
                 t.save()
-            sync_session.dashboard.force_rebuild = True
-            sync_session.dashboard.save()
+            # sync_session.dashboard.force_rebuild = True
+            # sync_session.dashboard.save()
     return changed_objs
