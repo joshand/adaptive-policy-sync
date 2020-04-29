@@ -302,6 +302,7 @@ class Tag(models.Model):
     last_update = models.DateTimeField(default=django.utils.timezone.now)
     last_update_data = models.TextField(blank=True, null=True, default=None)
     push_delete = models.BooleanField(default=False, editable=False)
+    sourced_from = models.TextField(blank=True, null=True, default=None)
 
     def __str__(self):
         if self.do_sync:
@@ -429,6 +430,8 @@ class ACL(models.Model):
     last_update = models.DateTimeField(default=django.utils.timezone.now)
     last_update_data = models.TextField(blank=True, null=True, default=None)
     push_delete = models.BooleanField(default=False, editable=False)
+    sourced_from = models.TextField(blank=True, null=True, default=None)
+    visible = models.BooleanField(default=True, editable=False)
 
     class Meta:
         verbose_name = "ACL"
@@ -760,6 +763,7 @@ class Policy(models.Model):
     last_update = models.DateTimeField(default=django.utils.timezone.now)
     last_update_data = models.TextField(blank=True, null=True, default=None)
     push_delete = models.BooleanField(default=False, editable=False)
+    sourced_from = models.TextField(blank=True, null=True, default=None)
 
     class Meta:
         verbose_name_plural = "policies"
