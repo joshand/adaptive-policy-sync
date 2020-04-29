@@ -102,7 +102,8 @@ def merge_sgts(src, sgts, is_base, sync_session, log=None):
                                "exists in database; updating...")
                     t = i[0]
                     t.tag_number = tag_num
-                    t.name = s["name"]
+                    if t.name != s["name"] and t.cleaned_name() != s["name"]:
+                        t.name = s["name"]
                     t.description = s["description"].replace("'", "").replace('"', "")
                     t.push_delete = False
                 else:
@@ -154,7 +155,8 @@ def merge_sgacls(src, sgacls, is_base, sync_session, log=None):
                     append_log(log, "db_trustsec::merge_sgacls::acl::" + src + "::", tag_name,
                                "exists in database; updating...")
                     t = i[0]
-                    t.name = tag_name
+                    if t.name != tag_name and t.cleaned_name() != tag_name:
+                        t.name = tag_name
                     t.description = s["description"].replace("'", "").replace('"', "")
                     t.push_delete = False
                 else:
