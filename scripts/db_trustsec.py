@@ -1,6 +1,7 @@
 from sync.models import Tag, ACL, Policy
 import datetime
 from django.utils.timezone import make_aware
+from django.db.models import Q
 import json
 from scripts.dblog import append_log
 
@@ -147,9 +148,11 @@ def merge_sgacls(src, sgacls, is_base, sync_session, log=None):
     for s in sgacls:
         tag_name = None
         tag_name = s["name"]
+        tn_ise = tag_name.replace(" ", "_")
+        tn_mer = tag_name.replace("_", " ")
 
         if tag_name:
-            i = ACL.objects.filter(name=tag_name)
+            i = ACL.objects.filter(Q(name=tn_ise) | Q(name=tn_mer))
             if len(i) > 0:
                 if is_base:
                     append_log(log, "db_trustsec::merge_sgacls::acl::" + src + "::", tag_name,
