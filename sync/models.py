@@ -437,6 +437,11 @@ class ACL(models.Model):
     def __str__(self):
         return self.name + " -- Valid:" + str(self.is_valid_config()) + " -- Matches:" + str(self.in_sync())
 
+    def cleaned_name(self):
+        newname = self.name[:32]
+        newname = re.sub('[^0-9a-zA-Z]+', '_', newname)
+        return newname
+
     def in_sync(self):
         return self.match_report(bool_only=True)
 
