@@ -12,17 +12,19 @@ class ISEServerAdmin(admin.ModelAdmin):
 
 class TagAdmin(admin.ModelAdmin):
     readonly_fields = ('cleaned_name', 'last_update', 'last_update_data', 'match_report', 'push_delete', 'update_dest',
-                       'push_config')
+                       'push_config', 'sourced_from')
     # readonly_fields = ('last_update', 'last_update_data', 'match_report', 'update_dest', 'push_config')
 
 
 class ACLAdmin(admin.ModelAdmin):
-    readonly_fields = ('last_update', 'last_update_data', 'match_report', 'push_delete', 'update_dest', 'push_config')
+    readonly_fields = ('last_update', 'last_update_data', 'match_report', 'push_delete', 'update_dest', 'push_config',
+                       'visible', 'sourced_from')
     # readonly_fields = ('last_update', 'last_update_data', 'match_report', 'update_dest', 'push_config')
 
 
 class PolicyAdmin(admin.ModelAdmin):
-    readonly_fields = ('last_update', 'last_update_data', 'match_report', 'push_delete', 'update_dest', 'push_config')
+    readonly_fields = ('last_update', 'last_update_data', 'match_report', 'push_delete', 'update_dest', 'push_config',
+                       'sourced_from')
     # readonly_fields = ('last_update', 'last_update_data', 'match_report', 'update_dest', 'push_config')
 
 
