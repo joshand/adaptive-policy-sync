@@ -39,7 +39,7 @@ def exec_api_action(method, url, data, headers):
         ret = requests.request(method, url, headers=headers, verify=False)
     else:
         ret = requests.request(method, url, data=data, headers=headers, verify=False)
-    return ret.content.decode("UTF-8")
+    return ret
 
 
 def sync_ise_accounts(accounts, log):
@@ -88,7 +88,8 @@ def sync_ise_accounts(accounts, log):
                     if m != "":
                         append_log(log, "ise_monitor::sync_ise_accounts::tag API push", o.push_config())
                         ret = exec_api_action(m, u, d, headers)
-                        o.last_update_data = ret
+                        append_log(log, "ise_monitor::sync_ise_accounts::", ret.status_code, ret.content)
+                        o.last_update_data = ret.content.decode("UTF-8")
                         o.save()
                         sa.iseserver.force_rebuild = True
                         sa.iseserver.save()
@@ -104,7 +105,8 @@ def sync_ise_accounts(accounts, log):
                     if m != "":
                         append_log(log, "ise_monitor::sync_ise_accounts::acl API push", o.push_config())
                         ret = exec_api_action(m, u, d, headers)
-                        o.last_update_data = ret
+                        append_log(log, "ise_monitor::sync_ise_accounts::", ret.status_code, ret.content)
+                        o.last_update_data = ret.content.decode("UTF-8")
                         o.save()
                         sa.iseserver.force_rebuild = True
                         sa.iseserver.save()
@@ -120,7 +122,8 @@ def sync_ise_accounts(accounts, log):
                     if m != "":
                         append_log(log, "ise_monitor::sync_ise_accounts::policy API push", o.push_config())
                         ret = exec_api_action(m, u, d, headers)
-                        o.last_update_data = ret
+                        append_log(log, "ise_monitor::sync_ise_accounts::", ret.status_code, ret.content)
+                        o.last_update_data = ret.content.decode("UTF-8")
                         o.save()
                         sa.iseserver.force_rebuild = True
                         sa.iseserver.save()
