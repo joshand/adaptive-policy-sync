@@ -324,7 +324,7 @@ class Tag(models.Model):
             idata = json.loads(self.ise_data)
 
             name_match = mdata.get("name", "mdata") == idata.get("name", "idata")
-            name_match_cl = self.cleaned_name() == idata["name"]
+            name_match_cl = self.cleaned_name() == idata.get("name", "idata")
             desc_match = mdata.get("description", "mdata") == idata.get("description", "idata")
 
             outtxt += "name:" + str(name_match) + "\n"
@@ -588,6 +588,8 @@ class ACL(models.Model):
                 idata = json.loads(self.ise_data)
 
                 name_match = mdata.get("name", "mdata") == idata.get("name", "idata")
+                name_match_cl = self.cleaned_name() == idata.get("name", "idata")
+
                 desc_match = mdata.get("description", "mdata") == idata.get("description", "idata")
                 acl_match = self.normalize_meraki_rules(mdata["rules"]) == self.normalize_ise_rules(idata["aclcontent"])
                 if "ipVersion" not in idata and mdata["ipVersion"] == "agnostic":
@@ -600,6 +602,7 @@ class ACL(models.Model):
                     ver_match = False
 
                 outtxt += "name:" + str(name_match) + "\n"
+                outtxt += "cleaned name:" + str(name_match_cl) + "\n"
                 outtxt += "description:" + str(desc_match) + "\n"
 
                 test_ise_acl_1 = self.normalize_ise_rules(idata["aclcontent"]).strip().replace("\n", ";")
@@ -622,7 +625,8 @@ class ACL(models.Model):
                 outtxt += "delete?:" + str(self.push_delete) + "\n"
 
                 if bool_only:
-                    return name_match and desc_match and acl_match and ver_match and not self.push_delete
+                    return (name_match or name_match_cl) and \
+                           desc_match and acl_match and ver_match and not self.push_delete
                 else:
                     return outtxt
             except Exception:
@@ -709,7 +713,7 @@ class ACL(models.Model):
                 thismeth = "POST"
                 url = self.syncsession.iseserver.base_url() + "/ers/config/sgacl"
 
-            return thismeth, url, json.dumps({"Sgacl": {"name": self.name, "description": self.description,
+            return thismeth, url, json.dumps({"Sgacl": {"name": self.cleaned_name(), "description": self.description,
                                                         "ipVersion": self.get_version(d), "readOnly": False,
                                                         "aclcontent": self.get_rules(d)}})  # .replace("\\n", "\n")
         elif d == "meraki":
@@ -860,7 +864,7 @@ class Policy(models.Model):
             outtxt += "delete?:" + str(self.push_delete) + "\n"
 
             if bool_only:
-                return name_match and default_match and srcdst_match and sgacl_match and not self.push_delete
+                return default_match and srcdst_match and sgacl_match and not self.push_delete
             else:
                 return outtxt
 
