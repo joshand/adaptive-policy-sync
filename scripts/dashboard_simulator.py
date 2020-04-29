@@ -127,6 +127,8 @@ def run(orgs, tags, acls, policies):
         org_url = "{{url}}/o/" + org_code + "/manage/organization/overview"
         neworgs.append({"id": org_id, "name": org_name, "url": org_url})
 
+        used_tags = [0, 2]
+        used_names = ["Unknown", "MerakiInternal"]
         newtags[org_id] = []
         t0_desc = "Unknown group applies when a policy is specified for unsuccessful group classification"
         t2_desc = "MerakiInternal group is used by Meraki devices for internal and dashboard communication"
@@ -137,18 +139,32 @@ def run(orgs, tags, acls, policies):
                                 "description": t2_desc, "versionNum": 0, "networkObjectId": None,
                                 "createdAt": isotime, "updatedAt": isotime})
         for t in range(0, int(tags)):
-            tw = random_words(6)
-            tag_name = (tw[0] + " " + tw[1]).title()
+            while True:
+                tw = random_words(6)
+                tag_name = (tw[0] + " " + tw[1]).title()
+                if tag_name not in used_names:
+                    used_names.append(tag_name)
+                    break
+
             tag_desc = (tw[2] + " " + tw[3] + " " + tw[4] + " " + tw[5]).title()
-            tag_num = randint(3, 65529)
+            while True:
+                tag_num = randint(3, 65529)
+                if tag_num not in used_tags:
+                    break
+                used_tags.append(tag_num)
             newtags[org_id].append({"groupId": t + 2, "value": tag_num, "name": tag_name, "description": tag_desc,
                                     "versionNum": 0, "networkObjectId": None, "createdAt": isotime,
                                     "updatedAt": isotime})
 
         newacls[org_id] = []
         for a in range(0, int(acls)):
-            tw = random_words(6)
-            acl_name = (tw[0] + " " + tw[1]).title()
+            while True:
+                tw = random_words(6)
+                acl_name = (tw[0] + " " + tw[1]).title()
+                if acl_name not in used_names:
+                    used_names.append(acl_name)
+                    break
+
             acl_desc = (tw[2] + " " + tw[3] + " " + tw[4] + " " + tw[5]).title()
             acl_ver = random.choice(["ipv4", "ipv6", "agnostic"])
             acl_rules = get_rules()
@@ -158,8 +174,13 @@ def run(orgs, tags, acls, policies):
 
         newpolicies[org_id] = []
         for b in range(0, int(policies)):
-            tw = random_words(6)
-            pol_name = (tw[0] + " " + tw[1]).title()
+            while True:
+                tw = random_words(6)
+                pol_name = (tw[0] + " " + tw[1]).title()
+                if pol_name not in used_names:
+                    used_names.append(pol_name)
+                    break
+
             pol_desc = (tw[2] + " " + tw[3] + " " + tw[4] + " " + tw[5]).title()
             pol_catch = random.choice(["global", "deny all", "allow all"])
             pol_acls = []
