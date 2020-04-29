@@ -636,11 +636,6 @@ class ACL(models.Model):
                 outtxt += "version:" + str(ver_match) + "\n"
                 outtxt += "delete?:" + str(self.push_delete) + "\n"
 
-                if self.visible is False:
-                    outtxt += "\n" + "NOTE:THIS SGACL WILL ALWAYS RETURN Matches:True SINCE IT IS BUILT-IN." + "\n"
-                    if bool_only:
-                        return True
-
                 if bool_only:
                     return (name_match or name_match_cl) and \
                            (desc_match or desc_match_fuzzy) and acl_match and ver_match and not self.push_delete
@@ -648,6 +643,13 @@ class ACL(models.Model):
                     return outtxt
             except Exception:
                 return False
+        elif self.ise_id and self.ise_data:
+            if self.visible is False:
+                outtxt += "NOTE:THIS SGACL WILL ALWAYS RETURN Matches:True SINCE IT IS BUILT-IN."
+                if bool_only:
+                    return True
+                else:
+                    return outtxt
 
         if bool_only:
             return False
