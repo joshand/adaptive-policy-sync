@@ -148,7 +148,10 @@ def merge_sgacls(src, sgacls, is_base, sync_session, log=None):
     changed_objs = []
     for s in sgacls:
         tag_name = None
-        tag_name = s["name"]
+        tag_name = s.get("name", "")
+        if tag_name == "":
+            append_log(log, "db_trustsec::merge_sgacls::sgacl doesn't have name; skipping", s)
+            continue
         tn_ise = tag_name.replace(" ", "_")
         tn_mer = tag_name.replace("_", " ")
 
