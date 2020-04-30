@@ -237,6 +237,10 @@
         function startResync() {
             getdata("/resync", null, null, null, null, null, null, null, null, null);
         }
+
+        function doDelete(obj, objid) {
+            getdata("/del/" + obj + "/" + objid, null, null, null, null, null, null, null, null, null);
+        }
     </script>
 </head>
 
