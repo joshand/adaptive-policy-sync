@@ -7,6 +7,30 @@ from .forms import UploadForm
 import meraki
 
 
+def startresync(request):
+    ss = SyncSession.objects.all()
+    if len(ss) > 0:
+        ss[0].force_rebuild = True
+        ss[0].save()
+
+    return JsonResponse({}, safe=False)
+
+
+def delobject(request):
+    # /del/policy/64c6515b-e32f-476d-a043-20924f1ed560
+    pathlist = request.path.split("/")
+    print(pathlist, len(pathlist))
+    if len(pathlist) == 4:
+        if pathlist[2] == "sgt":
+            Tag.objects.filter(id=pathlist[3]).delete()
+        elif pathlist[2] == "sgacl":
+            ACL.objects.filter(id=pathlist[3]).delete()
+        elif pathlist[2] == "policy":
+            Policy.objects.filter(id=pathlist[3]).delete()
+
+    return JsonResponse({}, safe=False)
+
+
 def getmerakiorgs(request):
     dashboards = Dashboard.objects.all()
     if len(dashboards) > 0:
