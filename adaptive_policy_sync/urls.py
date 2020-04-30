@@ -54,6 +54,7 @@ urlpatterns = [
     path('logout/', apsyncviews.MyLogoutView.as_view(), name='logout'),
     url(r'^orgs/$', apsyncviews.getmerakiorgs, name='getmerakiorgs'),
     url(r'^resync/$', apsyncviews.startresync, name='startresync'),
+    url(r'^del/', apsyncviews.delobject, name='delobject'),
     url(r'^setup/$', apsyncviews.setup, name='setup'),
     url(r'^setup/ise$', apsyncviews.setupise, name='setupise'),
     url(r'^setup/isenext$', apsyncviews.setupisenext, name='setupisenext'),
