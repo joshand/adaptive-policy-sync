@@ -70,13 +70,34 @@ def sync_dashboard_accounts(accounts, log):
         sgts = meraki_read_sgt(a.baseurl, a.orgid, headers)
         sgacls = meraki_read_sgacl(a.baseurl, a.orgid, headers)
         sgpolicies = meraki_read_sgpolicy(a.baseurl, a.orgid, headers)
+        append_log(log, "dashboard_monitor::sync_dashboard_accounts::SGTs - ", sgts)
+        append_log(log, "dashboard_monitor::sync_dashboard_accounts::SGACLs - ", sgacls)
+        append_log(log, "dashboard_monitor::sync_dashboard_accounts::Policies - ", sgpolicies)
 
-        merge_sgts("meraki", sgts, not sa.ise_source, sa, log)
-        merge_sgacls("meraki", sgacls, not sa.ise_source, sa, log)
-        merge_sgpolicies("meraki", sgpolicies, not sa.ise_source, sa, log)
-        clean_sgts("meraki", sgts, not sa.ise_source, sa, log)
-        clean_sgacls("meraki", sgacls, not sa.ise_source, sa, log)
-        clean_sgpolicies("meraki", sgpolicies, not sa.ise_source, sa, log)
+        try:
+            merge_sgts("meraki", sgts, not sa.ise_source, sa, log)
+        except Exception as e:
+            append_log(log, "dashboard_monitor::sync_dashboard_accounts::Exception in merge_sgts: ", e)
+        try:
+            merge_sgacls("meraki", sgacls, not sa.ise_source, sa, log)
+        except Exception as e:
+            append_log(log, "dashboard_monitor::sync_dashboard_accounts::Exception in merge_sgts: ", e)
+        try:
+            merge_sgpolicies("meraki", sgpolicies, not sa.ise_source, sa, log)
+        except Exception as e:
+            append_log(log, "dashboard_monitor::sync_dashboard_accounts::Exception in merge_sgts: ", e)
+        try:
+            clean_sgts("meraki", sgts, not sa.ise_source, sa, log)
+        except Exception as e:
+            append_log(log, "dashboard_monitor::sync_dashboard_accounts::Exception in merge_sgts: ", e)
+        try:
+            clean_sgacls("meraki", sgacls, not sa.ise_source, sa, log)
+        except Exception as e:
+            append_log(log, "dashboard_monitor::sync_dashboard_accounts::Exception in merge_sgts: ", e)
+        try:
+            clean_sgpolicies("meraki", sgpolicies, not sa.ise_source, sa, log)
+        except Exception as e:
+            append_log(log, "dashboard_monitor::sync_dashboard_accounts::Exception in merge_sgts: ", e)
 
         a.raw_data = json.dumps({"groups": sgts, "acls": sgacls, "bindings": sgpolicies})
         a.force_rebuild = False
