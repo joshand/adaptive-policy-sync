@@ -55,23 +55,32 @@ def sync_ise_accounts(accounts, log):
         sgpolicies = ers_get(a.base_url(), "/egressmatrixcell", a.username, a.password)
         ise = {"sgts": sgts, "sgacls": sgacls, "sgpolicies": sgpolicies}
 
-        if sgts and "error" not in sgts:
-            for e in sgts:
-                thise = ers_get(a.base_url(), "/sgt/" + str(e["id"]), a.username, a.password)
-                merge_sgts("ise", [thise["Sgt"]], sa.ise_source, sa, log)
-            clean_sgts("ise", sgts, sa.ise_source, sa, log)
+        try:
+            if sgts and "error" not in sgts:
+                for e in sgts:
+                    thise = ers_get(a.base_url(), "/sgt/" + str(e["id"]), a.username, a.password)
+                    merge_sgts("ise", [thise["Sgt"]], sa.ise_source, sa, log)
+                clean_sgts("ise", sgts, sa.ise_source, sa, log)
+        except Exception as e:
+            append_log(log, "ise_monitor::sync_ise_accounts::Exception in merge_sgts/clean_sgts: ", e)
 
-        if sgacls and "error" not in sgacls:
-            for e in sgacls:
-                thise = ers_get(a.base_url(), "/sgacl/" + str(e["id"]), a.username, a.password)
-                merge_sgacls("ise", [thise["Sgacl"]], sa.ise_source, sa, log)
-            clean_sgacls("ise", sgacls, sa.ise_source, sa, log)
+        try:
+            if sgacls and "error" not in sgacls:
+                for e in sgacls:
+                    thise = ers_get(a.base_url(), "/sgacl/" + str(e["id"]), a.username, a.password)
+                    merge_sgacls("ise", [thise["Sgacl"]], sa.ise_source, sa, log)
+                clean_sgacls("ise", sgacls, sa.ise_source, sa, log)
+        except Exception as e:
+            append_log(log, "ise_monitor::sync_ise_accounts::Exception in merge_acls/clean_acls: ", e)
 
-        if sgpolicies and "error" not in sgpolicies:
-            for e in sgpolicies:
-                thise = ers_get(a.base_url(), "/egressmatrixcell/" + str(e["id"]), a.username, a.password)
-                merge_sgpolicies("ise", [thise["EgressMatrixCell"]], sa.ise_source, sa, log)
-            clean_sgpolicies("ise", sgpolicies, sa.ise_source, sa, log)
+        try:
+            if sgpolicies and "error" not in sgpolicies:
+                for e in sgpolicies:
+                    thise = ers_get(a.base_url(), "/egressmatrixcell/" + str(e["id"]), a.username, a.password)
+                    merge_sgpolicies("ise", [thise["EgressMatrixCell"]], sa.ise_source, sa, log)
+                clean_sgpolicies("ise", sgpolicies, sa.ise_source, sa, log)
+        except Exception as e:
+            append_log(log, "ise_monitor::sync_ise_accounts::Exception in merge_policies/clean_policies: ", e)
 
         a.raw_data = json.dumps(ise)
         a.force_rebuild = False
