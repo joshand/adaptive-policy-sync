@@ -47,14 +47,15 @@ def meraki_read_sgpolicy(baseurl, orgid, headers):
         return []
 
 
-def exec_api_action(method, url, data, headers):
+def exec_api_action(method, url, data, headers, log):
     try:
         if data is None or data == "":
             ret = requests.request(method, url, headers=headers)
         else:
             ret = requests.request(method, url, data=data, headers=headers)
         return ret
-    except Exception:
+    except Exception as e:
+        append_log(log, "dashboard_monitor::exec_api_action::Exception - ", e)
         return None
 
 
@@ -113,13 +114,13 @@ def sync_dashboard_accounts(accounts, log):
                     m, u, d = o.push_config()
                     if m != "":
                         append_log(log, "dashboard_monitor::sync_dashboard_accounts::tag API push", o.push_config())
-                        ret = exec_api_action(m, u, d, headers)
+                        ret = exec_api_action(m, u, d, headers, log)
                         if ret:
                             append_log(log, "dashboard_monitor::sync_dashboard_accounts::", ret.status_code,
                                        ret.content)
                             o.last_update_data = ret
                         else:
-                            append_log(log, "dashboard_monitor::sync_dashboard_accounts::Exception")
+                            append_log(log, "dashboard_monitor::sync_dashboard_accounts::Error")
                         o.save()
                         # sa.dashboard.force_rebuild = True
                         # sa.dashboard.save()
@@ -136,13 +137,13 @@ def sync_dashboard_accounts(accounts, log):
                     m, u, d = o.push_config()
                     if m != "":
                         append_log(log, "dashboard_monitor::sync_dashboard_accounts::acl API push", o.push_config())
-                        ret = exec_api_action(m, u, d, headers)
+                        ret = exec_api_action(m, u, d, headers, log)
                         if ret:
                             append_log(log, "dashboard_monitor::sync_dashboard_accounts::", ret.status_code,
                                        ret.content)
                             o.last_update_data = ret
                         else:
-                            append_log(log, "dashboard_monitor::sync_dashboard_accounts::Exception")
+                            append_log(log, "dashboard_monitor::sync_dashboard_accounts::Error")
                         o.save()
                         # sa.dashboard.force_rebuild = True
                         # sa.dashboard.save()
@@ -159,13 +160,13 @@ def sync_dashboard_accounts(accounts, log):
                     m, u, d = o.push_config()
                     if m != "":
                         append_log(log, "dashboard_monitor::sync_dashboard_accounts::policy API push", o.push_config())
-                        ret = exec_api_action(m, u, d, headers)
+                        ret = exec_api_action(m, u, d, headers, log)
                         if ret:
                             append_log(log, "dashboard_monitor::sync_dashboard_accounts::", ret.status_code,
                                        ret.content)
                             o.last_update_data = ret
                         else:
-                            append_log(log, "dashboard_monitor::sync_dashboard_accounts::Exception")
+                            append_log(log, "dashboard_monitor::sync_dashboard_accounts::Error")
                         o.save()
                         # sa.dashboard.force_rebuild = True
                         # sa.dashboard.save()
