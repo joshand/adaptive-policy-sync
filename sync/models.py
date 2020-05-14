@@ -441,6 +441,7 @@ class ACL(models.Model):
     push_delete = models.BooleanField(default=False, editable=False)
     sourced_from = models.CharField(max_length=20, blank=True, null=True, default=None)
     visible = models.BooleanField(default=True, editable=False)
+    is_enabled = models.BooleanField(default=False, editable=False)
 
     class Meta:
         verbose_name = "ACL"
@@ -833,6 +834,16 @@ class Policy(models.Model):
             return out_acl
 
         return None
+
+    def is_enabled(self):
+        m_src, m_dst = self.lookup_meraki_sgts()
+        i_src, i_dst = self.lookup_ise_sgts()
+
+        if (m_src and m_dst and m_src.do_sync and m_dst.do_sync) or \
+                (i_src and i_dst and i_src.do_sync and i_dst.do_sync):
+            return True
+        else:
+            return False
 
     def in_sync(self):
         return self.match_report(bool_only=True)
