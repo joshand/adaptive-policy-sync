@@ -302,6 +302,7 @@ class Tag(models.Model):
     ise_data = models.TextField("ISE data", blank=True, null=True, default=None)
     last_update = models.DateTimeField(default=django.utils.timezone.now)
     last_update_data = models.TextField(blank=True, null=True, default=None)
+    last_update_state = models.CharField(max_length=20, blank=True, null=True, default=None)
     push_delete = models.BooleanField(default=False, editable=False)
     sourced_from = models.CharField(max_length=20, blank=True, null=True, default=None)
 
@@ -436,6 +437,7 @@ class ACL(models.Model):
     ise_data = models.TextField("ISE data", blank=True, null=True, default=None)
     last_update = models.DateTimeField(default=django.utils.timezone.now)
     last_update_data = models.TextField(blank=True, null=True, default=None)
+    last_update_state = models.CharField(max_length=20, blank=True, null=True, default=None)
     push_delete = models.BooleanField(default=False, editable=False)
     sourced_from = models.CharField(max_length=20, blank=True, null=True, default=None)
     visible = models.BooleanField(default=True, editable=False)
@@ -778,6 +780,7 @@ class Policy(models.Model):
     ise_data = models.TextField("ISE data", blank=True, null=True, default=None)
     last_update = models.DateTimeField(default=django.utils.timezone.now)
     last_update_data = models.TextField(blank=True, null=True, default=None)
+    last_update_state = models.CharField(max_length=20, blank=True, null=True, default=None)
     push_delete = models.BooleanField(default=False, editable=False)
     sourced_from = models.CharField(max_length=20, blank=True, null=True, default=None)
 
