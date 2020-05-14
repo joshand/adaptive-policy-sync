@@ -133,7 +133,7 @@ def sync_dashboard_accounts(accounts, log):
                 o.delete()
         acls = ACL.objects.filter(syncsession=sa)
         for o in acls:
-            if not o.in_sync() and o.update_dest() == "meraki":
+            if o.do_sync and not o.in_sync() and o.update_dest() == "meraki":
                 if sa.apply_changes:
                     m, u, d = o.push_config()
                     if m != "":
@@ -157,7 +157,7 @@ def sync_dashboard_accounts(accounts, log):
                 o.delete()
         policies = Policy.objects.filter(syncsession=sa)
         for o in policies:
-            if not o.in_sync() and o.update_dest() == "meraki":
+            if o.do_sync and not o.in_sync() and o.update_dest() == "meraki":
                 if sa.apply_changes:
                     m, u, d = o.push_config()
                     if m != "":
