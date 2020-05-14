@@ -429,7 +429,7 @@ class ACL(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField("Tag Name", max_length=50, blank=False, null=False)
     description = models.CharField("Tag Description", max_length=100, blank=False, null=False)
-    # do_sync = models.BooleanField("Sync this Tag?", default=False, editable=True)
+    do_sync = models.BooleanField("Sync this ACL?", default=False, editable=True)
     syncsession = models.ForeignKey(SyncSession, on_delete=models.SET_NULL, null=True, blank=True)
     meraki_id = models.CharField(max_length=36, blank=True, null=True, default=None)
     ise_id = models.CharField("ISE id", max_length=36, blank=True, null=True, default=None)
@@ -441,7 +441,6 @@ class ACL(models.Model):
     push_delete = models.BooleanField(default=False, editable=False)
     sourced_from = models.CharField(max_length=20, blank=True, null=True, default=None)
     visible = models.BooleanField(default=True, editable=False)
-    is_enabled = models.BooleanField(default=False, editable=False)
 
     class Meta:
         verbose_name = "ACL"
@@ -773,7 +772,7 @@ class Policy(models.Model):
     mapping = models.CharField("Policy Mapping", max_length=50, blank=False, null=False)
     name = models.CharField("Policy Name", max_length=100, blank=False, null=False)
     description = models.CharField("Policy Description", max_length=100, blank=True, null=True)
-    # do_sync = models.BooleanField("Sync this Tag?", default=False, editable=True)
+    do_sync = models.BooleanField("Sync this Policy?", default=False, editable=True)
     syncsession = models.ForeignKey(SyncSession, on_delete=models.SET_NULL, null=True, blank=True)
     meraki_id = models.CharField(max_length=36, blank=True, null=True, default=None)
     ise_id = models.CharField("ISE id", max_length=36, blank=True, null=True, default=None)
@@ -834,16 +833,6 @@ class Policy(models.Model):
             return out_acl
 
         return None
-
-    def is_enabled(self):
-        m_src, m_dst = self.lookup_meraki_sgts()
-        i_src, i_dst = self.lookup_ise_sgts()
-
-        if (m_src and m_dst and m_src.do_sync and m_dst.do_sync) or \
-                (i_src and i_dst and i_src.do_sync and i_dst.do_sync):
-            return True
-        else:
-            return False
 
     def in_sync(self):
         return self.match_report(bool_only=True)
