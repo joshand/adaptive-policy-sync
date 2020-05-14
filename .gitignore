@@ -134,3 +134,4 @@ sync/migrations/
 old
 upload/*
 scripts/*.json
+*.xcf
