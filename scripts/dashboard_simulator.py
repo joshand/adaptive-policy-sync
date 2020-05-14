@@ -167,7 +167,7 @@ def run(orgs, tags, acls, policies):
                     break
                 used_tags.append(tag_num)
             newtags[org_id].append({"groupId": t + 2, "value": tag_num, "name": tag_name, "description": tag_desc,
-                                    "versionNum": 0, "networkObjectId": None, "createdAt": isotime,
+                                    "versionNum": 1, "networkObjectId": None, "createdAt": isotime,
                                     "updatedAt": isotime})
 
         newacls[org_id] = []
@@ -183,7 +183,7 @@ def run(orgs, tags, acls, policies):
             acl_ver = random.choice(["ipv4", "ipv6", "agnostic"])
             acl_rules = get_rules()
             newacls[org_id].append({"aclId": a + first_db_record, "name": acl_name, "description": acl_desc,
-                                    "ipVersion": acl_ver, "rules": acl_rules, "versionNum": 0, "createdAt": isotime,
+                                    "ipVersion": acl_ver, "rules": acl_rules, "versionNum": 1, "createdAt": isotime,
                                     "updatedAt": isotime})
 
         newpolicies[org_id] = []
@@ -207,7 +207,7 @@ def run(orgs, tags, acls, policies):
             pol_src = random.choice(newtags[org_id])["groupId"]
             pol_dst = random.choice(newtags[org_id])["groupId"]
             newpolicies[org_id].append({"name": pol_name, "description": pol_desc, "monitorModeEnabled": False,
-                                        "versionNum": 0, "catchAllRule": pol_catch, "bindingEnabled": True,
+                                        "versionNum": 1, "catchAllRule": pol_catch, "bindingEnabled": True,
                                         "aclIds": pol_acls, "updatedAt": isotime, "srcGroupId": pol_src,
                                         "dstGroupId": pol_dst})
 
@@ -228,9 +228,9 @@ def parse_url(request):
     org_id = arr[0]
 
     fixedvals = {"organizations": {"id": "{{id-num:18}}", "url": "{{url}}/o/{{id-mix:7}}/manage/organization/overview"},
-                 "groups": {"groupId": "{{length}}", "versionNum": 0, "createdAt": isotime, "updatedAt": isotime},
-                 "acls": {"aclId": "{{length}}", "versionNum": 0, "createdAt": isotime, "updatedAt": isotime},
-                 "bindings": {"versionNum": 0, "updatedAt": isotime}}
+                 "groups": {"groupId": "{{length}}", "versionNum": 1, "createdAt": isotime, "updatedAt": isotime},
+                 "acls": {"aclId": "{{length}}", "versionNum": 1, "createdAt": isotime, "updatedAt": isotime},
+                 "bindings": {"versionNum": 1, "updatedAt": isotime}}
     postvals = {"organizations": {"name": None},
                 "groups": {"name": None, "description": None, "value": None, "networkObjectId": None},
                 "acls": {"name": None, "description": None, "ipVersion": None, "rules": None},

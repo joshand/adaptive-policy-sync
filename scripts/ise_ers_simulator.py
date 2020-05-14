@@ -274,10 +274,10 @@ def parse_url(request):
     p = request.path.replace("/ise/ers/config/", "").replace("/ise/ers/config", "")
     arr = p.split("/")
 
-    fixedvals = {"sgt": {"id": "{{uuid}}", "generationId": 0,
+    fixedvals = {"sgt": {"id": "{{uuid}}", "generationId": 1,
                          "link": {"rel": "self", "href": "{{url}}/ers/config/sgt/{{uuid}}",
                                   "type": "application/json"}},
-                 "sgacl": {"id": "{{uuid}}", "generationId": 0,
+                 "sgacl": {"id": "{{uuid}}", "generationId": 1,
                            "link": {"rel": "self", "href": "{{url}}/ers/config/sgacl/{{uuid}}",
                                     "type": "application/json"}},
                  "egressmatrixcell": {"id": "{{uuid}}", "name": None,
