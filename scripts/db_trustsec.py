@@ -175,6 +175,7 @@ def merge_sgacls(src, sgacls, is_base, sync_session, log=None):
                 if src == "meraki":
                     t.meraki_id = s["aclId"]
                     t.meraki_data = json.dumps(s)
+                    t.visible = True
                 elif src == "ise":
                     t.ise_id = s["id"]
                     t.ise_data = json.dumps(s)
