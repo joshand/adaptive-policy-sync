@@ -175,7 +175,6 @@ def merge_sgacls(src, sgacls, is_base, sync_session, log=None):
                 if src == "meraki":
                     t.meraki_id = s["aclId"]
                     t.meraki_data = json.dumps(s)
-                    t.visible = True
                 elif src == "ise":
                     t.ise_id = s["id"]
                     t.ise_data = json.dumps(s)
@@ -194,7 +193,6 @@ def merge_sgacls(src, sgacls, is_base, sync_session, log=None):
                 if src == "meraki":
                     t.meraki_id = s["aclId"]
                     t.meraki_data = json.dumps(s)
-                    t.visible = True
                 elif src == "ise":
                     t.ise_id = s["id"]
                     t.ise_data = json.dumps(s)
@@ -211,19 +209,27 @@ def merge_sgacls(src, sgacls, is_base, sync_session, log=None):
 def merge_sgpolicies(src, sgpolicies, is_base, sync_session, log=None):
     changed_objs = []
     for s in sgpolicies:
+        enable_sync = False
         binding_name = binding_desc = policy_name = policy_desc = None
         if src == "meraki":
             p_src = Tag.objects.filter(meraki_id=s["srcGroupId"])
             p_dst = Tag.objects.filter(meraki_id=s["dstGroupId"])
             if len(p_src) > 0 and len(p_dst) > 0:
+                if p_src[0].do_sync and p_dst[0].do_sync:
+                    enable_sync = True
                 binding_name = str(p_src[0].tag_number) + "-" + str(p_dst[0].tag_number)
                 binding_desc = str(p_src[0].name) + "-" + str(p_dst[0].name)
                 policy_name = s.get("name", "")
                 policy_desc = s.get("description", "")
+            if enable_sync:
+                a = ACL.objects.filter(meraki_id__in=s["aclIds"])
+                ACL.objects.filter(meraki_id__in=s["aclIds"]).update(do_sync=True)
         elif src == "ise":
             p_src = Tag.objects.filter(ise_id=s["sourceSgtId"])
             p_dst = Tag.objects.filter(ise_id=s["destinationSgtId"])
             if len(p_src) > 0 and len(p_dst) > 0:
+                if p_src[0].do_sync and p_dst[0].do_sync:
+                    enable_sync = True
                 if p_src[0].tag_number == 65535 and p_dst[0].tag_number == 65535:
                     return None
 
@@ -231,6 +237,9 @@ def merge_sgpolicies(src, sgpolicies, is_base, sync_session, log=None):
                 binding_desc = str(p_src[0].name) + "-" + str(p_dst[0].name)
                 policy_name = s.get("name", "")
                 policy_desc = s.get("description", "")
+            if enable_sync:
+                a = ACL.objects.filter(ise_id__in=s["sgacls"])
+                ACL.objects.filter(ise_id__in=s["sgacls"]).update(do_sync=True)
 
         if binding_name:
             if policy_name is None or policy_name == "":
@@ -261,6 +270,7 @@ def merge_sgpolicies(src, sgpolicies, is_base, sync_session, log=None):
                     t.ise_id = s["id"]
                     t.ise_data = json.dumps(s)
                 t.last_update = make_aware(datetime.datetime.now())
+                t.do_sync = enable_sync
                 changed_objs.append(t)
                 t.save()
             else:
@@ -278,6 +288,7 @@ def merge_sgpolicies(src, sgpolicies, is_base, sync_session, log=None):
                     t.ise_id = s["id"]
                     t.ise_data = json.dumps(s)
                 t.last_update = make_aware(datetime.datetime.now())
+                t.do_sync = enable_sync
                 changed_objs.append(t)
                 t.save()
             # sync_session.dashboard.force_rebuild = True
