@@ -119,6 +119,7 @@ def sync_dashboard_accounts(accounts, log):
                             append_log(log, "dashboard_monitor::sync_dashboard_accounts::", ret.status_code,
                                        ret.content)
                             o.last_update_data = ret
+                            o.last_update_state = ret.status_code
                         else:
                             append_log(log, "dashboard_monitor::sync_dashboard_accounts::Error")
                         o.save()
@@ -142,6 +143,7 @@ def sync_dashboard_accounts(accounts, log):
                             append_log(log, "dashboard_monitor::sync_dashboard_accounts::", ret.status_code,
                                        ret.content)
                             o.last_update_data = ret
+                            o.last_update_state = ret.status_code
                         else:
                             append_log(log, "dashboard_monitor::sync_dashboard_accounts::Error")
                         o.save()
@@ -165,6 +167,7 @@ def sync_dashboard_accounts(accounts, log):
                             append_log(log, "dashboard_monitor::sync_dashboard_accounts::", ret.status_code,
                                        ret.content)
                             o.last_update_data = ret
+                            o.last_update_state = ret.status_code
                         else:
                             append_log(log, "dashboard_monitor::sync_dashboard_accounts::Error")
                         o.save()

@@ -99,6 +99,7 @@ def sync_ise_accounts(accounts, log):
                         ret = exec_api_action(m, u, d, headers)
                         append_log(log, "ise_monitor::sync_ise_accounts::", ret.status_code, ret.content)
                         o.last_update_data = ret.content.decode("UTF-8")
+                        o.last_update_state = ret.status_code
                         o.save()
                         # sa.iseserver.force_rebuild = True
                         # sa.iseserver.save()
@@ -116,6 +117,7 @@ def sync_ise_accounts(accounts, log):
                         ret = exec_api_action(m, u, d, headers)
                         append_log(log, "ise_monitor::sync_ise_accounts::", ret.status_code, ret.content)
                         o.last_update_data = ret.content.decode("UTF-8")
+                        o.last_update_state = ret.status_code
                         o.save()
                         # sa.iseserver.force_rebuild = True
                         # sa.iseserver.save()
@@ -133,6 +135,7 @@ def sync_ise_accounts(accounts, log):
                         ret = exec_api_action(m, u, d, headers)
                         append_log(log, "ise_monitor::sync_ise_accounts::", ret.status_code, ret.content)
                         o.last_update_data = ret.content.decode("UTF-8")
+                        o.last_update_state = ret.status_code
                         o.save()
                         # sa.iseserver.force_rebuild = True
                         # sa.iseserver.save()
