@@ -16,13 +16,13 @@
                 </thead>
                 <tbody class="md-data-table__tbody">
                     {% for d in data.policy %}
-                        {% if d.is_enabled %}
+                        {% if d.do_sync %}
                             <tr>
                         {% else %}
                             <tr style="background-color:#dedede">
                         {% endif %}
                         <td> {{ d.name }} </td><td> {{ d.mapping }} </td>
-                        {% if not d.is_enabled %}
+                        {% if not d.do_sync %}
                             <td>SGT Not Synced</td>
                         {% elif d.in_sync %}
                             <td style="background-color:#55dd55"> {{ d.in_sync }} </td>
