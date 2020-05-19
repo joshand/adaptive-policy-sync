@@ -179,7 +179,8 @@ def auto_delete_upload_on_change(sender, instance, **kwargs):
 class Dashboard(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     description = models.CharField("Dashboard Integration Description", max_length=100, blank=False, null=False)
-    baseurl = models.CharField("Base URL", max_length=64, null=False, blank=False, default="https://api.meraki.com/api/v0")
+    baseurl = models.CharField("Base URL", max_length=64, null=False, blank=False,
+                               default="https://api.meraki.com/api/v0")
     apikey = models.CharField("API Key", max_length=64, null=False, blank=False)
     orgid = models.CharField("API Organization ID", max_length=32, null=True, blank=True, default=None)
     # netid = models.CharField(max_length=32, null=True, blank=True, default=None)
@@ -264,7 +265,8 @@ class SyncSession(models.Model):
     description = models.CharField("Sync Description", max_length=100, blank=False, null=False)
     dashboard = models.ForeignKey(Dashboard, on_delete=models.SET_NULL, null=True, blank=True)
     # isematrix = models.ForeignKey(ISEMatrix, on_delete=models.SET_NULL, null=True, blank=True)
-    iseserver = models.ForeignKey(ISEServer, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="ISE Server")
+    iseserver = models.ForeignKey(ISEServer, on_delete=models.SET_NULL, null=True, blank=True,
+                                  verbose_name="ISE Server")
     ise_source = models.BooleanField("Make ISE Config Base", default=True, editable=True)
     force_rebuild = models.BooleanField("Force All Server Sync", default=False, editable=True)
     sync_enabled = models.BooleanField("Perform Server Sync", default=False, editable=True)

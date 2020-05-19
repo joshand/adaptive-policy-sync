@@ -224,7 +224,6 @@ def merge_sgpolicies(src, sgpolicies, is_base, sync_session, log=None):
                 policy_name = s.get("name", "")
                 policy_desc = s.get("description", "")
             if enable_sync:
-                a = ACL.objects.filter(meraki_id__in=s["aclIds"])
                 ACL.objects.filter(meraki_id__in=s["aclIds"]).update(do_sync=True)
         elif src == "ise":
             p_src = Tag.objects.filter(ise_id=s["sourceSgtId"])
@@ -240,7 +239,6 @@ def merge_sgpolicies(src, sgpolicies, is_base, sync_session, log=None):
                 policy_name = s.get("name", "")
                 policy_desc = s.get("description", "")
             if enable_sync:
-                a = ACL.objects.filter(ise_id__in=s["sgacls"])
                 ACL.objects.filter(ise_id__in=s["sgacls"]).update(do_sync=True)
 
         if binding_name:

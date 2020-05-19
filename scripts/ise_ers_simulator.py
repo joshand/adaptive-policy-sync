@@ -334,7 +334,8 @@ def parse_url(request):
         else:
             jd = None
 
-        updated_data, ret = handle_request(request.method, jd, baseurl, arr[0], elem_id, dataset, fixedvals, postvals, info)
+        updated_data, ret = handle_request(request.method, jd, baseurl, arr[0], elem_id, dataset, fixedvals, postvals,
+                                           info)
         if updated_data:
             write_file(file_type, json.dumps(updated_data, indent=4))
     except Exception as e:
