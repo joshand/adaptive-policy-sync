@@ -86,32 +86,39 @@ python manage.py runserver 8000
 
 ![aps-landing](images/1-aps-landing.png)
 
-2. 
+2. Click the "Start Now" button to begin the configuration process.
 
 ![aps-ise](images/2-aps-ise.png)
 
-3.
+3. Enter the IP Address or Fully Qualified Domain Name of your ISE Server, the username and password of the user that you created for ERS access via the instructions above. If you will be utilizing pxGrid integration, check the box "Enable pxGrid Integration". Click Next.
 
 ![aps-ise-cert](images/3-aps-ise-cert.png)
 
-4.
+4. If you chose to configure pxGrid Integration, you will need to upload the Certificate that you generated in ISE for your client. Give it a description, then click the Browse... button.
 
 ![aps-ise-cert-browse](images/4-aps-ise-cert-browse.png)
 
-5.
+5. Navigate to the location that you downloaded the certificate ZIP file to, select the file, then click Open. When you return to the previous screen, click the Next button.
 
 ![aps-ise-pxgrid](images/5-aps-ise-pxgrid.png)
 
-6.
+6. Enter the IP Address or Fully Qualified Domain Name of your ISE Server (that has pxGrid enabled), enter the Client Name that you configured in ISE. Then select the .cer and .key files cooresponding to that client. Enter the password that you set for your client. Then, choose the .cer file for the ISE node that you specified as the pxGrid server. Click Next.
 
 ![aps-ise-dashboard](images/6-aps-dashboard.png)
 
-7.
+7. Generally, you will not need to change the Meraki Dashboard API URL. Enter your Dashboard API Key, then Tab to the next field or click somewhere in the open window. Adaptive Policy Sync will generate a list of Organiations that your API key has access to and display them in the dropdown list. Select the Organization that you will be using for Adaptive Policy. Then, click Next.
 
 ![aps-ise-sync](images/7-aps-sync.png)
 
-8.
+8. Now, choose the authoritative source for Policy. This will be used to determine which source to use if there are configuration conflicts, and it will control which policy source will be used if policy objects are deleted. Set the Manual Synchronization Interval, ensure that the "Enable Synchronization" box is checked, then click Finish.
 
+![aps-home](images/8-aps-home.png)
+
+9. You will be taken to the Adaptive Policy Sync Landing page. In the left navigation pane, navigate to Status -> SGTs.
+
+![aps-sgts](images/9-aps-sgts.png)
+
+10. Select the checkbox for all of the SGTs you wish to sync. When complete, click the "Save" button.
 
 ### Using the API<a name="configure-api"/>
 * Above, you generated a new API token. You can use it with the API by passing it as an Authorization header as a Bearer token (Authorization: Bearer 1234567890abcdefghijklmnopqrstuvwxyz1234).
