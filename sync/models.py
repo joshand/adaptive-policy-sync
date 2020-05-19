@@ -552,7 +552,7 @@ class ACL(models.Model):
                         this_proto = "any"
                     else:
                         this_proto = br_rule[0]
-                    if "src" not in l:
+                    if "src" not in l_prt:
                         this_src = "any"
                     else:
                         s_start = False
@@ -571,7 +571,7 @@ class ACL(models.Model):
                             this_src = str(the_range[0]) + "-" + str(the_range[1])
                         else:
                             this_src = ",".join(the_range)
-                    if "dst" not in l:
+                    if "dst" not in l_prt:
                         this_dst = "any"
                     else:
                         d_start = False
