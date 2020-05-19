@@ -1,11 +1,11 @@
-# adaptive-policy-sync
+# adaptive-policy-sync<a name="top"/>
 
 
 ## Getting Started
 1) Set up your environment
     - [Cisco Meraki Dashboard](#configure-dashboard)
     - [Cisco ISE](#cisco-ise)
-    - [Cisco ISE pxGrid Support](#cisco-ise-pxgrid)
+        - [Cisco ISE pxGrid Support](#cisco-ise-pxgrid)
 2) Deploy the Application
     - [Use Docker](#deploy-docker)
     - [Clone the Github repo and run locally](#deploy-local)
@@ -15,15 +15,15 @@
 
 ### Set up your environment
 
-#### Meraki Dashboard<a name="configure-dashboard"/>
+#### Meraki Dashboard<a name="configure-dashboard"/> - [^ Top](#top)
 1) Enable API access in your Meraki dashboard organization and obtain an API key ([instructions](https://documentation.meraki.com/zGeneral_Administration/Other_Topics/The_Cisco_Meraki_Dashboard_API))
 2) Keep your API key safe and secure, as it is similar to a password for your dashboard. You will supply this API key to Adaptive Policy Sync later.
 
-#### Cisco ISE<a name="cisco-ise"/>
+#### Cisco ISE<a name="cisco-ise"/> - [^ Top](#top)
 1) Enable API ([ERS](https://community.cisco.com/t5/security-documents/ise-ers-api-examples/ta-p/3622623#toc-hId-1183657558)) access in Cisco ISE
 2) Create an [ERS Admin](https://community.cisco.com/t5/security-documents/ise-ers-api-examples/ta-p/3622623#toc-hId-1863715928) user account for ISE ERS access.
 
-##### Cisco ISE pxGrid Support<a name="cisco-ise-pxgrid"/>
+##### Cisco ISE pxGrid Support<a name="cisco-ise-pxgrid"/> - [^ Top](#top)
 1) If you plan to integrate with pxGrid for ISE Push-Notifications, you will need to create a new pxGrid Certificate for your application.
     - Navigate to ISE Admin GUI via any web browser and login
     - Navigate to Administration -> pxGrid Services
@@ -44,7 +44,7 @@
 
 ### Deploy the Application
 
-#### Use Docker<a name="deploy-docker"/>
+#### Use Docker<a name="deploy-docker"/> - [^ Top](#top)
 ```
 mkdir /home/$USER/adaptivepolicy
 docker pull joshand/adaptive-policy-sync:latest
@@ -57,7 +57,7 @@ docker run -it -p 8020:8020 \
      joshand/adaptive-policy-sync:latest
 ```
 
-#### Clone the Github repo and run locally<a name="deploy-local"/>
+#### Clone the Github repo and run locally<a name="deploy-local"/> - [^ Top](#top)
 ```
 git clone https://github.com/joshand/adaptive-policy-sync.git
 cd adaptive-policy-sync/
@@ -81,7 +81,7 @@ python manage.py runserver 8000
 
 ## Configure Adaptive Policy Sync
 
-### Using the UI<a name="configure-ui"/>
+### Using the UI<a name="configure-ui"/> - [^ Top](#top)
 1. Access your Adaptive Policy Sync Instance using the port that you've configured (http://127.0.0.1:8020 if you deployed using the Docker example above, or http://127.0.0.1:8000 if you deployed using the Local example above)
 
 ![aps-landing](images/1-aps-landing.png)
@@ -120,7 +120,7 @@ python manage.py runserver 8000
 
 10. Select the checkbox for all of the SGTs you wish to sync. When complete, click the "Save" button.
 
-### Using the API<a name="configure-api"/>
+### Using the API<a name="configure-api"/> - [^ Top](#top)
 * Above, you generated a new API token. You can use it with the API by passing it as an Authorization header as a Bearer token (Authorization: Bearer 1234567890abcdefghijklmnopqrstuvwxyz1234).
 
 #### Integrating Meraki Dashboard
