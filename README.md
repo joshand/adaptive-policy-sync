@@ -49,6 +49,7 @@ python manage.py runserver 8000
     - Fill in the form as follows:
         - I want to:                   Generate a single certificate (without a certificate signing request)
         - Common Name (CN):            {fill in any name - this is the name your client will be listed with the pxGrid Clients list}
+        - Description:                 {fill in any description}
         - Certificate Download Format: Certificate in Privacy Enhanced Electronic Mail (PEM) format, key in PKCS8 PEM format (including certificate chain)
         - Certificate Password:        {fill in a password}
         - Confirm Password:            {fill in the same password as above}
@@ -235,3 +236,14 @@ python manage.py runserver 8000
         curl --silent -L -H "Authorization: Bearer 1234567890abcdefghijklmnopqrstuvwxyz1234" -H 'Content-Type: application/json' -X GET http://127.0.0.1:8000/api/v0/tag/11112222-3333-4444-5555-666677778888/?detail=true | jq
         ```
     - This will show you the raw data being received by the Meraki Dashboard API as well as the ISE ERS API. The "match_report" field will show you what components match or do not match. The "update_dest" field will show whether Meraki Dashboard or Cisco ISE needs to be updated. The "push_config" field will show you the specific API call that will be issued in order to make an update.
+
+## Docker
+```
+docker pull joshand/adaptive-policy-sync:latest
+docker run -it -p 8020:8020 \
+     -e DJANGO_SUPERUSER_USERNAME=admin \
+     -e DJANGO_SUPERUSER_PASSWORD=password \
+     -e DJANGO_SUPERUSER_EMAIL=admin@example.com \
+     -e DJANGO_SUPERUSER_APIKEY=1234567890abcdefghijklmnopqrstuvwxyz1234 \
+     joshand/adaptive-policy-sync:latest
+```
