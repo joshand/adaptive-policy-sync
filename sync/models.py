@@ -795,7 +795,7 @@ class Policy(models.Model):
             idata = json.loads(self.ise_data)
             p_src = Tag.objects.filter(ise_id=idata["sourceSgtId"])
             p_dst = Tag.objects.filter(ise_id=idata["destinationSgtId"])
-            if len(p_src) == 1 and len(p_dst) == 1:
+            if len(p_src) >= 1 and len(p_dst) >= 1:
                 return p_src[0], p_dst[0]
 
         return None, None
@@ -806,7 +806,7 @@ class Policy(models.Model):
             out_acl = []
             for s in idata["sgacls"]:
                 p_acl = ACL.objects.filter(ise_id=s)
-                if len(p_acl) == 1:
+                if len(p_acl) >= 1:
                     out_acl.append(p_acl[0])
             return out_acl
 
@@ -817,7 +817,7 @@ class Policy(models.Model):
             mdata = json.loads(self.meraki_data)
             p_src = Tag.objects.filter(meraki_id=mdata["srcGroupId"])
             p_dst = Tag.objects.filter(meraki_id=mdata["dstGroupId"])
-            if len(p_src) == 1 and len(p_dst) == 1:
+            if len(p_src) >= 1 and len(p_dst) >= 1:
                 return p_src[0], p_dst[0]
 
         return None, None
@@ -828,7 +828,7 @@ class Policy(models.Model):
             out_acl = []
             for s in mdata["aclIds"]:
                 p_acl = ACL.objects.filter(meraki_id=s)
-                if len(p_acl) == 1:
+                if len(p_acl) >= 1:
                     out_acl.append(p_acl[0])
             return out_acl
 
