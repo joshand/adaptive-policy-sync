@@ -81,7 +81,7 @@ python manage.py runserver 8000
 
 ## Configure Adaptive Policy Sync
 
-### Using the UI<a name="configure-api"/>
+### Using the UI<a name="configure-ui"/>
 1. Access your Adaptive Policy Sync Instance using the port that you've configured (http://127.0.0.1:8020 if you deployed using the Docker example above, or http://127.0.0.1:8000 if you deployed using the Local example above)
 
 ![aps-landing](images/1-aps-landing.png)
