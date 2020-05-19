@@ -1,5 +1,6 @@
 from sync.models import ISEServer, Upload, UploadZip, Dashboard, Tag, ACL, Policy, SyncSession
 from django.shortcuts import redirect, reverse, render
+from django.db.models import Q
 from django.contrib.auth import logout
 from django.http import JsonResponse
 from django.contrib.auth import views as auth_views
@@ -19,7 +20,6 @@ def startresync(request):
 def delobject(request):
     # /del/policy/64c6515b-e32f-476d-a043-20924f1ed560
     pathlist = request.path.split("/")
-    print(pathlist, len(pathlist))
     if len(pathlist) == 4:
         if pathlist[2] == "sgt":
             Tag.objects.filter(id=pathlist[3]).delete()
@@ -290,8 +290,69 @@ def home(request):
     if not request.user.is_authenticated:
         return redirect('/login')
 
+    syncs = SyncSession.objects.all()
+    if len(syncs) > 0:
+        sync = syncs[0]
+    else:
+        sync = None
+
+    iseservers = ISEServer.objects.all()
+    if len(iseservers) > 0:
+        iseserver = iseservers[0]
+    else:
+        iseserver = None
+
+    dashboards = Dashboard.objects.all()
+    if len(dashboards) > 0:
+        dashboard = dashboards[0]
+    else:
+        dashboard = None
+
+    meraki_sgts = Tag.objects.filter(sourced_from="meraki")
+    meraki_sgacls = ACL.objects.filter(sourced_from="meraki")
+    meraki_policies = Policy.objects.filter(sourced_from="meraki")
+    ise_sgts = Tag.objects.filter(sourced_from="ise")
+    ise_sgacls = ACL.objects.filter(sourced_from="ise")
+    ise_policies = Policy.objects.filter(sourced_from="ise")
+
+    e_meraki_sgts = Tag.objects.filter(sourced_from="meraki").exclude(last_update_state="200").\
+        exclude(last_update_state="201").exclude(last_update_state=None)
+    e_meraki_sgacls = ACL.objects.filter(sourced_from="meraki").exclude(last_update_state="200").\
+        exclude(last_update_state="201").exclude(last_update_state=None)
+    e_meraki_policies = Policy.objects.filter(sourced_from="meraki").exclude(last_update_state="200").\
+        exclude(last_update_state="201").exclude(last_update_state=None)
+    e_ise_sgts = Tag.objects.filter(sourced_from="ise").exclude(last_update_state="200").\
+        exclude(last_update_state="201").exclude(last_update_state=None)
+    e_ise_sgacls = ACL.objects.filter(sourced_from="ise").exclude(last_update_state="200").\
+        exclude(last_update_state="201").exclude(last_update_state=None)
+    e_ise_policies = Policy.objects.filter(sourced_from="ise").exclude(last_update_state="200").\
+        exclude(last_update_state="201").exclude(last_update_state=None)
+
+    s_meraki_sgts = Tag.objects.filter(sourced_from="meraki").filter(Q(last_update_state="200") |
+                                                                     Q(last_update_state="201"))
+    s_meraki_sgacls = ACL.objects.filter(sourced_from="meraki").filter(Q(last_update_state="200") |
+                                                                       Q(last_update_state="201"))
+    s_meraki_policies = Policy.objects.filter(sourced_from="meraki").filter(Q(last_update_state="200") |
+                                                                            Q(last_update_state="201"))
+    s_ise_sgts = Tag.objects.filter(sourced_from="ise").filter(Q(last_update_state="200") |
+                                                               Q(last_update_state="201"))
+    s_ise_sgacls = ACL.objects.filter(sourced_from="ise").filter(Q(last_update_state="200") |
+                                                                 Q(last_update_state="201"))
+    s_ise_policies = Policy.objects.filter(sourced_from="ise").filter(Q(last_update_state="200") |
+                                                                      Q(last_update_state="201"))
+
     crumbs = '<li class="current">Home</li>'
-    return render(request, 'home/home.html', {"crumbs": crumbs})
+    return render(request, 'home/home.html',
+                  {"crumbs": crumbs, "data": {"sync": sync, "counts": [len(meraki_sgts), len(meraki_sgacls),
+                                                                       len(meraki_policies), len(ise_sgts),
+                                                                       len(ise_sgacls), len(ise_policies)],
+                                              "err_counts": [len(e_meraki_sgts), len(e_meraki_sgacls),
+                                                             len(e_meraki_policies), len(e_ise_sgts),
+                                                             len(e_ise_sgacls), len(e_ise_policies)],
+                                              "ok_counts": [len(s_meraki_sgts), len(s_meraki_sgacls),
+                                                            len(s_meraki_policies), len(s_ise_sgts),
+                                                            len(s_ise_sgacls), len(s_ise_policies)],
+                                              "dashboard": dashboard, "iseserver": iseserver}})
 
 
 def sgtstatus(request):
@@ -311,7 +372,7 @@ def sgtstatus(request):
             '''
             return render(request, 'home/showsgt.html', {"crumbs": crumbs, "menuopen": 1, "data": sgt})
 
-    sgts = Tag.objects.all()
+    sgts = Tag.objects.order_by("-do_sync", "tag_number")
     crumbs = '<li class="current">Status</li><li class="current">SGTs</li>'
     return render(request, 'home/sgtstatus.html', {"crumbs": crumbs, "menuopen": 1, "data": {"sgt": sgts}})
 
@@ -359,7 +420,7 @@ def sgaclstatus(request):
             '''
             return render(request, 'home/showsgacl.html', {"crumbs": crumbs, "menuopen": 1, "data": sgacl})
 
-    sgacls = ACL.objects.filter(visible=True)
+    sgacls = ACL.objects.filter(visible=True).order_by("-do_sync")
     crumbs = '<li class="current">Status</li><li class="current">SGACLs</li>'
     return render(request, 'home/sgaclstatus.html', {"crumbs": crumbs, "menuopen": 1, "data": {"sgacl": sgacls}})
 
@@ -381,7 +442,7 @@ def policystatus(request):
             '''
             return render(request, 'home/showpolicy.html', {"crumbs": crumbs, "menuopen": 1, "data": policy})
 
-    policies = Policy.objects.all()
+    policies = Policy.objects.order_by("-do_sync")
     crumbs = '<li class="current">Status</li><li class="current">Policies</li>'
     return render(request, 'home/policystatus.html', {"crumbs": crumbs, "menuopen": 1, "data": {"policy": policies}})
 
