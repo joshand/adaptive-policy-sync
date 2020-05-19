@@ -24,6 +24,7 @@
                     <tr><td>Meraki Raw Data</td><td><pre>{{ data.meraki_data|pretty_json|safe }}</pre></td></tr>
                     <tr><td>Last Update</td><td>{{ data.last_update }}</td></tr>
                     <tr><td>Last Update Result</td><td><pre>{{ data.last_update_data|pretty_json|safe }}</pre></td></tr>
+                    <tr><td>Last Update State</td><td>{{ data.last_update_state }}</td></tr>
                     <tr><td>Sync Enabled</td><td>{{ data.do_sync }}</td></tr>
                     <tr><td>In Sync?</td><td>{{ data.in_sync }}</td></tr>
                     <tr><td>Sync Details</td><td><pre>{{ data.match_report }}</pre></td></tr>
