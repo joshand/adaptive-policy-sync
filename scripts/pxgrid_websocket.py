@@ -209,8 +209,11 @@ def run_sync_pxgrid(config):
     service = service_lookup_response['services'][0]
     pubsub_service_name = service['properties']['wsPubsubService']
     # topic = service['properties']['sessionTopic']
-    topic = ["/topic/com.cisco.ise.config.trustsec.security.group",
-             "/topic/com.cisco.ise.config.trustsec.security.group.acl"]
+    topic = []
+    trustsec_services = pxgrid.service_lookup("com.cisco.ise.config.trustsec")
+    for s in trustsec_services["services"][0]["properties"]:
+        if s == "securityGroupTopic" or s == "securityGroupAclTopic":
+            topic.append(trustsec_services["services"][0]["properties"][s])
 
     # lookup for pubsub service
     service_lookup_response = pxgrid.service_lookup(pubsub_service_name)
@@ -251,8 +254,11 @@ def loop_pxgrid(config, loop):
     service = service_lookup_response['services'][0]
     pubsub_service_name = service['properties']['wsPubsubService']
     # topic = service['properties']['sessionTopic']
-    topic = ["/topic/com.cisco.ise.config.trustsec.security.group",
-             "/topic/com.cisco.ise.config.trustsec.security.group.acl"]
+    topic = []
+    trustsec_services = pxgrid.service_lookup("com.cisco.ise.config.trustsec")
+    for s in trustsec_services["services"][0]["properties"]:
+        if s == "securityGroupTopic" or s == "securityGroupAclTopic":
+            topic.append(trustsec_services["services"][0]["properties"][s])
 
     # lookup for pubsub service
     service_lookup_response = pxgrid.service_lookup(pubsub_service_name)
