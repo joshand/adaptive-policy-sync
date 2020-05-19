@@ -178,7 +178,9 @@ def merge_sgacls(src, sgacls, is_base, sync_session, log=None):
                 elif src == "ise":
                     t.ise_id = s["id"]
                     t.ise_data = json.dumps(s)
-                    if str(s.get("generationId", "")) == "0":
+                    if str(s.get("generationId", "")) == "0" or str(s.get("name", "")) == "Deny_IP_Log" or \
+                            str(s.get("name", "")) == "Permit_IP_Log" or str(s.get("name", "")) == "Deny IP" or \
+                            str(s.get("name", "")) == "Permit IP":
                         t.visible = False
                 t.last_update = make_aware(datetime.datetime.now())
                 changed_objs.append(t)
@@ -231,7 +233,7 @@ def merge_sgpolicies(src, sgpolicies, is_base, sync_session, log=None):
                 if p_src[0].do_sync and p_dst[0].do_sync:
                     enable_sync = True
                 if p_src[0].tag_number == 65535 and p_dst[0].tag_number == 65535:
-                    return None
+                    continue
 
                 binding_name = str(p_src[0].tag_number) + "-" + str(p_dst[0].tag_number)
                 binding_desc = str(p_src[0].name) + "-" + str(p_dst[0].name)
