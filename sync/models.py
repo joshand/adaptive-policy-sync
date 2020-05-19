@@ -463,13 +463,13 @@ class ACL(models.Model):
         p_list = []
         if "," in port_range:
             l_range = port_range.split(",")
-            for l in l_range:
-                if "-" in l:
-                    r_range = l.split("-")
+            for l_prt in l_range:
+                if "-" in l_prt:
+                    r_range = l_prt.split("-")
                     for x in range(r_range[0], r_range[1]):
                         p_list.append(x)
                 else:
-                    p_list.append(l)
+                    p_list.append(l_prt)
             return "eq " + " ".join(p_list)
         if "-" in port_range:
             r_range = port_range.split("-")
@@ -531,18 +531,18 @@ class ACL(models.Model):
             out_txt = ""
             out_rule = rule_str.replace(" log", "").strip().replace("ip", "any").strip()
             l_rule = out_rule.split("\n")
-            for l in l_rule:
-                if "remark" not in l:
-                    out_txt += l + "\n"
+            for l_prt in l_rule:
+                if "remark" not in l_prt:
+                    out_txt += l_prt + "\n"
             return out_txt[:-1]
         elif mode == "convert":
             outr_list = []
             lst_rules = rule_str.split("\n")
-            for l in lst_rules:
-                br_rule = l.split(" ")[1:]
-                if "permit" in l:
+            for l_prt in lst_rules:
+                br_rule = l_prt.split(" ")[1:]
+                if "permit" in l_prt:
                     this_pol = "allow"
-                elif "deny" in l:
+                elif "deny" in l_prt:
                     this_pol = "deny"
                 else:
                     this_pol = None
