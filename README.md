@@ -2,6 +2,62 @@
 
 
 ## Getting Started
+1) Set up your environment
+    - [Cisco Meraki Dashboard](#configure-dashboard)
+    - [Cisco ISE](#cisco-ise)
+    - [Cisco ISE pxGrid Support](#cisco-ise-pxgrid)
+2) Deploy the Application
+    - [Use Docker](#deploy-docker)
+    - [Clone the Github repo and run locally](#deploy-local)
+3) Configure Adaptive Policy Sync
+    - [Using the UI](#configure-ui)
+    - [Using the API](#configure-api)
+
+### Set up your environment
+
+#### Meraki Dashboard<a name="configure-dashboard"/>
+1) Enable API access in your Meraki dashboard organization and obtain an API key ([instructions](https://documentation.meraki.com/zGeneral_Administration/Other_Topics/The_Cisco_Meraki_Dashboard_API))
+2) Keep your API key safe and secure, as it is similar to a password for your dashboard. You will supply this API key to Adaptive Policy Sync later.
+
+#### Cisco ISE<a name="cisco-ise"/>
+1) Enable API ([ERS](https://community.cisco.com/t5/security-documents/ise-ers-api-examples/ta-p/3622623#toc-hId-1183657558)) access in Cisco ISE
+2) Create an [ERS Admin](https://community.cisco.com/t5/security-documents/ise-ers-api-examples/ta-p/3622623#toc-hId-1863715928) user account for ISE ERS access.
+
+##### Cisco ISE pxGrid Support<a name="cisco-ise-pxgrid"/>
+1) If you plan to integrate with pxGrid for ISE Push-Notifications, you will need to create a new pxGrid Certificate for your application.
+    - Navigate to ISE Admin GUI via any web browser and login
+    - Navigate to Administration -> pxGrid Services
+    - Click on the Certificates tab
+    - Fill in the form as follows:
+        - I want to:                   Generate a single certificate (without a certificate signing request)
+        - Common Name (CN):            {fill in any name - this is the name your client will be listed with the pxGrid Clients list}
+        - Description:                 {fill in any description}
+        - Certificate Download Format: Certificate in Privacy Enhanced Electronic Mail (PEM) format, key in PKCS8 PEM format (including certificate chain)
+        - Certificate Password:        {fill in a password}
+        - Confirm Password:            {fill in the same password as above}
+    - Click the 'Create' button. A zip file should download to your machine
+2) You can configure ISE to automatically accept certificate-based connections, or you can manually approve your client later. To automatically accept certificate-based connections, perform the following:
+    - Navigate to ISE Admin GUI via any web browser and login
+    - Navigate to Administration -> pxGrid Services
+    - Click on the Settings tab
+    - Check the box 'Automatically approve new certificate-based accounts' and then click 'Save'
+
+### Deploy the Application
+
+#### Use Docker<a name="deploy-docker"/>
+```
+mkdir /home/$USER/adaptivepolicy
+docker pull joshand/adaptive-policy-sync:latest
+docker run -it -p 8020:8020 \
+     -e DJANGO_SUPERUSER_USERNAME=admin \
+     -e DJANGO_SUPERUSER_PASSWORD=password \
+     -e DJANGO_SUPERUSER_EMAIL=admin@example.com \
+     -e DJANGO_SUPERUSER_APIKEY=1234567890abcdefghijklmnopqrstuvwxyz1234 \
+     -v /home/$USER/adaptivepolicy:/config \
+     joshand/adaptive-policy-sync:latest
+```
+
+#### Clone the Github repo and run locally<a name="deploy-local"/>
 ```
 git clone https://github.com/joshand/adaptive-policy-sync.git
 cd adaptive-policy-sync/
@@ -23,47 +79,56 @@ Generated token 1234567890abcdefghijklmnopqrstuvwxyz1234 for user admin
 python manage.py runserver 8000
 ```
 
-## Configuring your environment
+## Configure Adaptive Policy Sync
 
-### Using the API
+### Using the UI<a name="configure-api"/>
+1) Access your Adaptive Policy Sync Instance using the port that you've configured (http://127.0.0.1:8020 if you deployed using the Docker example above, or http://127.0.0.1:8000 if you deployed using the Local example above)
+
+![aps-landing](images/1-aps-landing.png)
+2) 
+
+![aps-ise](images/2-aps-ise.png)
+3)
+
+![aps-ise-cert](images/3-aps-ise-cert.png)
+4)
+
+![aps-ise-cert-browse](images/4-aps-ise-cer-browse.png)
+5)
+
+![aps-ise-pxgrid](images/5-aps-ise-pxgrid.png)
+6)
+
+![aps-ise-dashboard](images/6-aps-dashboard.png)
+7)
+
+![aps-ise-sync](images/7-aps-sync.png)
+8)
+
+
+### Using the API<a name="configure-api"/>
 * Above, you generated a new API token. You can use it with the API by passing it as an Authorization header as a Bearer token (Authorization: Bearer 1234567890abcdefghijklmnopqrstuvwxyz1234).
 
 #### Integrating Meraki Dashboard
-1) Enable API access in your Meraki dashboard organization and obtain an API key ([instructions](https://documentation.meraki.com/zGeneral_Administration/Other_Topics/The_Cisco_Meraki_Dashboard_API))
-2) Keep your API key safe and secure, as it is similar to a password for your dashboard.
-3) Add your Dashboard Organization to Adaptive Policy Sync using the following API call. You will need to provide your Meraki Dashboard API key and the [Organization ID](https://dashboard.meraki.com/api_docs/v0#list-the-organizations-that-the-user-has-privileges-on) that you would like to connect to Adapative Policy sync.
+1) Add your Dashboard Organization to Adaptive Policy Sync using the following API call. You will need to provide your Meraki Dashboard API key and the [Organization ID](https://dashboard.meraki.com/api_docs/v0#list-the-organizations-that-the-user-has-privileges-on) that you would like to connect to Adapative Policy sync.
     ```
     curl -L -H "Authorization: Bearer 1234567890abcdefghijklmnopqrstuvwxyz1234" -H 'Content-Type: application/json' -X POST --data-binary '{"description": "My Meraki Dashboard","apikey": "1234567890abcdefghijklmnopqrstuvwxyz1234","orgid": "1234567890","webhook_enable": true,"webhook_ngrok": true,"webhook_url": ""}' http://127.0.0.1:8000/api/v0/dashboard/
     {"id":"11112222-3333-4444-5555-666677778888","url":"http://127.0.0.1:8000/api/v0/dashboard/11112222-3333-4444-5555-666677778888/","description":"My Meraki Dashboard","baseurl":"https://api.meraki.com/api/v0","apikey":"1234567890abcdefghijklmnopqrstuvwxyz1234","orgid":"1234567890","force_rebuild":false,"skip_sync":false,"last_update":"2020-04-14T21:54:56.614206Z","last_sync":null,"webhook_enable":true,"webhook_ngrok":true,"webhook_url":""}
     ```
 
-#### Integrating Cisco ISE
-1) Enable API ([ERS](https://community.cisco.com/t5/security-documents/ise-ers-api-examples/ta-p/3622623#toc-hId-1183657558)) access in Cisco ISE
-2) Create an [ERS Admin](https://community.cisco.com/t5/security-documents/ise-ers-api-examples/ta-p/3622623#toc-hId-1863715928) user account for ISE ERS access.
+##### Integrating Cisco ISE (without pxGrid)
+1) Add your Cisco ISE Server to Adaptive Policy Sync using the following API call. You will need to provide your ISE ERS Admin username and password.
+    ```
+    curl -L -H "Authorization: Bearer 1234567890abcdefghijklmnopqrstuvwxyz1234" -H 'Content-Type: application/json' -X POST --data-binary '{"description": "My ISE Server","ipaddress": "10.1.2.3","username": "ersadmin","password": "erspassword","pxgrid_enable": false'} http://127.0.0.1:8000/api/v0/iseserver/
+    {"id":"11112222-3333-4444-5555-666677778888","url":"http://127.0.0.1:8000/api/v0/iseserver/11112222-3333-4444-5555-666677778888/","description":"My ISE Server","ipaddress":"10.1.2.3","username":"ersadmin","password":"erspassword","force_rebuild":false,"skip_sync":false,"last_update":"2020-04-14T21:49:55.635413Z","last_sync":null,"pxgrid_enable":false,"pxgrid_ip":null,"pxgrid_cliname":null,"pxgrid_clicert":null,"pxgrid_clikey":null,"pxgrid_clipw":null,"pxgrid_isecert":null}
+    ```
 
-##### Cisco ISE with pxGrid
-1) If you plan to integrate with pxGrid for ISE Push-Notifications, you will need to create a new pxGrid Certificate for your application.
-    - Navigate to ISE Admin GUI via any web browser and login
-    - Navigate to Administration -> pxGrid Services
-    - Click on the Certificates tab
-    - Fill in the form as follows:
-        - I want to:                   Generate a single certificate (without a certificate signing request)
-        - Common Name (CN):            {fill in any name - this is the name your client will be listed with the pxGrid Clients list}
-        - Description:                 {fill in any description}
-        - Certificate Download Format: Certificate in Privacy Enhanced Electronic Mail (PEM) format, key in PKCS8 PEM format (including certificate chain)
-        - Certificate Password:        {fill in a password}
-        - Confirm Password:            {fill in the same password as above}
-    - Click the 'Create' button. A zip file should download to your machine
-2) You can configure ISE to automatically accept certificate-based connections, or you can manually approve your client later. To automatically accept certificate-based connections, perform the following:
-    - Navigate to ISE Admin GUI via any web browser and login
-    - Navigate to Administration -> pxGrid Services
-    - Click on the Settings tab
-    - Check the box 'Automatically approve new certificate-based accounts' and then click 'Save'
-3) Upload the certificate ZIP file to Adaptive Policy Sync using the following API call. The description field is arbritrary and can be set to anything you like.
+#### Integrating Cisco ISE (with pxGrid)
+1) Upload the certificate ZIP file to Adaptive Policy Sync using the following API call. The description field is arbritrary and can be set to anything you like.
     ```
     curl -L -H "Authorization: Bearer 1234567890abcdefghijklmnopqrstuvwxyz1234" -F "description=isecerts" -F "file=@1582839825923_cert.zip" -X POST http://127.0.0.1:8000/api/v0/uploadzip/
     ```
-4) View a list of all files that were part of the ZIP file in order to get their ID numbers using the following API call. To make it easier to read, you will want to pipe the output through a JSON formatter such as 'jq', 'python -mjson.tool', 'json_pp', or 'jsonpretty' to name a few.
+2) View a list of all files that were part of the ZIP file in order to get their ID numbers using the following API call. To make it easier to read, you will want to pipe the output through a JSON formatter such as 'jq', 'python -mjson.tool', 'json_pp', or 'jsonpretty' to name a few.
     ```
     curl --silent -L -H "Authorization: Bearer 1234567890abcdefghijklmnopqrstuvwxyz1234" -X GET http://127.0.0.1:8000/api/v0/upload/ | jq
     ```
@@ -118,7 +183,7 @@ python manage.py runserver 8000
       ]
     }
     ```
-5) Add your Cisco ISE Server to Adaptive Policy Sync using the following API call. You will need to provide your ISE ERS Admin username and password. A few additional notes:
+3) Add your Cisco ISE Server to Adaptive Policy Sync using the following API call. You will need to provide your ISE ERS Admin username and password. A few additional notes:
     - "pxgrid_cliname" : should match the Common Name that you used to generate the certificate
     - "pxgrid_clicert" : the "id" of the .cer file that was generated for your client. In the example above, this would be the ctssync.yourdomain.com_.cer file.
     - "pxgrid_clikey" : the "id" of the .key file that was generated for your client. In the example above, this would be the ctssync.yourdomain.com_.key file.
@@ -127,17 +192,11 @@ python manage.py runserver 8000
     curl -L -H "Authorization: Bearer 1234567890abcdefghijklmnopqrstuvwxyz1234" -H 'Content-Type: application/json' -X POST --data-binary '{"description": "My ISE Server","ipaddress": "10.1.2.3","username": "ersadmin","password": "erspassword","pxgrid_enable": true,"pxgrid_ip": "10.1.2.3","pxgrid_cliname": "ctssync","pxgrid_clicert": "11112222-4444-5555-3333-666677778888","pxgrid_clikey": "11112222-5555-4444-3333-666677778888","pxgrid_clipw": "certpassword","pxgrid_isecert": "11112222-5555-3333-4444-666677778888"}' http://127.0.0.1:8000/api/v0/iseserver/
     {"id":"11112222-3333-4444-5555-666677778888","url":"http://127.0.0.1:8000/api/v0/iseserver/11112222-3333-4444-5555-666677778888/","description":"My ISE Server","ipaddress":"10.1.2.3","username":"ersadmin","password":"erspassword","force_rebuild":false,"skip_sync":false,"last_update":"2020-04-14T21:49:55.635413Z","last_sync":null,"pxgrid_enable":true,"pxgrid_ip":"10.1.2.3","pxgrid_cliname":"ctssync","pxgrid_clicert":"11112222-4444-5555-3333-666677778888","pxgrid_clikey":"11112222-5555-4444-3333-666677778888","pxgrid_clipw":"certpassword","pxgrid_isecert":"11112222-5555-3333-4444-666677778888"}
     ```
-6) If you elected to not automatically accept certificate-based connections, you will need to check ISE after about 5 minutes (or you can re-start the app to trigger this immediately) in order to approve the pxGrid connection from your client.
+4) If you elected to not automatically accept certificate-based connections, you will need to check ISE after about 5 minutes (or you can re-start the app to trigger this immediately) in order to approve the pxGrid connection from your client.
     - Navigate to ISE Admin GUI via any web browser and login
     - Navigate to Administration -> pxGrid Services
     - Click on the All Clients tab
     - Check the box cooresponding to your client, then click the 'Approve' button.
-##### Cisco ISE without pxGrid
-1) Add your Cisco ISE Server to Adaptive Policy Sync using the following API call. You will need to provide your ISE ERS Admin username and password.
-    ```
-    curl -L -H "Authorization: Bearer 1234567890abcdefghijklmnopqrstuvwxyz1234" -H 'Content-Type: application/json' -X POST --data-binary '{"description": "My ISE Server","ipaddress": "10.1.2.3","username": "ersadmin","password": "erspassword","pxgrid_enable": false'} http://127.0.0.1:8000/api/v0/iseserver/
-    {"id":"11112222-3333-4444-5555-666677778888","url":"http://127.0.0.1:8000/api/v0/iseserver/11112222-3333-4444-5555-666677778888/","description":"My ISE Server","ipaddress":"10.1.2.3","username":"ersadmin","password":"erspassword","force_rebuild":false,"skip_sync":false,"last_update":"2020-04-14T21:49:55.635413Z","last_sync":null,"pxgrid_enable":false,"pxgrid_ip":null,"pxgrid_cliname":null,"pxgrid_clicert":null,"pxgrid_clikey":null,"pxgrid_clipw":null,"pxgrid_isecert":null}
-    ```
 
 #### Creating a Synchronization Session
 1) Next, establish a syncronization session between your configured ISE server and your configured Meraki Dashboard instance using the following API call. You will need the ID numbers of your Dashboard instance and your ISE Server that were created above. You can specify a value in seconds for "sync_interval" - this represents how often Adaptive Policy Sync will request updated data from Cisco ISE and Meraki Dashboard and push Synchronization Changes.
@@ -237,13 +296,3 @@ python manage.py runserver 8000
         ```
     - This will show you the raw data being received by the Meraki Dashboard API as well as the ISE ERS API. The "match_report" field will show you what components match or do not match. The "update_dest" field will show whether Meraki Dashboard or Cisco ISE needs to be updated. The "push_config" field will show you the specific API call that will be issued in order to make an update.
 
-## Docker
-```
-docker pull joshand/adaptive-policy-sync:latest
-docker run -it -p 8020:8020 \
-     -e DJANGO_SUPERUSER_USERNAME=admin \
-     -e DJANGO_SUPERUSER_PASSWORD=password \
-     -e DJANGO_SUPERUSER_EMAIL=admin@example.com \
-     -e DJANGO_SUPERUSER_APIKEY=1234567890abcdefghijklmnopqrstuvwxyz1234 \
-     joshand/adaptive-policy-sync:latest
-```
