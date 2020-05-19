@@ -105,16 +105,19 @@ async def subscribe_loop(config, secret, ws_url, tlist, pubsub_node_name, log):
         await asyncio.wait([stop_event.wait(), future_read], return_when=FIRST_COMPLETED)
         if not stop_event.is_set():
             log = []
-            message = json.loads(future.result())
-            if "securityGroup" in message:
-                append_log(log, "pxgrid_websocket::subscribe_loop::received message", json.dumps(message))
-                await process_sgt_update(message, await get_sync_account(config.get_id()), log)
-            elif "acl" in message:
-                append_log(log, "pxgrid_websocket::subscribe_loop::received message", json.dumps(message))
-                await process_sgacl_update(message, await get_sync_account(config.get_id()), log)
-            else:
-                append_log(log, "pxgrid_websocket::subscribe_loop::unhandled message", json.dumps(message))
-            await process_log_update("pxgrid_websocket", log)
+            try:
+                message = json.loads(future.result())
+                if "securityGroup" in message:
+                    append_log(log, "pxgrid_websocket::subscribe_loop::received message", json.dumps(message))
+                    await process_sgt_update(message, await get_sync_account(config.get_id()), log)
+                elif "acl" in message:
+                    append_log(log, "pxgrid_websocket::subscribe_loop::received message", json.dumps(message))
+                    await process_sgacl_update(message, await get_sync_account(config.get_id()), log)
+                else:
+                    append_log(log, "pxgrid_websocket::subscribe_loop::unhandled message", json.dumps(message))
+                await process_log_update("pxgrid_websocket", log)
+            except asyncio.exceptions.InvalidStateError:
+                pass
         else:
             await ws.stomp_disconnect('123')
             # wait for receipt
@@ -220,15 +223,19 @@ def run_sync_pxgrid(config):
 
 
 def run():
-    run_sync_pxgrid(Config())
+    log = []
+    cfg = Config(log)
+    run_sync_pxgrid(cfg)
 
 
 def sync_pxgrid(loop, log=None):
     cfg = Config(log)
     if cfg.config.id:
         loop_pxgrid(Config(log), loop)
+    else:
+        return False
 
-    return False
+    return None
 
 
 def loop_pxgrid(config, loop):
