@@ -18,6 +18,7 @@ blocks:
           - checkout
           - cache restore
           - mkdir -p .pip_cache
+          - mkdir -p config
           - pip install --cache-dir .pip_cache -r requirements.txt
           - 'python manage.py makemigrations '
           - python manage.py migrate
