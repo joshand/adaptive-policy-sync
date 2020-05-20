@@ -306,5 +306,8 @@ python manage.py runserver 8000
         
             ![sgt-detail](images/10-sgt-detail.png)
     
+    - **Database Access**
+        - In the event that there is a database-related problem, you can access the built-in database using http://127.0.0.1:8020/admin if you deployed using the Docker example above, or http://127.0.0.1:8000/admin if you deployed using the Local example above. Log in using the same credentials you use for the UI itself.
+        
     - This will show you the raw data being received by the Meraki Dashboard API as well as the ISE ERS API. The "match_report" field (Sync Details in the UI) will show you what components match or do not match. The "update_dest" (Who Needs Update? in the UI) field will show whether Meraki Dashboard or Cisco ISE needs to be updated. The "push_config" field (Config Push in the UI) will show you the specific API call that will be issued in order to make an update.
 
