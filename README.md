@@ -122,7 +122,7 @@ python manage.py runserver 8000
     {"id":"11112222-3333-4444-5555-666677778888","url":"http://127.0.0.1:8000/api/v0/dashboard/11112222-3333-4444-5555-666677778888/","description":"My Meraki Dashboard","baseurl":"https://api.meraki.com/api/v0","apikey":"1234567890abcdefghijklmnopqrstuvwxyz1234","orgid":"1234567890","force_rebuild":false,"skip_sync":false,"last_update":"2020-04-14T21:54:56.614206Z","last_sync":null,"webhook_enable":true,"webhook_ngrok":true,"webhook_url":""}
     ```
 
-##### Integrating Cisco ISE (without pxGrid)
+#### Integrating Cisco ISE (without pxGrid)
 1) Add your Cisco ISE Server to Adaptive Policy Sync using the following API call. You will need to provide your ISE ERS Admin username and password.
     ```
     curl -L -H "Authorization: Bearer 1234567890abcdefghijklmnopqrstuvwxyz1234" -H 'Content-Type: application/json' -X POST --data-binary '{"description": "My ISE Server","ipaddress": "10.1.2.3","username": "ersadmin","password": "erspassword","pxgrid_enable": false'} http://127.0.0.1:8000/api/v0/iseserver/
