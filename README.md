@@ -12,18 +12,19 @@
 3) Configure Adaptive Policy Sync
     - [Using the UI](#configure-ui)
     - [Using the API](#configure-api)
+4) [Troubleshooting](#troubleshooting)
 
 ### Set up your environment
 
-#### Meraki Dashboard<a name="configure-dashboard"/> - [^ Top](#top)
+#### Meraki Dashboard<a name="configure-dashboard"/> ([^ Top](#top))
 1) Enable API access in your Meraki dashboard organization and obtain an API key ([instructions](https://documentation.meraki.com/zGeneral_Administration/Other_Topics/The_Cisco_Meraki_Dashboard_API))
 2) Keep your API key safe and secure, as it is similar to a password for your dashboard. You will supply this API key to Adaptive Policy Sync later.
 
-#### Cisco ISE<a name="cisco-ise"/> - [^ Top](#top)
+#### Cisco ISE<a name="cisco-ise"/> ([^ Top](#top))
 1) Enable API ([ERS](https://community.cisco.com/t5/security-documents/ise-ers-api-examples/ta-p/3622623#toc-hId-1183657558)) access in Cisco ISE
 2) Create an [ERS Admin](https://community.cisco.com/t5/security-documents/ise-ers-api-examples/ta-p/3622623#toc-hId-1863715928) user account for ISE ERS access.
 
-##### Cisco ISE pxGrid Support<a name="cisco-ise-pxgrid"/> - [^ Top](#top)
+##### Cisco ISE pxGrid Support<a name="cisco-ise-pxgrid"/> ([^ Top](#top))
 1) If you plan to integrate with pxGrid for ISE Push-Notifications, you will need to create a new pxGrid Certificate for your application.
     - Navigate to ISE Admin GUI via any web browser and login
     - Navigate to Administration -> pxGrid Services
@@ -44,7 +45,7 @@
 
 ### Deploy the Application
 
-#### Use Docker<a name="deploy-docker"/> - [^ Top](#top)
+#### Use Docker<a name="deploy-docker"/> ([^ Top](#top))
 ```
 mkdir /home/$USER/adaptivepolicy
 docker pull joshand/adaptive-policy-sync:latest
@@ -57,7 +58,7 @@ docker run -it -p 8020:8020 \
      joshand/adaptive-policy-sync:latest
 ```
 
-#### Clone the Github repo and run locally<a name="deploy-local"/> - [^ Top](#top)
+#### Clone the Github repo and run locally<a name="deploy-local"/> ([^ Top](#top))
 ```
 git clone https://github.com/joshand/adaptive-policy-sync.git
 cd adaptive-policy-sync/
@@ -81,46 +82,37 @@ python manage.py runserver 8000
 
 ## Configure Adaptive Policy Sync
 
-### Using the UI<a name="configure-ui"/> - [^ Top](#top)
+### Using the UI<a name="configure-ui"/> ([^ Top](#top))
 1. Access your Adaptive Policy Sync Instance using the port that you've configured (http://127.0.0.1:8020 if you deployed using the Docker example above, or http://127.0.0.1:8000 if you deployed using the Local example above)
 
-![aps-landing](images/1-aps-landing.png)
-
 2. Click the "Start Now" button to begin the configuration process.
-
-![aps-ise](images/2-aps-ise.png)
+    ![aps-landing](images/1-aps-landing.png)
 
 3. Enter the IP Address or Fully Qualified Domain Name of your ISE Server, the username and password of the user that you created for ERS access via the instructions above. If you will be utilizing pxGrid integration, check the box "Enable pxGrid Integration". Click Next.
-
-![aps-ise-cert](images/3-aps-ise-cert.png)
+    ![aps-ise](images/2-aps-ise.png)
 
 4. If you chose to configure pxGrid Integration, you will need to upload the Certificate that you generated in ISE for your client. Give it a description, then click the Browse... button.
-
-![aps-ise-cert-browse](images/4-aps-ise-cert-browse.png)
+    ![aps-ise-cert](images/3-aps-ise-cert.png)
 
 5. Navigate to the location that you downloaded the certificate ZIP file to, select the file, then click Open. When you return to the previous screen, click the Next button.
-
-![aps-ise-pxgrid](images/5-aps-ise-pxgrid.png)
+    ![aps-ise-cert-browse](images/4-aps-ise-cert-browse.png)
 
 6. Enter the IP Address or Fully Qualified Domain Name of your ISE Server (that has pxGrid enabled), enter the Client Name that you configured in ISE. Then select the .cer and .key files cooresponding to that client. Enter the password that you set for your client. Then, choose the .cer file for the ISE node that you specified as the pxGrid server. Click Next.
-
-![aps-ise-dashboard](images/6-aps-dashboard.png)
+    ![aps-ise-pxgrid](images/5-aps-ise-pxgrid.png)
 
 7. Generally, you will not need to change the Meraki Dashboard API URL. Enter your Dashboard API Key, then Tab to the next field or click somewhere in the open window. Adaptive Policy Sync will generate a list of Organiations that your API key has access to and display them in the dropdown list. Select the Organization that you will be using for Adaptive Policy. Then, click Next.
-
-![aps-ise-sync](images/7-aps-sync.png)
+    ![aps-ise-dashboard](images/6-aps-dashboard.png)
 
 8. Now, choose the authoritative source for Policy. This will be used to determine which source to use if there are configuration conflicts, and it will control which policy source will be used if policy objects are deleted. Set the Manual Synchronization Interval, ensure that the "Enable Synchronization" box is checked, then click Finish.
-
-![aps-home](images/8-aps-home.png)
+    ![aps-ise-sync](images/7-aps-sync.png)
 
 9. You will be taken to the Adaptive Policy Sync Landing page. In the left navigation pane, navigate to Status -> SGTs.
-
-![aps-sgts](images/9-aps-sgts.png)
+    ![aps-home](images/8-aps-home.png)
 
 10. Select the checkbox for all of the SGTs you wish to sync. When complete, click the "Save" button.
+    ![aps-sgts](images/9-aps-sgts.png)
 
-### Using the API<a name="configure-api"/> - [^ Top](#top)
+### Using the API<a name="configure-api"/> ([^ Top](#top))
 * Above, you generated a new API token. You can use it with the API by passing it as an Authorization header as a Bearer token (Authorization: Bearer 1234567890abcdefghijklmnopqrstuvwxyz1234).
 
 #### Integrating Meraki Dashboard
@@ -302,11 +294,17 @@ python manage.py runserver 8000
     }
     ```
 
-#### Troubleshooting
+#### Troubleshooting<a name="troubleshooting"/> ([^ Top](#top))
 - Tags are not synchronizing.
-    - You can get more synchronization detail for a specific tag if you issue the following command:
-        ```
-        curl --silent -L -H "Authorization: Bearer 1234567890abcdefghijklmnopqrstuvwxyz1234" -H 'Content-Type: application/json' -X GET http://127.0.0.1:8000/api/v0/tag/11112222-3333-4444-5555-666677778888/?detail=true | jq
-        ```
-    - This will show you the raw data being received by the Meraki Dashboard API as well as the ISE ERS API. The "match_report" field will show you what components match or do not match. The "update_dest" field will show whether Meraki Dashboard or Cisco ISE needs to be updated. The "push_config" field will show you the specific API call that will be issued in order to make an update.
+    - **API**
+        - You can get more synchronization detail for a specific tag if you issue the following command:
+            ```
+            curl --silent -L -H "Authorization: Bearer 1234567890abcdefghijklmnopqrstuvwxyz1234" -H 'Content-Type: application/json' -X GET http://127.0.0.1:8000/api/v0/tag/11112222-3333-4444-5555-666677778888/?detail=true | jq
+            ```
+    - **UI**
+        - You can get synchronization detail for a specific tag by selecting the UUID of that tag in the UI under Status -> SGTs.
+        
+            ![sgt-detail](images/10-sgt-detail.png)
+    
+    - This will show you the raw data being received by the Meraki Dashboard API as well as the ISE ERS API. The "match_report" field (Sync Details in the UI) will show you what components match or do not match. The "update_dest" (Who Needs Update? in the UI) field will show whether Meraki Dashboard or Cisco ISE needs to be updated. The "push_config" field (Config Push in the UI) will show you the specific API call that will be issued in order to make an update.
 
