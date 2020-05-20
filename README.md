@@ -50,6 +50,8 @@
 mkdir /home/$USER/adaptivepolicy
 docker pull joshand/adaptive-policy-sync:latest
 docker run -it -p 8020:8020 \
+     --restart unless-stopped \
+     --name=Adaptive-Policy-Sync \
      -e DJANGO_SUPERUSER_USERNAME=admin \
      -e DJANGO_SUPERUSER_PASSWORD=password \
      -e DJANGO_SUPERUSER_EMAIL=admin@example.com \
