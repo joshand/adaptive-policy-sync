@@ -11,6 +11,7 @@ RUN ln -sf /dev/stdout /var/log/nginx/access.log \
 RUN mkdir -p /opt/app
 RUN mkdir -p /opt/app/pip_cache
 RUN mkdir -p /opt/app/adaptive_policy_sync
+RUN mkdir -p /opt/app/adaptive_policy_sync/config
 COPY requirements.txt start-server.sh /opt/app/
 COPY .pip_cache /opt/app/pip_cache/
 COPY . /opt/app/adaptive_policy_sync
