@@ -27,6 +27,7 @@ blocks:
       jobs:
         - name: Unit Tests
           commands:
+            - mkdir config
             - python manage.py makemigrations
             - python manage.py migrate
             - python manage.py test
