@@ -47,7 +47,7 @@
 
 #### Use Docker<a name="deploy-docker"/> ([^ Top](#top))
 ```
-mkdir /home/$USER/adaptivepolicy
+mkdir $HOME/adaptivepolicy
 docker pull joshand/adaptive-policy-sync:latest
 docker run -it -p 8020:8020 \
      --restart unless-stopped \
@@ -56,7 +56,7 @@ docker run -it -p 8020:8020 \
      -e DJANGO_SUPERUSER_PASSWORD=password \
      -e DJANGO_SUPERUSER_EMAIL=admin@example.com \
      -e DJANGO_SUPERUSER_APIKEY=1234567890abcdefghijklmnopqrstuvwxyz1234 \
-     -v /home/$USER/adaptivepolicy:/config \
+     -v $HOME/adaptivepolicy:/opt/app/adaptive_policy_sync/config \
      joshand/adaptive-policy-sync:latest
 ```
 
