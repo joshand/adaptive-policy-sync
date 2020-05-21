@@ -2,17 +2,31 @@
 
 
 ## Getting Started
-1) Set up your environment
+1) Compatibility
+    - [Cisco ISE](#compatibility-ise)
+    - [Cisco Meraki](#compatibility-meraki)
+2) Set up your environment
     - [Cisco Meraki Dashboard](#configure-dashboard)
     - [Cisco ISE](#cisco-ise)
         - [Cisco ISE pxGrid Support](#cisco-ise-pxgrid)
-2) Deploy the Application
+3) Deploy the Application
     - [Use Docker](#deploy-docker)
     - [Clone the Github repo and run locally](#deploy-local)
-3) Configure Adaptive Policy Sync
+4) Configure Adaptive Policy Sync
     - [Using the UI](#configure-ui)
     - [Using the API](#configure-api)
-4) [Troubleshooting](#troubleshooting)
+5) [Troubleshooting](#troubleshooting)
+
+### Compatibility
+
+#### Cisco ISE<a name="compatibility-ise"/> ([^ Top](#top))
+1) This tool has been tested with the following versions of Cisco ISE:
+    - ISE 2.4 - Patch 11
+        - Caveat: pxGrid does not correctly push SGACL updates, so these can only be captured via manual sync.
+    - ISE 2.7 - Patch 1
+
+#### Cisco Meraki<a name="compatibility-meraki"/> ([^ Top](#top))
+1) See [this article](https://documentation.meraki.com/zGeneral_Administration/Cross-Platform_Content/Adaptive_Policy/Adaptive_Policy_Overview#Adaptive_Policy_requirements) for Cisco Meraki requirements.
 
 ### Set up your environment
 
@@ -49,7 +63,7 @@
 ```
 mkdir $HOME/adaptivepolicy
 docker pull joshand/adaptive-policy-sync:latest
-docker run -it -p 8020:8020 \
+docker run -it -p 8000:8020 \
      --restart unless-stopped \
      --name=Adaptive-Policy-Sync \
      -e DJANGO_SUPERUSER_USERNAME=admin \
@@ -85,7 +99,7 @@ python manage.py runserver 8000
 ## Configure Adaptive Policy Sync
 
 ### Using the UI<a name="configure-ui"/> ([^ Top](#top))
-1. Access your Adaptive Policy Sync Instance using the port that you've configured (http://127.0.0.1:8020 if you deployed using the Docker example above, or http://127.0.0.1:8000 if you deployed using the Local example above)
+1. Access your Adaptive Policy Sync Instance using the port that you've configured (http://127.0.0.1:8000 if you used the examples above)
 
 2. Click the "Start Now" button to begin the configuration process.
     ![aps-landing](images/1-aps-landing.png)
@@ -311,5 +325,5 @@ python manage.py runserver 8000
     - This will show you the raw data being received by the Meraki Dashboard API as well as the ISE ERS API. The "match_report" field (Sync Details in the UI) will show you what components match or do not match. The "update_dest" (Who Needs Update? in the UI) field will show whether Meraki Dashboard or Cisco ISE needs to be updated. The "push_config" field (Config Push in the UI) will show you the specific API call that will be issued in order to make an update.
 
 - Database Access
-    - In the event that there is a database-related problem, you can access the built-in database using http://127.0.0.1:8020/admin if you deployed using the Docker example above, or http://127.0.0.1:8000/admin if you deployed using the Local example above. Log in using the same credentials you use for the UI itself.
+    - In the event that there is a database-related problem, you can access the built-in database using http://127.0.0.1:8000/admin (if you used the examples above). Log in using the same credentials you use for the UI itself.
         
