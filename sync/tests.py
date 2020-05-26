@@ -404,6 +404,7 @@ def setup_ise30_data_sync_m_src(setup_ise30_data_m_src):
 def test_ise_dashboard_unable_to_sync_first(arg):
     """With ISE set to Authoritative Source, Dashboard should be unable to sync first"""
     msg, log = scripts.dashboard_monitor.sync_dashboard()
+    print(msg)
     assert msg == "SYNC_DASHBOARD-ISE_NEEDS_SYNC"
 
 
@@ -413,6 +414,7 @@ def test_ise_dashboard_unable_to_sync_first(arg):
 def test_ise_iseserver_can_sync(arg):
     """With ISE set to Authoritative Source, ISE should be able to sync first"""
     msg, log = scripts.ise_monitor.sync_ise()
+    print(msg)
     assert (msg == "SYNC_ISE-ISE_FORCE_REBUILD") or (msg == "SYNC_ISE-CONFIG_SYNC_TIMESTAMP_MISMATCH")
 
 
@@ -423,6 +425,7 @@ def test_ise_dashboard_can_sync_next(arg):
     """With ISE set to Authoritative Source, Dashboard should be able to sync after ISE"""
     msg, log = scripts.ise_monitor.sync_ise()
     msg, log = scripts.dashboard_monitor.sync_dashboard()
+    print(msg)
     assert (msg == "SYNC_DASHBOARD-DASHBOARD_FORCE_REBUILD") or (msg == "SYNC_DASHBOARD-CONFIG_SYNC_TIMESTAMP_MISMATCH")
 
 
@@ -432,6 +435,7 @@ def test_ise_dashboard_can_sync_next(arg):
 def test_dashboard_ise_unable_to_sync_first(arg):
     """With Meraki Dashboard set to Authoritative Source, ISE should be unable to sync first"""
     msg, log = scripts.ise_monitor.sync_ise()
+    print(msg)
     assert msg == "SYNC_ISE-DASHBOARD_NEEDS_SYNC"
 
 
@@ -441,6 +445,7 @@ def test_dashboard_ise_unable_to_sync_first(arg):
 def test_dashboard_can_sync(arg):
     """With Meraki Dashboard set to Authoritative Source, Dashboard should be able to sync first"""
     msg, log = scripts.dashboard_monitor.sync_dashboard()
+    print(msg)
     assert (msg == "SYNC_DASHBOARD-DASHBOARD_FORCE_REBUILD") or (msg == "SYNC_DASHBOARD-CONFIG_SYNC_TIMESTAMP_MISMATCH")
 
 
@@ -451,6 +456,7 @@ def test_dashboard_ise_can_sync_next(arg):
     """With Meraki Dashboard set to Authoritative Source, ISE should be able to sync after Dashboard"""
     msg, log = scripts.dashboard_monitor.sync_dashboard()
     msg, log = scripts.ise_monitor.sync_ise()
+    print(msg)
     assert (msg == "SYNC_ISE-ISE_FORCE_REBUILD") or (msg == "SYNC_ISE-CONFIG_SYNC_TIMESTAMP_MISMATCH")
 
 
@@ -468,15 +474,21 @@ def test_ise_sgts_in_database(arg):
         if s.tag_number in whitelisted_sgts:
             if s.meraki_id is None or s.meraki_id == "" or s.ise_id is None or s.ise_id is None:
                 success = False
-                print("1*", model_to_dict(s))
+                print("1 (FAIL) :", model_to_dict(s))
+            else:
+                print("1 (SUCCESS) :", model_to_dict(s))
         if s.tag_number in default_vals:
             if s.ise_id is None or s.ise_id is None:
                 success = False
-                print("2*", model_to_dict(s))
+                print("2 (FAIL) :", model_to_dict(s))
+            else:
+                print("2 (SUCCESS) :", model_to_dict(s))
 
     if len(sgts) != len(whitelisted_sgts + ise_default_sgts):
         success = False
-        print("3*")
+        print("3 (FAIL) : ", sgts, (whitelisted_sgts + ise_default_sgts))
+    else:
+        print("3 (SUCCESS) : ", sgts, (whitelisted_sgts + ise_default_sgts))
 
     assert success
 
@@ -495,14 +507,24 @@ def test_ise_sgacls_in_database(arg):
         if s.name in whitelisted_sgacls:
             if s.ise_id is None or s.ise_id is None:
                 success = False
+                print("1 (FAIL-MISSING) :", model_to_dict(s))
             elif s.visible:
                 success = False
+                print("1 (FAIL-VISIBLE) :", model_to_dict(s))
+            else:
+                print("1 (SUCCESS) :", model_to_dict(s))
         if s.name in default_vals:
             if s.ise_id is None or s.ise_id is None:
                 success = False
+                print("2 (FAIL) :", model_to_dict(s))
+            else:
+                print("2 (SUCCESS) :", model_to_dict(s))
 
     if len(sgacls) != len(whitelisted_sgacls + ise_default_sgacls):
         success = False
+        print("3 (FAIL) : ", sgacls, (whitelisted_sgacls + ise_default_sgacls))
+    else:
+        print("3 (SUCCESS) : ", sgacls, (whitelisted_sgacls + ise_default_sgacls))
 
     assert success
 
@@ -521,13 +543,22 @@ def test_ise_policies_in_database(arg):
         if s.name in whitelisted_policies:
             if s.ise_id is None or s.ise_id is None:
                 success = False
+                print("1 (FAIL) :", model_to_dict(s))
+            else:
+                print("1 (SUCCESS) :", model_to_dict(s))
         if s.name in default_vals:
             if s.ise_id is None or s.ise_id is None:
                 success = False
+                print("2 (FAIL) :", model_to_dict(s))
+            else:
+                print("2 (SUCCESS) :", model_to_dict(s))
 
     # The default ISE ANY-ANY policy will not be synchronized to the database; subtract one for that
     if len(sgpolicies) != len(whitelisted_policies + ise_default_policies) - 1:
         success = False
+        print("3 (FAIL) : ", sgpolicies, (whitelisted_policies + ise_default_policies))
+    else:
+        print("3 (SUCCESS) : ", sgpolicies, (whitelisted_policies + ise_default_policies))
 
     assert success
 
@@ -545,21 +576,32 @@ def test_ise_sync_success(arg):
         if s.tag_number in sync_tags:
             if not s.do_sync or not s.match_report(bool_only=True):
                 success = False
+                print("1 (FAIL) :", model_to_dict(s))
+            else:
+                print("1 (SUCCESS) :", model_to_dict(s))
     sgacls = ACL.objects.filter(visible=True)
     for s in sgacls:
         if s.name in expected_sgacls:
             if not s.match_report(bool_only=True):
                 success = False
+                print("2 (FAIL-NO_MATCH) :", model_to_dict(s))
         else:
             if s.do_sync:
                 success = False
+                print("2 (FAIL-SHOULD_NOT_SYNC) :", model_to_dict(s))
+        if success:
+            print("2 (SUCCESS) :", model_to_dict(s))
     policies = Policy.objects.all()
     for s in policies:
         if s.name in expected_policies:
             if not s.match_report(bool_only=True):
                 success = False
+                print("3 (FAIL-NO_MATCH) :", model_to_dict(s))
         else:
             if s.do_sync:
                 success = False
+                print("3 (FAIL-SHOULD_NOT_SYNC) :", model_to_dict(s))
+        if success:
+            print("3 (SUCCESS) :", model_to_dict(s))
 
     assert success
