@@ -1,0 +1,11 @@
+[run]
+source=
+    /Users/joshanderson/code/adaptive-policy-sync
+omit=
+    /Users/joshanderson/code/adaptive-policy-sync/venv/*
+    /Users/joshanderson/code/adaptive-policy-sync/old/*
+    /Users/joshanderson/code/adaptive-policy-sync/sync/migrations/*
+    /Users/joshanderson/code/adaptive-policy-sync/scripts/base_simulator.py
+    /Users/joshanderson/code/adaptive-policy-sync/scripts/dashboard_simulator.py
+    /Users/joshanderson/code/adaptive-policy-sync/scripts/ise_ers_simulator.py
+    /Users/joshanderson/code/adaptive-policy-sync/scripts/reset.py
