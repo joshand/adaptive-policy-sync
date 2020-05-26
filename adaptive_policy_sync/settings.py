@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'django_extensions',
     'django_apscheduler',
+    'pytest_django',
 ]
 
 MIDDLEWARE = [
@@ -146,3 +147,5 @@ STATICFILES_DIRS = [
 ]
 
 APSCHEDULER_DATETIME_FORMAT = "N j, Y, f:s a"  # Default
+
+CUSTOM_UA = "Adaptive-Policy-Sync 1.0b"
