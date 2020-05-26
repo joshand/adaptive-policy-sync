@@ -1,4 +1,5 @@
 # adaptive-policy-sync<a name="top"/>
+[Unit Tests](https://htmlpreview.github.io/?https://github.com/joshand/adaptive-policy-sync/blob/master/pytest_report.html)
 [Test Coverage](https://htmlpreview.github.io/?https://github.com/joshand/adaptive-policy-sync/blob/master/htmlcov/index.html)
 
 ## Getting Started
