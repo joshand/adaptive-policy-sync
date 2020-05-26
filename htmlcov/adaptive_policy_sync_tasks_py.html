@@ -21,9 +21,9 @@
         </h1>
         <img id="keyboard_icon" src="keybd_closed.png" alt="Show keyboard shortcuts" />
         <h2 class="stats">
-            10 statements &nbsp;
+            14 statements &nbsp;
             <span class="run shortkey_r button_toggle_run">0 run</span>
-            <span class="mis show_mis shortkey_m button_toggle_mis">10 missing</span>
+            <span class="mis show_mis shortkey_m button_toggle_mis">14 missing</span>
             <span class="exc show_exc shortkey_x button_toggle_exc">0 excluded</span>
         </h2>
     </div>
@@ -60,10 +60,10 @@
     <p id="t7" class="pln"><span class="n"><a href="#t7">7</a></span><span class="t">        <span class="op">(</span><span class="nam">os</span><span class="op">.</span><span class="nam">getenv</span><span class="op">(</span><span class="str">'SKIPTASKS'</span><span class="op">,</span> <span class="str">''</span><span class="op">)</span><span class="op">.</span><span class="nam">upper</span><span class="op">(</span><span class="op">)</span> <span class="op">!=</span> <span class="str">"TRUE"</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p id="t8" class="mis show_mis"><span class="n"><a href="#t8">8</a></span><span class="t">    <span class="key">import</span> <span class="nam">scripts</span><span class="op">.</span><span class="nam">dashboard_monitor</span>&nbsp;</span><span class="r"></span></p>
     <p id="t9" class="mis show_mis"><span class="n"><a href="#t9">9</a></span><span class="t">    <span class="key">import</span> <span class="nam">scripts</span><span class="op">.</span><span class="nam">ise_monitor</span>&nbsp;</span><span class="r"></span></p>
-    <p id="t10" class="pln"><span class="n"><a href="#t10">10</a></span><span class="t">    <span class="com"># import scripts.clean_tasks</span>&nbsp;</span><span class="r"></span></p>
-    <p id="t11" class="pln"><span class="n"><a href="#t11">11</a></span><span class="t">    <span class="com"># import scripts.pxgrid_websocket</span>&nbsp;</span><span class="r"></span></p>
-    <p id="t12" class="pln"><span class="n"><a href="#t12">12</a></span><span class="t">    <span class="com"># import scripts.dashboard_webhook   # noqa: F401</span>&nbsp;</span><span class="r"></span></p>
-    <p id="t13" class="pln"><span class="n"><a href="#t13">13</a></span><span class="t">    <span class="com"># import scripts.db_backup           # noqa: F401</span>&nbsp;</span><span class="r"></span></p>
+    <p id="t10" class="mis show_mis"><span class="n"><a href="#t10">10</a></span><span class="t">    <span class="key">import</span> <span class="nam">scripts</span><span class="op">.</span><span class="nam">clean_tasks</span>&nbsp;</span><span class="r"></span></p>
+    <p id="t11" class="mis show_mis"><span class="n"><a href="#t11">11</a></span><span class="t">    <span class="key">import</span> <span class="nam">scripts</span><span class="op">.</span><span class="nam">pxgrid_websocket</span>&nbsp;</span><span class="r"></span></p>
+    <p id="t12" class="mis show_mis"><span class="n"><a href="#t12">12</a></span><span class="t">    <span class="key">import</span> <span class="nam">scripts</span><span class="op">.</span><span class="nam">dashboard_webhook</span>   <span class="com"># noqa: F401</span>&nbsp;</span><span class="r"></span></p>
+    <p id="t13" class="mis show_mis"><span class="n"><a href="#t13">13</a></span><span class="t">    <span class="key">import</span> <span class="nam">scripts</span><span class="op">.</span><span class="nam">db_backup</span>           <span class="com"># noqa: F401</span>&nbsp;</span><span class="r"></span></p>
     <p id="t14" class="mis show_mis"><span class="n"><a href="#t14">14</a></span><span class="t"><span class="key">elif</span> <span class="nam">os</span><span class="op">.</span><span class="nam">getenv</span><span class="op">(</span><span class="str">'SKIPTASKS'</span><span class="op">,</span> <span class="str">''</span><span class="op">)</span><span class="op">.</span><span class="nam">upper</span><span class="op">(</span><span class="op">)</span> <span class="op">==</span> <span class="str">"TRUE"</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p id="t15" class="mis show_mis"><span class="n"><a href="#t15">15</a></span><span class="t">    <span class="key">for</span> <span class="nam">j</span> <span class="key">in</span> <span class="nam">DjangoJob</span><span class="op">.</span><span class="nam">objects</span><span class="op">.</span><span class="nam">all</span><span class="op">(</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p id="t16" class="mis show_mis"><span class="n"><a href="#t16">16</a></span><span class="t">        <span class="nam">j</span><span class="op">.</span><span class="nam">delete</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
@@ -74,7 +74,7 @@
     <div class="content">
         <p>
             <a class="nav" href="index.html">&#xab; index</a> &nbsp; &nbsp; <a class="nav" href="https://coverage.readthedocs.io">coverage.py v5.1</a>,
-            created at 2020-05-26 14:37
+            created at 2020-05-26 15:02
         </p>
     </div>
 </div>
