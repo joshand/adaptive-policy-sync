@@ -11,6 +11,7 @@ import os
 from rest_framework import authentication
 import re
 import string
+from django.db.models import Q
 
 
 class BearerAuthentication(authentication.TokenAuthentication):
@@ -52,20 +53,22 @@ class UploadZip(models.Model):
 @receiver(post_save, sender=UploadZip)
 def post_save_uploadzip(sender, instance=None, created=False, **kwargs):
     post_save.disconnect(post_save_uploadzip, sender=UploadZip)
-    if instance.description:
-        instance.description = instance.description + "-" + str(instance.file)
-    else:
-        instance.description = "None-" + str(instance.file)
+    if str(instance.file) not in instance.description:
+        if instance.description:
+            instance.description = instance.description + "-" + str(instance.file)
+        else:
+            instance.description = "None-" + str(instance.file)
 
-    instance.save()
-    unzipped = zipfile.ZipFile(BytesIO(instance.file.read()))
-    for libitem in unzipped.namelist():
-        if libitem.startswith('__MACOSX/'):
-            continue
-        fn = "upload/" + libitem
-        open(fn, 'wb').write(unzipped.read(libitem))
-        i = Upload.objects.create(description=instance.description + "-" + fn, file=fn)
-        i.save()
+        instance.save()
+
+        unzipped = zipfile.ZipFile(BytesIO(instance.file.read()))
+        for libitem in unzipped.namelist():
+            if libitem.startswith('__MACOSX/'):
+                continue
+            fn = "upload/" + libitem
+            open(fn, 'wb').write(unzipped.read(libitem))
+            i = Upload.objects.create(description=instance.description + "-" + fn, file=fn)
+            i.save()
 
     post_save.connect(post_save_uploadzip, sender=UploadZip)
 
@@ -269,7 +272,7 @@ class SyncSession(models.Model):
                                   verbose_name="ISE Server")
     ise_source = models.BooleanField("Make ISE Config Base", default=True, editable=True)
     force_rebuild = models.BooleanField("Force All Server Sync", default=False, editable=True)
-    sync_enabled = models.BooleanField("Perform Server Sync", default=False, editable=True)
+    sync_enabled = models.BooleanField("Perform Server Sync", default=True, editable=True)
     apply_changes = models.BooleanField("Execute API Changes", default=True, editable=True)
     sync_interval = models.IntegerField(blank=False, null=False, default=300)
     last_update = models.DateTimeField(default=django.utils.timezone.now)
@@ -427,6 +430,14 @@ def post_save_tag(sender, instance=None, created=False, **kwargs):
     if instance:
         instance.last_updated = datetime.datetime.now()
         instance.save()
+
+        policies = Policy.objects.filter(Q(source_group=instance) | Q(dest_group=instance))
+        for p in policies:
+            if p.source_group.do_sync and p.dest_group.do_sync:
+                p.do_sync = True
+            else:
+                p.do_sync = False
+            p.save()
     post_save.connect(post_save_tag, sender=Tag)
 
 
@@ -779,6 +790,9 @@ class Policy(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     mapping = models.CharField("Policy Mapping", max_length=50, blank=False, null=False)
     name = models.CharField("Policy Name", max_length=100, blank=False, null=False)
+    source_group = models.ForeignKey(Tag, on_delete=models.SET_NULL, null=True, blank=True, related_name="source_group")
+    dest_group = models.ForeignKey(Tag, on_delete=models.SET_NULL, null=True, blank=True, related_name="dest_group")
+    acl = models.ManyToManyField(ACL, blank=True, related_name="policies")
     description = models.CharField("Policy Description", max_length=100, blank=True, null=True)
     do_sync = models.BooleanField("Sync this Policy?", default=False, editable=True)
     syncsession = models.ForeignKey(SyncSession, on_delete=models.SET_NULL, null=True, blank=True)
@@ -865,25 +879,40 @@ class Policy(models.Model):
                 m_sgacls_o.append(m.name)
 
             # name_match = mdata.get("name", "mdata") == idata.get("name", "idata")
+            ise_single_rule_match = False
             if mdata["catchAllRule"] == "global" and idata["defaultRule"] == "NONE":
                 default_match = True
             elif mdata["catchAllRule"] == "deny all" and idata["defaultRule"] == "DENY_IP":
                 default_match = True
+                if len(i_sgacls_o) == 1 and i_sgacls_o[0] == "Deny IP":
+                    ise_single_rule_match = True
             elif mdata["catchAllRule"] == "permit all" and idata["defaultRule"] == "PERMIT_IP":
                 default_match = True
+                if len(i_sgacls_o) == 1 and i_sgacls_o[0] == "Permit IP":
+                    ise_single_rule_match = True
             else:
                 default_match = False
             if i_sgt_src == m_sgt_src and i_sgt_dst == m_sgt_dst:
                 srcdst_match = True
             else:
                 srcdst_match = False
+
+            # Check to see if there are the same number of SGACLs defined in each ACL List
             if len(i_sgacls) == len(m_sgacls):
                 sgacl_match = True
+                # If so, iterate each list to make sure that the actual ACLs are the same in each list
                 for x in range(0, len(i_sgacls)):
                     if i_sgacls[x].id != m_sgacls[x].id:
                         sgacl_match = False
             else:
-                sgacl_match = False
+                # There is one situation where it is ok to have mismatched SGACL Lengths: when you create a policy in
+                # ISE that only contains a default Deny or Permit, ISE will also add a Deny or Permit ACL in addition
+                # to the default rule - we don't need this on the Meraki side. So if the length is 0 for Meraki, but
+                # contains a Deny or Permit rule (in addition to the corresponding Deny or Permit default), it's ok.
+                if len(m_sgacls) == 0 and ise_single_rule_match:
+                    sgacl_match = True
+                else:
+                    sgacl_match = False
 
             outtxt += "name:" + str(mdata["name"] == idata["name"]) + "\n"
             outtxt += "catchAllRule:" + str(default_match) + "\n"
@@ -1035,6 +1064,17 @@ def post_save_policy(sender, instance=None, created=False, **kwargs):
     if instance:
         instance.last_updated = datetime.datetime.now()
         instance.save()
+
+        acls = ACL.objects.filter(id__in=instance.acl.all())
+        for a in acls:
+            a.do_sync = True
+            a.save()
+
+        acls = ACL.objects.filter(Q(policies__isnull=True) | Q(policies__do_sync=False))
+        for a in acls:
+            a.do_sync = False
+            a.save()
+
     post_save.connect(post_save_policy, sender=Policy)
 
 
