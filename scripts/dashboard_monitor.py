@@ -7,98 +7,45 @@ from django_apscheduler.jobstores import register_events
 from sync.models import SyncSession, Tag, ACL, Policy
 from django.db.models import F, Q
 from django.utils.timezone import make_aware
-import requests
+import sys
 import datetime
 import json
 from scripts.db_trustsec import clean_sgts, clean_sgacls, clean_sgpolicies, merge_sgts, merge_sgacls, merge_sgpolicies
 from scripts.dblog import append_log, db_log
+import meraki
+from scripts.meraki_addons import meraki_read_sgt, meraki_read_sgacl, meraki_read_sgpolicy, meraki_update_sgt, \
+    meraki_create_sgt, meraki_update_sgacl, meraki_create_sgacl, meraki_update_sgpolicy
+from django.conf import settings
+import traceback
 
 scheduler = BackgroundScheduler()
 scheduler.add_jobstore(DjangoJobStore(), "default")
 
 
-def meraki_read_sgt(baseurl, orgid, headers):
-    try:
-        ret = requests.get(baseurl + "/organizations/" + str(orgid) + "/adaptivePolicy/groups", headers=headers)
-        return ret.json()
-    except Exception:
-        return {}
-
-
-def meraki_read_sgacl(baseurl, orgid, headers):
-    try:
-        ret = requests.get(baseurl + "/organizations/" + str(orgid) + "/adaptivePolicy/acls", headers=headers)
-        return ret.json()
-    except Exception:
-        return {}
-
-
-def meraki_read_sgpolicy(baseurl, orgid, headers):
-    try:
-        ret = requests.get(baseurl + "/organizations/" + str(orgid) + "/adaptivePolicy/bindings", headers=headers)
-        j = ret.json()
-        outlist = []
-        for e in j:
-            newe = e
-            newe["bindingId"] = "s" + str(e["srcGroupId"]) + "-" + "d" + str(e["dstGroupId"])
-            outlist.append(newe)
-        return outlist
-    except Exception:
-        return []
-
-
-def exec_api_action(method, url, data, headers, log):
-    try:
-        if data is None or data == "":
-            ret = requests.request(method, url, headers=headers)
-        else:
-            ret = requests.request(method, url, data=data, headers=headers)
-        return ret
-    except Exception as e:
-        append_log(log, "dashboard_monitor::exec_api_action::Exception - ", e)
-        return None
-
-
-def sync_dashboard_accounts(accounts, log):
+def ingest_dashboard_data(accounts, log):
+    append_log(log, "dashboard_monitor::ingest_dashboard_data::Accounts -", accounts)
     dt = make_aware(datetime.datetime.now())
 
     for sa in accounts:
+        dashboard = None
         a = sa.dashboard
-        append_log(log, "dashboard_monitor::sync_dashboard_accounts::Resync -", a.description)
-        headers = {"X-Cisco-Meraki-API-Key": a.apikey, "Authorization": "Bearer " + a.apikey,
-                   "Content-Type": "application/json"}
-        # nets = meraki.getnetworklist(a.apikey, a.orgid, suppressprint=True)
-        sgts = meraki_read_sgt(a.baseurl, a.orgid, headers)
-        sgacls = meraki_read_sgacl(a.baseurl, a.orgid, headers)
-        sgpolicies = meraki_read_sgpolicy(a.baseurl, a.orgid, headers)
-        append_log(log, "dashboard_monitor::sync_dashboard_accounts::SGTs - ", sgts)
-        append_log(log, "dashboard_monitor::sync_dashboard_accounts::SGACLs - ", sgacls)
-        append_log(log, "dashboard_monitor::sync_dashboard_accounts::Policies - ", sgpolicies)
+        append_log(log, "dashboard_monitor::ingest_dashboard_data::Resync -", a.description)
+        dashboard = meraki.DashboardAPI(base_url=a.baseurl, api_key=a.apikey, print_console=False, output_log=False,
+                                        caller=settings.CUSTOM_UA)
+        sgts = meraki_read_sgt(dashboard, a.orgid)
+        sgacls = meraki_read_sgacl(dashboard, a.orgid)
+        sgpolicies = meraki_read_sgpolicy(dashboard, a.orgid)
+        append_log(log, "dashboard_monitor::ingest_dashboard_data::SGTs - ", sgts)
+        append_log(log, "dashboard_monitor::ingest_dashboard_data::SGACLs - ", sgacls)
+        append_log(log, "dashboard_monitor::ingest_dashboard_data::Policies - ", sgpolicies)
 
-        try:
-            merge_sgts("meraki", sgts, not sa.ise_source, sa, log)
-        except Exception as e:
-            append_log(log, "dashboard_monitor::sync_dashboard_accounts::Exception in merge_sgts: ", e)
-        try:
-            merge_sgacls("meraki", sgacls, not sa.ise_source, sa, log)
-        except Exception as e:
-            append_log(log, "dashboard_monitor::sync_dashboard_accounts::Exception in merge_sgts: ", e)
-        try:
-            merge_sgpolicies("meraki", sgpolicies, not sa.ise_source, sa, log)
-        except Exception as e:
-            append_log(log, "dashboard_monitor::sync_dashboard_accounts::Exception in merge_sgts: ", e)
-        try:
-            clean_sgts("meraki", sgts, not sa.ise_source, sa, log)
-        except Exception as e:
-            append_log(log, "dashboard_monitor::sync_dashboard_accounts::Exception in merge_sgts: ", e)
-        try:
-            clean_sgacls("meraki", sgacls, not sa.ise_source, sa, log)
-        except Exception as e:
-            append_log(log, "dashboard_monitor::sync_dashboard_accounts::Exception in merge_sgts: ", e)
-        try:
-            clean_sgpolicies("meraki", sgpolicies, not sa.ise_source, sa, log)
-        except Exception as e:
-            append_log(log, "dashboard_monitor::sync_dashboard_accounts::Exception in merge_sgts: ", e)
+        merge_sgts("meraki", sgts, not sa.ise_source, sa, log)
+        merge_sgacls("meraki", sgacls, not sa.ise_source, sa, log)
+        merge_sgpolicies("meraki", sgpolicies, not sa.ise_source, sa, log)
+
+        clean_sgts("meraki", sgts, not sa.ise_source, sa, log)
+        clean_sgacls("meraki", sgacls, not sa.ise_source, sa, log)
+        clean_sgpolicies("meraki", sgpolicies, not sa.ise_source, sa, log)
 
         a.raw_data = json.dumps({"groups": sgts, "acls": sgacls, "bindings": sgpolicies})
         a.force_rebuild = False
@@ -107,147 +54,145 @@ def sync_dashboard_accounts(accounts, log):
         a.skip_sync = True
         a.save()
 
-        tags = Tag.objects.filter(syncsession=sa)
-        for o in tags:
-            if o.do_sync and not o.in_sync() and o.update_dest() == "meraki":
-                if sa.apply_changes:
-                    m, u, d = o.push_config()
-                    if m != "":
-                        append_log(log, "dashboard_monitor::sync_dashboard_accounts::tag API push", o.push_config())
-                        ret = exec_api_action(m, u, d, headers, log)
-                        if ret:
-                            append_log(log, "dashboard_monitor::sync_dashboard_accounts::", ret.status_code,
-                                       ret.content)
-                            o.last_update_data = ret
-                            o.last_update_state = ret.status_code
-                        else:
-                            append_log(log, "dashboard_monitor::sync_dashboard_accounts::Error")
-                        o.save()
-                        # sa.dashboard.force_rebuild = True
-                        # sa.dashboard.save()
-                    if o.push_delete:
-                        o.delete()
-                else:
-                    append_log(log, "dashboard_monitor::sync_dashboard_accounts::tag needs API push", o.push_config())
-            elif not o.do_sync and o.push_delete:
-                o.delete()
-        acls = ACL.objects.filter(syncsession=sa)
-        for o in acls:
-            if o.do_sync and not o.in_sync() and o.update_dest() == "meraki":
-                if sa.apply_changes:
-                    m, u, d = o.push_config()
-                    if m != "":
-                        append_log(log, "dashboard_monitor::sync_dashboard_accounts::acl API push", o.push_config())
-                        ret = exec_api_action(m, u, d, headers, log)
-                        if ret:
-                            append_log(log, "dashboard_monitor::sync_dashboard_accounts::", ret.status_code,
-                                       ret.content)
-                            o.last_update_data = ret
-                            o.last_update_state = ret.status_code
-                        else:
-                            append_log(log, "dashboard_monitor::sync_dashboard_accounts::Error")
-                        o.save()
-                        # sa.dashboard.force_rebuild = True
-                        # sa.dashboard.save()
-                    if o.push_delete:
-                        o.delete()
-                else:
-                    append_log(log, "dashboard_monitor::sync_dashboard_accounts::acl needs API push", o.push_config())
-            elif o.push_delete:
-                o.delete()
-        policies = Policy.objects.filter(syncsession=sa)
-        for o in policies:
-            if o.do_sync and not o.in_sync() and o.update_dest() == "meraki":
-                if sa.apply_changes:
-                    m, u, d = o.push_config()
-                    if m != "":
-                        append_log(log, "dashboard_monitor::sync_dashboard_accounts::policy API push", o.push_config())
-                        ret = exec_api_action(m, u, d, headers, log)
-                        if ret:
-                            append_log(log, "dashboard_monitor::sync_dashboard_accounts::", ret.status_code,
-                                       ret.content)
-                            o.last_update_data = ret
-                            o.last_update_state = ret.status_code
-                        else:
-                            append_log(log, "dashboard_monitor::sync_dashboard_accounts::Error")
-                        o.save()
-                        # sa.dashboard.force_rebuild = True
-                        # sa.dashboard.save()
-                    if o.push_delete:
-                        o.delete()
-                else:
-                    append_log(log, "dashboard_monitor::sync_dashboard_accounts::policy needs API push",
-                               o.push_config())
-            elif o.push_delete:
-                o.delete()
+
+def digest_database_data(sa, log):
+    append_log(log, "dashboard_monitor::digest_database_data::Account -", sa)
+    dashboard = meraki.DashboardAPI(base_url=sa.dashboard.baseurl, api_key=sa.dashboard.apikey, print_console=False,
+                                    output_log=False, caller=settings.CUSTOM_UA)
+
+    if not sa.apply_changes:
+        append_log(log, "dashboard_monitor::digest_database_data::sync session not set to apply changes;")
+        return
+
+    tags = Tag.objects.filter(Q(needs_update="meraki") & Q(do_sync=True))
+    for o in tags:
+        if o.meraki_id:
+            try:
+                ret = meraki_update_sgt(dashboard, sa.dashboard.orgid, o.meraki_id, name=o.name,
+                                        description=o.description)
+                merge_sgts("meraki", [ret], not sa.ise_source, sa, log)
+                append_log(log, "dashboard_monitor::digest_database_data::Push SGT update", o.meraki_id, o.name,
+                           o.description, ret)
+            except Exception as e:  # pragma: no cover
+                append_log(log, "dashboard_monitor::digest_database_data::SGT Update Exception", e,
+                           traceback.format_exc())
+        else:
+            try:
+                ret = meraki_create_sgt(dashboard, sa.dashboard.orgid, value=o.tag_number, name=o.name,
+                                        description=o.description)
+                merge_sgts("meraki", [ret], not sa.ise_source, sa, log)
+                append_log(log, "dashboard_monitor::digest_database_data::Push SGT create", o.tag_number, o.name,
+                           o.description, ret)
+            except Exception as e:  # pragma: no cover
+                append_log(log, "dashboard_monitor::digest_database_data::SGT Create Exception", e,
+                           traceback.format_exc())
+
+    acls = ACL.objects.filter(Q(needs_update="meraki") & Q(do_sync=True))
+    for o in acls:
+        if o.meraki_id:
+            try:
+                ret = meraki_update_sgacl(dashboard, sa.dashboard.orgid, o.meraki_id, name=o.name,
+                                          description=o.description, rules=o.get_rules("meraki"),
+                                          ipVersion=o.get_version("meraki"))
+                merge_sgacls("meraki", [ret], not sa.ise_source, sa, log)
+                append_log(log, "dashboard_monitor::digest_database_data::Push SGACL update", o.meraki_id, o.name,
+                           o.description, ret)
+            except Exception as e:  # pragma: no cover
+                append_log(log, "dashboard_monitor::digest_database_data::SGACL Update Exception", e,
+                           traceback.format_exc())
+        else:
+            try:
+                ret = meraki_create_sgacl(dashboard, sa.dashboard.orgid, name=o.name,
+                                          description=o.description, rules=list(o.get_rules("meraki")),
+                                          ipVersion=o.get_version("meraki"))
+                merge_sgacls("meraki", [ret], not sa.ise_source, sa, log)
+                append_log(log, "dashboard_monitor::digest_database_data::Push SGACL create", o.name,
+                           o.description, ret)
+            except Exception as e:  # pragma: no cover
+                append_log(log, "dashboard_monitor::digest_database_data::SGACL Create Exception", e,
+                           traceback.format_exc())
+
+    policies = Policy.objects.filter(Q(needs_update="meraki") & Q(do_sync=True))
+    for o in policies:
+        try:
+            srcsgt, dstsgt = o.get_sgts("meraki")
+            ret = meraki_update_sgpolicy(dashboard, sa.dashboard.orgid, name=o.name, description=o.description,
+                                         srcGroupId=srcsgt, dstGroupId=dstsgt, aclIds=o.get_sgacls("meraki"),
+                                         catchAllRule=o.get_catchall("meraki"), bindingEnabled=True,
+                                         monitorModeEnabled=False)
+            merge_sgpolicies("meraki", [ret], not sa.ise_source, sa, log)
+            append_log(log, "dashboard_monitor::digest_database_data::Push Policy update", o.meraki_id, o.name,
+                       o.description, ret)
+        except Exception as e:  # pragma: no cover
+            append_log(log, "dashboard_monitor::digest_database_data::Policy Update Exception", e,
+                       traceback.format_exc())
 
 
 def sync_dashboard():
     log = []
+    msg = ""
     append_log(log, "dashboard_monitor::sync_dashboard::Checking Dashboard Accounts for re-sync...")
 
-    # Ensure that either Meraki Dashboard is source of truth or that ISE has already completed a sync.
-    stat = SyncSession.objects.filter(Q(ise_source=False) | Q(iseserver__last_sync__isnull=False))
+    # Ensure that ISE has already completed a sync if it is the source of truth
+    stat = SyncSession.objects.filter(Q(ise_source=False) |
+                                      (Q(iseserver__last_sync__isnull=False) &
+                                       Q(dashboard__last_sync__isnull=True)) |
+                                      (Q(iseserver__last_sync__isnull=False) &
+                                       Q(iseserver__last_sync__gte=F('dashboard__last_sync'))))
     if len(stat) <= 0:
-        append_log(log, "dashboard_monitor::sync_dashboard::Skipping sync as ISE is primary and hasn't synced.")
+        append_log(log, "dashboard_monitor::sync_dashboard::Skipping sync as ISE is primary and needs to sync first.")
+        msg = "SYNC_DASHBOARD-ISE_NEEDS_SYNC"
     else:
-        sync_list = []
-        # dbs = Dashboard.objects.filter(force_rebuild=True)
-        dbs = SyncSession.objects.filter(Q(dashboard__force_rebuild=True) | Q(force_rebuild=True))
-        for db in dbs:
-            append_log(log, "dashboard_monitor::sync_dashboard::Force Rebuild -", db)
-            # sync_dashboard_accounts(dbs)
-            db.force_rebuild = False
-            db.save()
-            sync_list.append(db)
+        append_log(log, "dashboard_monitor::sync_dashboard::Running sync")
 
-        # dbs = Dashboard.objects.all().exclude(last_sync=F('last_update'))
-        dbs = SyncSession.objects.all().exclude(dashboard__last_sync=F('dashboard__last_update'))
-        for db in dbs:
-            if db not in sync_list:
-                append_log(log, "dashboard_monitor::sync_dashboard::Out of Sync -", db)
-                # sync_dashboard_accounts(dbs)
-                sync_list.append(db)
-
-        ss = SyncSession.objects.all()
-        for s in ss:
+        for s in stat:
             ctime = make_aware(datetime.datetime.now()) - datetime.timedelta(seconds=s.sync_interval)
-            dbs = SyncSession.objects.filter(dashboard__last_sync__lte=ctime)
-            for db in dbs:
-                if db not in sync_list:
-                    append_log(log, "dashboard_monitor::sync_dashboard::Past sync interval -", dbs)
-                    sync_list.append(db)
-                    # sync_dashboard_accounts(dbs)
+            # Perform sync if one of the following conditions is met
+            # 1) The Sync Session is set to Force Rebuild (this one shouldn't be seen here. but just in case...)
+            # 2) The Dashboard Instance is set to Force Rebuild
+            # 3) The timestamp of the Dashboard database object isn't the same as the timestamp of it's last sync
+            # 4) The timestamp of the Dashboard database object's last sync is beyond the configured manual sync timer
+            dbs = SyncSession.objects.filter(Q(dashboard__force_rebuild=True) |
+                                             Q(force_rebuild=True) |
+                                             ~Q(dashboard__last_sync=F('dashboard__last_update')) |
+                                             Q(dashboard__last_sync__lte=ctime))
+            for d in dbs:
+                # Log the reason(s) for the current sync
+                if d.force_rebuild:     # pragma: no cover
+                    append_log(log, "dashboard_monitor::sync_dashboard::Sync Session Force Rebuild", d)
+                    msg = "SYNC_DASHBOARD-SYNCSESSION_FORCE_REBUILD"
+                    d.force_rebuild = False
+                    d.save()
+                if d.dashboard.force_rebuild:
+                    append_log(log, "dashboard_monitor::sync_dashboard::Dashboard Force Rebuild", d)
+                    msg = "SYNC_DASHBOARD-DASHBOARD_FORCE_REBUILD"
+                    d.dashboard.force_rebuild = False
+                    d.dashboard.save()
+                if d.dashboard.last_sync != d.dashboard.last_update:
+                    append_log(log, "dashboard_monitor::sync_dashboard::Database Config / Sync Timestamp Mismatch", d)
+                    msg = "SYNC_DASHBOARD-CONFIG_SYNC_TIMESTAMP_MISMATCH"
+                if d.dashboard.last_sync and (d.dashboard.last_sync <= ctime):
+                    append_log(log, "dashboard_monitor::sync_dashboard::Past Manual Sync Interval", d)
+                    msg = "SYNC_DASHBOARD-PAST_SYNC_INTERVAL"
 
-        for s in sync_list:
-            if not s.sync_enabled:
-                sync_list.remove(s)
+                ingest_dashboard_data(dbs, log)
 
-        sync_dashboard_accounts(sync_list, log)
+    digest_database_data(SyncSession.objects.all()[0], log)
 
     append_log(log, "dashboard_monitor::sync_dashboard::Done")
     db_log("dashboard_monitor", log)
+    return msg, log
 
 
-def run():
-    pass
-    # # Enable the job scheduler to run schedule jobs
-    # cron = BackgroundScheduler()
-    #
-    # # Explicitly kick off the background thread
-    # cron.start()
-    # cron.remove_all_jobs()
-    # cron.add_job(sync_dashboard)
-    # cron.add_job(sync_dashboard, 'interval', seconds=10)
-    #
-    # # Shutdown your cron thread if the web process is stopped
-    # atexit.register(lambda: cron.shutdown(wait=False))
-
-
-@scheduler.scheduled_job("interval", seconds=10, id="dashboard_monitor")
-def job():
+def run():     # pragma: no cover
     sync_dashboard()
 
 
-register_events(scheduler)
-scheduler.start()
+@scheduler.scheduled_job("interval", seconds=10, id="dashboard_monitor")
+def job():     # pragma: no cover
+    sync_dashboard()
+
+
+if 'test' not in sys.argv and 'test' not in sys.argv[0]:     # pragma: no cover
+    register_events(scheduler)
+    scheduler.start()
