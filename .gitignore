@@ -136,3 +136,5 @@ upload/*
 scripts/*.json
 *.xcf
 config/*.json
+_config.py
+*.zip
