@@ -1,5 +1,5 @@
 # adaptive-policy-sync<a name="top"/>
-
+[Test Coverage](https://htmlpreview.github.io/?https://github.com/joshand/adaptive-policy-sync/blob/master/htmlcov/index.html)
 
 ## Getting Started
 1) Compatibility
