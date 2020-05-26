@@ -85,10 +85,10 @@ class TagSerializer(serializers.ModelSerializer):
         model = Tag
         fields = ('id', 'url', 'name', 'description', 'do_sync', 'syncsession', 'tag_number', 'meraki_id', 'ise_id',
                   'meraki_data', 'ise_data', 'last_update', 'last_update_data', 'push_delete', 'in_sync',
-                  'match_report', 'update_dest', 'push_config')
+                  'match_report', 'update_dest', 'push_config', 'needs_update')
         read_only_fields = ('id', 'url', 'meraki_id', 'ise_id', 'meraki_data', 'ise_data', 'last_update',
                             'last_update_data', 'push_delete', 'in_sync', 'match_report', 'update_dest', 'push_config',
-                            'cleaned_name')
+                            'cleaned_name', 'needs_update')
 
     def __init__(self, *args, **kwargs):
         super(TagSerializer, self).__init__(*args, **kwargs)
@@ -117,10 +117,10 @@ class ACLSerializer(serializers.ModelSerializer):
         model = ACL
         fields = ('id', 'url', 'name', 'description', 'syncsession', 'meraki_id', 'ise_id', 'meraki_data', 'ise_data',
                   'last_update', 'last_update_data', 'push_delete', 'in_sync', 'match_report', 'is_valid_config',
-                  'update_dest', 'push_config')
+                  'update_dest', 'push_config', 'visible', 'needs_update')
         read_only_fields = ('id', 'url', 'meraki_id', 'ise_id', 'meraki_data', 'ise_data', 'last_update',
                             'last_update_data', 'push_delete', 'in_sync', 'match_report', 'is_valid_config',
-                            'update_dest', 'push_config')
+                            'update_dest', 'push_config', 'visible', 'needs_update')
 
     def __init__(self, *args, **kwargs):
         super(ACLSerializer, self).__init__(*args, **kwargs)
@@ -149,9 +149,10 @@ class PolicySerializer(serializers.ModelSerializer):
         model = Policy
         fields = ('id', 'url', 'mapping', 'name', 'syncsession', 'meraki_id', 'ise_id', 'meraki_data', 'ise_data',
                   'last_update', 'last_update_data', 'push_delete', 'in_sync', 'match_report', 'update_dest',
-                  'push_config')
+                  'push_config', 'needs_update')
         read_only_fields = ('id', 'url', 'meraki_id', 'ise_id', 'meraki_data', 'ise_data', 'last_update',
-                            'last_update_data', 'push_delete', 'in_sync', 'match_report', 'update_dest', 'push_config')
+                            'last_update_data', 'push_delete', 'in_sync', 'match_report', 'update_dest', 'push_config',
+                            'needs_update')
 
     def __init__(self, *args, **kwargs):
         super(PolicySerializer, self).__init__(*args, **kwargs)
