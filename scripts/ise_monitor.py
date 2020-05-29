@@ -65,7 +65,7 @@ def digest_database_data(sa, log):
     for o in tags:
         if o.ise_id:
             try:
-                ret = ise.update_sgt(o.iseid, o.name, o.description, o.tag_number, return_object=True)
+                ret = ise.update_sgt(o.ise_id, o.name, o.description, o.tag_number, return_object=True)
                 merge_sgts("ise", [ret], sa.ise_source, sa, log)
                 append_log(log, "ise_monitor::digest_database_data::Push SGT update", o.ise_id, o.name,
                            o.description, o.tag_number, ret)
