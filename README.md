@@ -1,6 +1,4 @@
 # adaptive-policy-sync<a name="top"/>
-- [Unit Tests](https://htmlpreview.github.io/?https://github.com/joshand/adaptive-policy-sync/blob/master/pytest_report.html)
-- [Test Coverage](https://htmlpreview.github.io/?https://github.com/joshand/adaptive-policy-sync/blob/master/htmlcov/index.html)
 
 ## Getting Started
 1) Compatibility
@@ -22,9 +20,18 @@
 
 #### Cisco ISE<a name="compatibility-ise"/> ([^ Top](#top))
 1) This tool has been tested with the following versions of Cisco ISE:
-    - ISE 2.4 - Patch 11
-        - Caveat: pxGrid does not correctly push SGACL updates, so these can only be captured via manual sync.
+    - ISE 2.4 - Patch 12
+        - Caveat: pxGrid does not correctly push SGACL updates, so these can only be captured via manual sync. (CSCvu35506)
+    - ISE 2.6 - Patch 6
+        - Caveat: pxGrid does not correctly push SGACL updates, so these can only be captured via manual sync. (CSCvu35506)
     - ISE 2.7 - Patch 1
+    - ISE 3.0 Beta
+2) Testing Details
+    - Current Unit Tests Used before each Commit:
+        - [Unit Tests](https://htmlpreview.github.io/?https://github.com/joshand/adaptive-policy-sync/blob/master/pytest_report.html)
+    - Current Code Coverage:
+        - [Test Coverage](https://htmlpreview.github.io/?https://github.com/joshand/adaptive-policy-sync/blob/master/htmlcov/index.html)
+
 
 #### Cisco Meraki<a name="compatibility-meraki"/> ([^ Top](#top))
 1) See [this article](https://documentation.meraki.com/zGeneral_Administration/Cross-Platform_Content/Adaptive_Policy/Adaptive_Policy_Overview#Adaptive_Policy_requirements) for Cisco Meraki requirements.
