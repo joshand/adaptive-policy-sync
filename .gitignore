@@ -137,3 +137,4 @@ scripts/*.json
 config/*.json
 _config.py
 *.zip
+test.sh
