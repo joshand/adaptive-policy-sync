@@ -69,7 +69,9 @@ def digest_database_data(sa, log):
         if o.meraki_id:
             try:
                 ret = meraki_update_sgt(dashboard, sa.dashboard.orgid, o.meraki_id, name=o.name,
-                                        description=o.description)
+                                        description=o.description, value=o.tag_number)
+                # Value update causes a delete/create combination, so immediately update with new ID
+                Tag.objects.filter(id=o.id).update(meraki_id=ret["groupId"])
                 merge_sgts("meraki", [ret], not sa.ise_source, sa, log)
                 append_log(log, "dashboard_monitor::digest_database_data::Push SGT update", o.meraki_id, o.name,
                            o.description, ret)
@@ -115,11 +117,11 @@ def digest_database_data(sa, log):
     policies = Policy.objects.filter(Q(needs_update="meraki") & Q(do_sync=True))
     for o in policies:
         try:
-            srcsgt, dstsgt = o.get_sgts("meraki")
+            srcsgt, dstsgt = o.lookup_ise_sgts()
             ret = meraki_update_sgpolicy(dashboard, sa.dashboard.orgid, name=o.name, description=o.description,
-                                         srcGroupId=srcsgt, dstGroupId=dstsgt, aclIds=o.get_sgacls("meraki"),
-                                         catchAllRule=o.get_catchall("meraki"), bindingEnabled=True,
-                                         monitorModeEnabled=False)
+                                         srcGroupId=srcsgt.meraki_id, dstGroupId=dstsgt.meraki_id,
+                                         aclIds=o.get_sgacls("meraki"), catchAllRule=o.get_catchall("meraki"),
+                                         bindingEnabled=True, monitorModeEnabled=False)
             merge_sgpolicies("meraki", [ret], not sa.ise_source, sa, log)
             append_log(log, "dashboard_monitor::digest_database_data::Push Policy update", o.meraki_id, o.name,
                        o.description, ret)
