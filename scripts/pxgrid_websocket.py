@@ -17,7 +17,6 @@ from types import SimpleNamespace as Namespace
 from scripts.db_trustsec import clean_sgts, clean_sgacls, merge_sgts, merge_sgacls
 from scripts.dblog import append_log, db_log
 from asgiref.sync import sync_to_async
-from scripts.dashboard_monitor import exec_api_action
 from sync.models import ISEServer, SyncSession
 
 scheduler = BackgroundScheduler()
@@ -152,14 +151,14 @@ def process_sgt_update(msg, sa, log):
 
     if len(tags) > 0 and sa.apply_changes:
         for t in tags:
-            m, u, d = t.push_config()
-            if m != "":
-                headers = {"X-Cisco-Meraki-API-Key": sa.dashboard.apikey, "Content-Type": "application/json"}
-                append_log(log, "pxgrid_websocket::process_sgt_update::dashboard API push", t.push_config())
-                ret = exec_api_action(m, u, d, headers)
-                t.last_update_data = ret
-                t.meraki_data = ret
-                t.save()
+            # m, u, d = t.push_config()
+            # if m != "":
+            #     headers = {"X-Cisco-Meraki-API-Key": sa.dashboard.apikey, "Content-Type": "application/json"}
+            #     append_log(log, "pxgrid_websocket::process_sgt_update::dashboard API push", t.push_config())
+            #     ret = exec_api_action(m, u, d, headers)
+            #     t.last_update_data = ret
+            #     t.meraki_data = ret
+            #     t.save()
             if t.push_delete:
                 t.delete()
 
@@ -183,14 +182,14 @@ def process_sgacl_update(msg, sa, log):
 
     if len(tags) > 0 and sa.apply_changes:
         for t in tags:
-            m, u, d = t.push_config()
-            if m != "":
-                headers = {"X-Cisco-Meraki-API-Key": sa.dashboard.apikey, "Content-Type": "application/json"}
-                append_log(log, "pxgrid_websocket::process_sgacl_update::dashboard API push", t.push_config())
-                ret = exec_api_action(m, u, d, headers)
-                t.last_update_data = ret
-                t.meraki_data = ret
-                t.save()
+            # m, u, d = t.push_config()
+            # if m != "":
+            #     headers = {"X-Cisco-Meraki-API-Key": sa.dashboard.apikey, "Content-Type": "application/json"}
+            #     append_log(log, "pxgrid_websocket::process_sgacl_update::dashboard API push", t.push_config())
+            #     ret = exec_api_action(m, u, d, headers)
+            #     t.last_update_data = ret
+            #     t.meraki_data = ret
+            #     t.save()
             if t.push_delete:
                 t.delete()
 
