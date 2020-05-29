@@ -83,11 +83,13 @@ def clean_sgpolicies(src, sgpolicies, is_base, sync_session, log=None):
             for i in policies:
                 if src == "ise" and i.ise_id and i.ise_id not in active_id_list:
                     i.push_delete = True
+                    # print("````````````", src, i.ise_id, active_id_list)
                     i.last_update = make_aware(datetime.datetime.now())
                     i.save()
                     changed_objs.append(i)
                 if src == "meraki" and i.meraki_id and i.meraki_id not in active_id_list:
                     i.push_delete = True
+                    # print("````````````", src, i.meraki_id, active_id_list)
                     i.last_update = make_aware(datetime.datetime.now())
                     i.save()
                     changed_objs.append(i)
@@ -107,7 +109,15 @@ def merge_sgts(src, sgts, is_base, sync_session, log=None):
                 tag_num = s["tag"]
 
             if tag_num is not None:
-                i = Tag.objects.filter(tag_number=tag_num)
+                if src == "meraki":
+                    i = Tag.objects.filter(meraki_id=s["groupId"])
+                elif src == "ise":
+                    i = Tag.objects.filter(ise_id=s["id"])
+                else:
+                    i = []
+
+                if len(i) == 0:
+                    i = Tag.objects.filter(tag_number=tag_num)
                 full_update = True
                 if len(i) > 0:
                     if is_base:
@@ -169,7 +179,16 @@ def merge_sgacls(src, sgacls, is_base, sync_session, log=None):
             tn_mer = tag_name.replace("_", " ")
 
             if tag_name:
-                i = ACL.objects.filter(Q(name=tn_ise) | Q(name=tn_mer))
+                if src == "meraki":
+                    i = ACL.objects.filter(meraki_id=s["aclId"])
+                elif src == "ise":
+                    i = ACL.objects.filter(ise_id=s["id"])
+                else:
+                    i = []
+
+                if len(i) == 0:
+                    i = ACL.objects.filter(Q(name=tn_ise) | Q(name=tn_mer))
+
                 full_update = True
                 if len(i) > 0:
                     if is_base:
@@ -246,7 +265,8 @@ def merge_sgpolicies(src, sgpolicies, is_base, sync_session, log=None):
 
             if src_grp and dst_grp:
                 binding_name = str(src_grp.tag_number) + "-" + str(dst_grp.tag_number)
-                binding_id = "s" + str(src_grp.tag_number) + "-d" + str(dst_grp.tag_number)
+                # binding_id = "s" + str(src_grp.tag_number) + "-d" + str(dst_grp.tag_number)
+                binding_id = "s" + str(src_grp.meraki_id) + "-d" + str(dst_grp.meraki_id)
                 binding_desc = str(src_grp.name) + "-" + str(dst_grp.name)
                 policy_name = s.get("name", "")
                 policy_desc = s.get("description", "")
@@ -254,7 +274,16 @@ def merge_sgpolicies(src, sgpolicies, is_base, sync_session, log=None):
                 policy_name = binding_name if (policy_name is None or policy_name == "") else policy_name
                 policy_desc = binding_desc if (policy_desc is None or policy_desc == "") else policy_desc
 
-                i = Policy.objects.filter(mapping=binding_name)
+                if src == "meraki":
+                    i = Policy.objects.filter(meraki_id=binding_id)
+                elif src == "ise":
+                    i = Policy.objects.filter(ise_id=s["id"])
+                else:
+                    i = []
+
+                if len(i) == 0:
+                    i = Policy.objects.filter(mapping=binding_name)
+
                 full_update = True
                 if len(i) > 0:
                     if is_base:
