@@ -28,10 +28,20 @@ def meraki_update_sgt(db, organizationId, groupId: str, **kwargs):
     }
     resource = f'/organizations/{organizationId}/adaptivePolicy/groups/{groupId}'
 
-    body_params = ['name', 'description', 'networkObjectId']
-    payload = {k: v for (k, v) in kwargs.items() if k in body_params}
+    if "value" in kwargs:
+        post_resource = f'/organizations/{organizationId}/adaptivePolicy/groups'
 
-    return db._session.put(metadata, resource, payload)
+        body_params = ['name', 'description', 'networkObjectId', 'value']
+        payload = {k: v for (k, v) in kwargs.items() if k in body_params}
+
+        new = db._session.post(metadata, post_resource, payload)
+        db._session.delete(metadata, resource)
+        return new
+    else:
+        body_params = ['name', 'description', 'networkObjectId']
+        payload = {k: v for (k, v) in kwargs.items() if k in body_params}
+
+        return db._session.put(metadata, resource, payload)
 
 
 def meraki_delete_sgt(db, organizationId, groupId: str):
