@@ -4,7 +4,6 @@ import os
 import re
 from furl import furl
 from datetime import datetime, timedelta
-
 import requests
 
 base_dir = os.path.dirname(__file__)
@@ -761,12 +760,14 @@ class ERS(object):
 
         # ISE will actually allow you to post duplicate polices, so before we execute the post, double check to
         # make sure a policy doesn't already exist
-        src_sgt = self.get_sgt(source_sgt)["response"].get("id", None)
-        dst_sgt = self.get_sgt(destination_sgt)["response"].get("id", None)
-        if src_sgt and dst_sgt:
+        src_sgt_r = self.get_sgt(source_sgt)["response"]
+        dst_sgt_r = self.get_sgt(destination_sgt)["response"]
+        if src_sgt_r and dst_sgt_r:
+            src_sgt = src_sgt_r.get("id", None)
+            dst_sgt = dst_sgt_r.get("id", None)
             celldata = self.get_egressmatrixcell(None, src_sgt=src_sgt, dst_sgt=dst_sgt)["response"]
         else:
-            celldata = None
+            celldata = src_sgt = dst_sgt = None
 
         if celldata:
             result = {
@@ -808,7 +809,6 @@ class ERS(object):
                                          'destinationSgtId': dst_sgt,
                                          'defaultRule': default_rule, "matrixCellStatus": "ENABLED",
                                          'sgacls': newacls}}
-
             resp = self._request('{0}/config/egressmatrixcell'.format(self.url_base), method='post',
                                  data=json.dumps(data))
             if resp.status_code == 201:
@@ -867,25 +867,32 @@ class ERS(object):
                         if newacl:
                             newacls.append(newacl)
 
-            src_sgt = self.get_sgt(source_sgt)["response"]["id"]
-            dst_sgt = self.get_sgt(destination_sgt)["response"]["id"]
-            data = {"EgressMatrixCell": {'id': emc, 'description': description,
-                                         'sourceSgtId': src_sgt,
-                                         'destinationSgtId': dst_sgt,
-                                         'defaultRule': default_rule, "matrixCellStatus": "ENABLED",
-                                         'sgacls': newacls}}
+            src_sgt = self.get_sgt(source_sgt)["response"]
+            dst_sgt = self.get_sgt(destination_sgt)["response"]
+            if src_sgt and dst_sgt:
+                data = {"EgressMatrixCell": {'id': emc, 'description': description,
+                                             'sourceSgtId': src_sgt["id"],
+                                             'destinationSgtId': dst_sgt["id"],
+                                             'defaultRule': default_rule, "matrixCellStatus": "ENABLED",
+                                             'sgacls': newacls}}
 
-            resp = self._request(('{0}/config/egressmatrixcell/' + emc).format(self.url_base), method='put',
-                                 data=json.dumps(data))
-            if resp.status_code == 200:
-                result['success'] = True
-                if return_object:
-                    result['response'] = self.get_egressmatrixcell(emc)["response"]
+                resp = self._request(('{0}/config/egressmatrixcell/' + emc).format(self.url_base), method='put',
+                                     data=json.dumps(data))
+                if resp.status_code == 200:
+                    result['success'] = True
+                    if return_object:
+                        result['response'] = self.get_egressmatrixcell(emc)["response"]
+                    else:
+                        result['response'] = resp.json()
+                    return result
                 else:
-                    result['response'] = resp.json()
-                return result
+                    return ERS._pass_ersresponse(result, resp)
             else:
-                return ERS._pass_ersresponse(result, resp)
+                return {
+                    'success': False,
+                    'response': None,
+                    'error': '',
+                }
 
     def delete_egressmatrixcell(self, emc):
         """
