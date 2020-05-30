@@ -316,7 +316,7 @@ class Tag(models.Model):
 
     def __str__(self):
         if self.do_sync:
-            return self.name + " (" + str(self.tag_number) + ")" + " -- Matches:" + str(self.in_sync())
+            return self.name + " (" + str(self.tag_number) + ")"    # + " -- Matches:" + str(self.in_sync())
         else:
             return self.name + " (" + str(self.tag_number) + ")"
 
@@ -386,42 +386,42 @@ class Tag(models.Model):
 
         return "none"
 
-    def push_config(self):
-        d = self.update_dest()
-        if d == "ise":
-            if self.push_delete:
-                thismeth = "DELETE"
-                url = self.syncsession.iseserver.base_url() + "/ers/config/sgt/" + self.ise_id
-                return thismeth, url, None
-            elif self.ise_id is not None and self.ise_id != "":
-                thismeth = "PUT"
-                url = self.syncsession.iseserver.base_url() + "/ers/config/sgt/" + self.ise_id
-            else:
-                thismeth = "POST"
-                url = self.syncsession.iseserver.base_url() + "/ers/config/sgt"
-
-            return thismeth, url, json.dumps({"Sgt": {"name": self.cleaned_name(), "description": self.description,
-                                                      "value": self.tag_number, "propogateToApic": False,
-                                                      "defaultSGACLs": []}})
-        elif d == "meraki":
-            if self.push_delete:
-                thismeth = "DELETE"
-                url = self.syncsession.dashboard.baseurl + "/organizations/" + str(self.syncsession.dashboard.orgid) +\
-                    "/adaptivePolicy/groups/" + self.meraki_id
-                return thismeth, url, None
-            elif self.meraki_id is not None and self.meraki_id != "":
-                thismeth = "PUT"
-                url = self.syncsession.dashboard.baseurl + "/organizations/" + str(self.syncsession.dashboard.orgid) +\
-                    "/adaptivePolicy/groups/" + self.meraki_id
-            else:
-                thismeth = "POST"
-                url = self.syncsession.dashboard.baseurl + "/organizations/" + str(self.syncsession.dashboard.orgid) +\
-                    "/adaptivePolicy/groups"
-
-            return thismeth, url, json.dumps({"value": self.tag_number, "name": self.name,
-                                              "description": self.description})
-
-        return "", "", ""
+    # def push_config(self):
+    #     d = self.update_dest()
+    #     if d == "ise":
+    #         if self.push_delete:
+    #             thismeth = "DELETE"
+    #             url = self.syncsession.iseserver.base_url() + "/ers/config/sgt/" + self.ise_id
+    #             return thismeth, url, None
+    #         elif self.ise_id is not None and self.ise_id != "":
+    #             thismeth = "PUT"
+    #             url = self.syncsession.iseserver.base_url() + "/ers/config/sgt/" + self.ise_id
+    #         else:
+    #             thismeth = "POST"
+    #             url = self.syncsession.iseserver.base_url() + "/ers/config/sgt"
+    #
+    #         return thismeth, url, json.dumps({"Sgt": {"name": self.cleaned_name(), "description": self.description,
+    #                                                   "value": self.tag_number, "propogateToApic": False,
+    #                                                   "defaultSGACLs": []}})
+    #     elif d == "meraki":
+    #         if self.push_delete:
+    #             thismeth = "DELETE"
+    #             url = self.syncsession.dashboard.baseurl + "/organizations/" + str(self.syncsession.dashboard.orgid) +\
+    #                 "/adaptivePolicy/groups/" + self.meraki_id
+    #             return thismeth, url, None
+    #         elif self.meraki_id is not None and self.meraki_id != "":
+    #             thismeth = "PUT"
+    #             url = self.syncsession.dashboard.baseurl + "/organizations/" + str(self.syncsession.dashboard.orgid) +\
+    #                 "/adaptivePolicy/groups/" + self.meraki_id
+    #         else:
+    #             thismeth = "POST"
+    #             url = self.syncsession.dashboard.baseurl + "/organizations/" + str(self.syncsession.dashboard.orgid) +\
+    #                 "/adaptivePolicy/groups"
+    #
+    #         return thismeth, url, json.dumps({"value": self.tag_number, "name": self.name,
+    #                                           "description": self.description})
+    #
+    #     return "", "", ""
 
 
 @receiver(post_save, sender=Tag)
@@ -466,7 +466,7 @@ class ACL(models.Model):
         verbose_name_plural = "ACLs"
 
     def __str__(self):
-        return self.name + " -- Valid:" + str(self.is_valid_config()) + " -- Matches:" + str(self.in_sync())
+        return self.name    # + " -- Valid:" + str(self.is_valid_config()) + " -- Matches:" + str(self.in_sync())
 
     def cleaned_name(self):
         newname = self.name[:32]
@@ -736,45 +736,45 @@ class ACL(models.Model):
                 return sgacl
         return ""
 
-    def push_config(self):
-        d = self.update_dest()
-        if not self.is_valid_config():
-            return "", "", ""
-
-        if d == "ise":
-            if self.push_delete:
-                thismeth = "DELETE"
-                url = self.syncsession.iseserver.base_url() + "/ers/config/sgacl/" + self.ise_id
-                return thismeth, url, None
-            elif self.ise_id is not None and self.ise_id != "":
-                thismeth = "PUT"
-                url = self.syncsession.iseserver.base_url() + "/ers/config/sgacl/" + self.ise_id
-            else:
-                thismeth = "POST"
-                url = self.syncsession.iseserver.base_url() + "/ers/config/sgacl"
-
-            return thismeth, url, json.dumps({"Sgacl": {"name": self.cleaned_name(), "description": self.description,
-                                                        "ipVersion": self.get_version(d), "readOnly": False,
-                                                        "aclcontent": self.get_rules(d)}})  # .replace("\\n", "\n")
-        elif d == "meraki":
-            if self.push_delete:
-                thismeth = "DELETE"
-                url = self.syncsession.dashboard.baseurl + "/organizations/" + str(self.syncsession.dashboard.orgid) +\
-                    "/adaptivePolicy/acls/" + self.meraki_id
-                return thismeth, url, None
-            elif self.meraki_id is not None and self.meraki_id != "":
-                thismeth = "PUT"
-                url = self.syncsession.dashboard.baseurl + "/organizations/" + str(self.syncsession.dashboard.orgid) +\
-                    "/adaptivePolicy/acls/" + self.meraki_id
-            else:
-                thismeth = "POST"
-                url = self.syncsession.dashboard.baseurl + "/organizations/" + str(self.syncsession.dashboard.orgid) +\
-                    "/adaptivePolicy/acls"
-
-            return thismeth, url, json.dumps({"name": self.name, "description": self.description,
-                                              "ipVersion": self.get_version(d), "rules": self.get_rules(d)})
-
-        return "", "", ""
+    # def push_config(self):
+    #     d = self.update_dest()
+    #     if not self.is_valid_config():
+    #         return "", "", ""
+    #
+    #     if d == "ise":
+    #         if self.push_delete:
+    #             thismeth = "DELETE"
+    #             url = self.syncsession.iseserver.base_url() + "/ers/config/sgacl/" + self.ise_id
+    #             return thismeth, url, None
+    #         elif self.ise_id is not None and self.ise_id != "":
+    #             thismeth = "PUT"
+    #             url = self.syncsession.iseserver.base_url() + "/ers/config/sgacl/" + self.ise_id
+    #         else:
+    #             thismeth = "POST"
+    #             url = self.syncsession.iseserver.base_url() + "/ers/config/sgacl"
+    #
+    #         return thismeth, url, json.dumps({"Sgacl": {"name": self.cleaned_name(), "description": self.description,
+    #                                                     "ipVersion": self.get_version(d), "readOnly": False,
+    #                                                     "aclcontent": self.get_rules(d)}})  # .replace("\\n", "\n")
+    #     elif d == "meraki":
+    #         if self.push_delete:
+    #             thismeth = "DELETE"
+    #             url = self.syncsession.dashboard.baseurl + "/organizations/" + str(self.syncsession.dashboard.orgid) +\
+    #                 "/adaptivePolicy/acls/" + self.meraki_id
+    #             return thismeth, url, None
+    #         elif self.meraki_id is not None and self.meraki_id != "":
+    #             thismeth = "PUT"
+    #             url = self.syncsession.dashboard.baseurl + "/organizations/" + str(self.syncsession.dashboard.orgid) +\
+    #                 "/adaptivePolicy/acls/" + self.meraki_id
+    #         else:
+    #             thismeth = "POST"
+    #             url = self.syncsession.dashboard.baseurl + "/organizations/" + str(self.syncsession.dashboard.orgid) +\
+    #                 "/adaptivePolicy/acls"
+    #
+    #         return thismeth, url, json.dumps({"name": self.name, "description": self.description,
+    #                                           "ipVersion": self.get_version(d), "rules": self.get_rules(d)})
+    #
+    #     return "", "", ""
 
 
 @receiver(post_save, sender=ACL)
@@ -813,7 +813,7 @@ class Policy(models.Model):
         verbose_name_plural = "policies"
 
     def __str__(self):
-        return self.name + " (" + self.mapping + ")" + " -- Matches:" + str(self.in_sync())
+        return self.name + " (" + self.mapping + ")"    # + " -- Matches:" + str(self.in_sync())
 
     def lookup_ise_sgts(self):
         if self.ise_id and self.ise_data:
@@ -1006,56 +1006,56 @@ class Policy(models.Model):
             return outsgacl
         return ""
 
-    def push_config(self):
-        d = self.update_dest()
-        src, dst = self.get_sgts(d)
-        acl = self.get_sgacls(d)
-        if src is None or dst is None or acl is None:
-            return "", "", ""
-        if d == "ise":
-            if self.push_delete:
-                thismeth = "DELETE"
-                url = self.syncsession.iseserver.base_url() + "/ers/config/egressmatrixcell"
-                return thismeth, url, None
-            elif self.ise_id is not None and self.ise_id != "":
-                thismeth = "PUT"
-                url = self.syncsession.iseserver.base_url() + "/ers/config/egressmatrixcell"
-            else:
-                thismeth = "POST"
-                url = self.syncsession.iseserver.base_url() + "/ers/config/egressmatrixcell"
-
-            return thismeth, url, json.dumps({"EgressMatrixCell": {"sourceSgtId": src, "destinationSgtId": dst,
-                                                                   "matrixCellStatus": "ENABLED",
-                                                                   "defaultRule": self.get_catchall(d), "sgacls": acl,
-                                                                   "name": self.name, "description": self.description}})
-        elif d == "meraki":
-            thismeth = "PUT"
-            url = self.syncsession.dashboard.baseurl + "/organizations/" + str(self.syncsession.dashboard.orgid) +\
-                "/adaptivePolicy/bindings"
-
-            if self.push_delete:
-                return thismeth, url, json.dumps({
-                        "description": self.name,
-                        "name": self.description,
-                        "monitorModeEnabled": False,
-                        "catchAllRule": "global",
-                        "bindingEnabled": True,
-                        "aclIds": None,
-                        "srcGroupId": src,
-                        "dstGroupId": dst
-                    })
-            return thismeth, url, json.dumps({
-                    "description": self.description,
-                    "name": self.name,
-                    "monitorModeEnabled": False,
-                    "catchAllRule": self.get_catchall(d),
-                    "bindingEnabled": True,
-                    "aclIds": acl,
-                    "srcGroupId": src,
-                    "dstGroupId": dst
-                })
-
-        return "", "", ""
+    # def push_config(self):
+    #     d = self.update_dest()
+    #     src, dst = self.get_sgts(d)
+    #     acl = self.get_sgacls(d)
+    #     if src is None or dst is None or acl is None:
+    #         return "", "", ""
+    #     if d == "ise":
+    #         if self.push_delete:
+    #             thismeth = "DELETE"
+    #             url = self.syncsession.iseserver.base_url() + "/ers/config/egressmatrixcell"
+    #             return thismeth, url, None
+    #         elif self.ise_id is not None and self.ise_id != "":
+    #             thismeth = "PUT"
+    #             url = self.syncsession.iseserver.base_url() + "/ers/config/egressmatrixcell"
+    #         else:
+    #             thismeth = "POST"
+    #             url = self.syncsession.iseserver.base_url() + "/ers/config/egressmatrixcell"
+    #
+    #         return thismeth, url, json.dumps({"EgressMatrixCell": {"sourceSgtId": src, "destinationSgtId": dst,
+    #                                                                "matrixCellStatus": "ENABLED",
+    #                                                                "defaultRule": self.get_catchall(d), "sgacls": acl,
+    #                                                                "name": self.name, "description": self.description}})
+    #     elif d == "meraki":
+    #         thismeth = "PUT"
+    #         url = self.syncsession.dashboard.baseurl + "/organizations/" + str(self.syncsession.dashboard.orgid) +\
+    #             "/adaptivePolicy/bindings"
+    #
+    #         if self.push_delete:
+    #             return thismeth, url, json.dumps({
+    #                     "description": self.name,
+    #                     "name": self.description,
+    #                     "monitorModeEnabled": False,
+    #                     "catchAllRule": "global",
+    #                     "bindingEnabled": True,
+    #                     "aclIds": None,
+    #                     "srcGroupId": src,
+    #                     "dstGroupId": dst
+    #                 })
+    #         return thismeth, url, json.dumps({
+    #                 "description": self.description,
+    #                 "name": self.name,
+    #                 "monitorModeEnabled": False,
+    #                 "catchAllRule": self.get_catchall(d),
+    #                 "bindingEnabled": True,
+    #                 "aclIds": acl,
+    #                 "srcGroupId": src,
+    #                 "dstGroupId": dst
+    #             })
+    #
+    #     return "", "", ""
 
 
 @receiver(post_save, sender=Policy)
