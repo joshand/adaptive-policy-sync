@@ -2,10 +2,19 @@
 source=
     /Users/joshanderson/code/adaptive-policy-sync
 omit=
+    # Ignore - part of pytest
+    /Users/joshanderson/code/adaptive-policy-sync/conftest.py
+    # ISE Library - "External"
+    /Users/joshanderson/code/adaptive-policy-sync/ise.py
+    # Not going to test everything in virtualenv
     /Users/joshanderson/code/adaptive-policy-sync/venv/*
+    # Old code that isn't pushed to repo
     /Users/joshanderson/code/adaptive-policy-sync/old/*
+    # Django Migrations
     /Users/joshanderson/code/adaptive-policy-sync/sync/migrations/*
+    # Config file with private data
     /Users/joshanderson/code/adaptive-policy-sync/sync/_config.py
+    # Simulators; only used in basic dev functionality
     /Users/joshanderson/code/adaptive-policy-sync/scripts/base_simulator.py
     /Users/joshanderson/code/adaptive-policy-sync/scripts/dashboard_simulator.py
     /Users/joshanderson/code/adaptive-policy-sync/scripts/ise_ers_simulator.py
