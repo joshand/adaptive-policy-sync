@@ -66,6 +66,9 @@ def digest_database_data(sa, log):
         if o.ise_id:
             try:
                 ret = ise.update_sgt(o.ise_id, o.name, o.description, o.tag_number, return_object=True)
+                o.last_update_data = ret
+                o.last_update_state = str(ret.get("success", False))
+                o.save()
                 if ret["response"]:
                     merge_sgts("ise", [ret["response"]], sa.ise_source, sa, log)
                     append_log(log, "ise_monitor::digest_database_data::Push SGT update", o.ise_id, o.name,
@@ -77,6 +80,9 @@ def digest_database_data(sa, log):
         else:
             try:
                 ret = ise.add_sgt(o.name, o.description, o.tag_number, return_object=True)
+                o.last_update_data = ret
+                o.last_update_state = str(ret.get("success", False))
+                o.save()
                 if ret["response"]:
                     merge_sgts("ise", [ret["response"]], sa.ise_source, sa, log)
                     append_log(log, "ise_monitor::digest_database_data::Push SGT create", o.name,
@@ -92,6 +98,9 @@ def digest_database_data(sa, log):
             try:
                 ret = ise.update_sgacl(o.ise_id, o.name, o.description, o.get_version("ise"),
                                        o.get_rules("ise").split("\n"), return_object=True)
+                o.last_update_data = ret
+                o.last_update_state = str(ret.get("success", False))
+                o.save()
                 if ret["response"]:
                     merge_sgacls("ise", [ret["response"]], sa.ise_source, sa, log)
                     append_log(log, "ise_monitor::digest_database_data::Push SGACL update", o.ise_id, o.name,
@@ -104,6 +113,9 @@ def digest_database_data(sa, log):
             try:
                 ret = ise.add_sgacl(o.name, o.description, o.get_version("ise"), o.get_rules("ise").split("\n"),
                                     return_object=True)
+                o.last_update_data = ret
+                o.last_update_state = str(ret.get("success", False))
+                o.save()
                 if ret["response"]:
                     merge_sgacls("ise", [ret["response"]], sa.ise_source, sa, log)
                     append_log(log, "ise_monitor::digest_database_data::Push SGACL create", o.name,
@@ -121,6 +133,9 @@ def digest_database_data(sa, log):
                 ret = ise.update_egressmatrixcell(o.ise_id, srcsgt.ise_id, dstsgt.ise_id, o.get_catchall("ise"),
                                                   acls=o.get_sgacls("ise"), description=o.description,
                                                   return_object=True)
+                o.last_update_data = ret
+                o.last_update_state = str(ret.get("success", False))
+                o.save()
                 if ret["response"]:
                     merge_sgpolicies("ise", [ret["response"]], sa.ise_source, sa, log)
                     append_log(log, "ise_monitor::digest_database_data::Push Policy update", o.ise_id, o.name,
@@ -134,6 +149,9 @@ def digest_database_data(sa, log):
                 srcsgt, dstsgt = o.lookup_meraki_sgts()
                 ret = ise.add_egressmatrixcell(srcsgt.ise_id, dstsgt.ise_id, o.get_catchall("ise"),
                                                acls=o.get_sgacls("ise"), description=o.description, return_object=True)
+                o.last_update_data = ret
+                o.last_update_state = str(ret.get("success", False))
+                o.save()
                 if ret["response"]:
                     merge_sgpolicies("ise", [ret["response"]], sa.ise_source, sa, log)
                     append_log(log, "ise_monitor::digest_database_data::Push Policy create", o.tag_number, o.name,
