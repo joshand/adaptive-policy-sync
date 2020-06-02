@@ -58,7 +58,8 @@ def meraki_create_sgacl(db, organizationId, **kwargs):
     if 'ipVersion' in kwargs:
         options = ['agnostic', 'ipv4', 'ipv6']
         assert kwargs[
-                   'ipVersion'] in options, f'''"ipVersion" cannot be "{kwargs['ipVersion']}", & must be set to one of: {options}'''
+                   'ipVersion'] in options, f'''"ipVersion" cannot be "{kwargs['ipVersion']}", & must be set to \
+                   one of: {options}'''
 
     metadata = {
         'tags': ['organizations', 'configure', 'adaptivePolicy', 'acls'],
@@ -86,7 +87,8 @@ def meraki_update_sgacl(db, organizationId, aclId: str, **kwargs):
     if 'ipVersion' in kwargs:
         options = ['agnostic', 'ipv4', 'ipv6']
         assert kwargs[
-                   'ipVersion'] in options, f'''"ipVersion" cannot be "{kwargs['ipVersion']}", & must be set to one of: {options}'''
+                   'ipVersion'] in options, f'''"ipVersion" cannot be "{kwargs['ipVersion']}", & must be set to \
+                   one of: {options}'''
 
     metadata = {
         'tags': ['organizations', 'configure', 'adaptivePolicy', 'acls'],
@@ -124,7 +126,8 @@ def meraki_update_sgpolicy(db, organizationId, **kwargs):
     if 'catchAllRule' in kwargs:
         options = ['global', 'deny all', 'allow all']
         assert kwargs[
-                   'catchAllRule'] in options, f'''"catchAllRule" cannot be "{kwargs['catchAllRule']}", & must be set to one of: {options}'''
+                   'catchAllRule'] in options, f'''"catchAllRule" cannot be "{kwargs['catchAllRule']}", & must be set \
+                   to one of: {options}'''
 
     metadata = {
         'tags': ['organizations', 'configure', 'adaptivePolicy', 'bindings'],
