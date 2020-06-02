@@ -886,7 +886,8 @@ class Policy(models.Model):
                 default_match = True
                 if len(i_sgacls_o) == 1 and i_sgacls_o[0] == "Deny IP":
                     ise_single_rule_match = True
-            elif mdata["catchAllRule"] == "permit all" and idata["defaultRule"] == "PERMIT_IP":
+            elif (mdata["catchAllRule"] == "allow all" or mdata["catchAllRule"] == "permit all") and \
+                    idata["defaultRule"] == "PERMIT_IP":
                 default_match = True
                 if len(i_sgacls_o) == 1 and i_sgacls_o[0] == "Permit IP":
                     ise_single_rule_match = True
@@ -955,7 +956,7 @@ class Policy(models.Model):
                 mdata = json.loads(self.meraki_data)
                 if mdata["catchAllRule"] == "deny all":
                     return "DENY_IP"
-                elif mdata["catchAllRule"] == "permit all":
+                elif mdata["catchAllRule"] == "allow all" or mdata["catchAllRule"] == "permit all":
                     return "PERMIT_IP"
                 elif mdata["catchAllRule"] == "global":
                     return "NONE"
@@ -967,7 +968,7 @@ class Policy(models.Model):
                 if idata["defaultRule"] == "DENY_IP":
                     return "deny all"
                 elif idata["defaultRule"] == "PERMIT_IP":
-                    return "permit all"
+                    return "allow all"
                 elif idata["defaultRule"] == "NONE":
                     return "global"
                 else:
