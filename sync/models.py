@@ -53,11 +53,14 @@ class UploadZip(models.Model):
 @receiver(post_save, sender=UploadZip)
 def post_save_uploadzip(sender, instance=None, created=False, **kwargs):
     post_save.disconnect(post_save_uploadzip, sender=UploadZip)
+    print(str(instance.file), instance.description)
     if str(instance.file) not in instance.description:
+        print("naming files")
         if instance.description:
             instance.description = instance.description + "-" + str(instance.file)
         else:
             instance.description = "None-" + str(instance.file)
+        print("naming files - new desc", instance.description)
 
         instance.save()
 
@@ -66,9 +69,11 @@ def post_save_uploadzip(sender, instance=None, created=False, **kwargs):
             if libitem.startswith('__MACOSX/'):
                 continue
             fn = "upload/" + libitem
+            print("unpacking file", fn)
             open(fn, 'wb').write(unzipped.read(libitem))
             i = Upload.objects.create(description=instance.description + "-" + fn, file=fn)
             i.save()
+            print("saved")
 
     post_save.connect(post_save_uploadzip, sender=UploadZip)
 
