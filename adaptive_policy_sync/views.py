@@ -188,9 +188,9 @@ def setupmeraki(request):
             if iseserver:
                 iseserver.pxgrid_ip = pxgridip
                 iseserver.pxgrid_cliname = pxgridcli
-                iseserver.pxgrid_clicert = pxgridpw
-                iseserver.pxgrid_clikey = cli_cert[0]
-                iseserver.pxgrid_clipw = cli_key[0]
+                iseserver.pxgrid_clicert = cli_cert[0]
+                iseserver.pxgrid_clikey = cli_key[0]
+                iseserver.pxgrid_clipw = pxgridpw
                 iseserver.pxgrid_isecert = server_cert[0]
                 iseserver.save()
 
