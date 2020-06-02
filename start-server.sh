@@ -19,5 +19,5 @@ if [ -n "$DJANGO_SUPERUSER_USERNAME" ] && [ -n "$DJANGO_SUPERUSER_PASSWORD" ] &&
     echo "2) API Key: (not required; enter anything)"
     echo "===================================================="
 fi
-(cd adaptive_policy_sync; gunicorn adaptive_policy_sync.wsgi --user www-data --bind 0.0.0.0:8020 --workers 3 --preload) &
+(cd adaptive_policy_sync; gunicorn adaptive_policy_sync.wsgi --user www-data --bind 0.0.0.0:8010 --workers 3 --preload) &
 nginx -g "daemon off;"
