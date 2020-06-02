@@ -5,7 +5,8 @@ import sync._config
 import meraki
 from ise import ERS
 from scripts.meraki_addons import meraki_read_sgt, meraki_read_sgacl, meraki_read_sgpolicy, meraki_update_sgt, \
-    meraki_update_sgacl, meraki_update_sgpolicy, meraki_delete_sgt, meraki_delete_sgacl
+    meraki_update_sgacl, meraki_update_sgpolicy, meraki_delete_sgt, meraki_delete_sgacl, meraki_create_sgt, \
+    meraki_create_sgacl
 from django.conf import settings
 import scripts.dashboard_monitor
 import scripts.ise_monitor
@@ -15,9 +16,13 @@ import json
 def reset_dashboard(db):
     dashboard = meraki.DashboardAPI(base_url=db.baseurl, api_key=db.apikey, print_console=False, output_log=False,
                                     caller=settings.CUSTOM_UA)
+    default_sgts = [d['value'] for d in sync._config.meraki_default_sgts]
+    default_sgacls = [d['name'] for d in sync._config.meraki_default_sgacls]
+    default_policies = [d['name'] for d in sync._config.meraki_default_policies]
+
     sgts = meraki_read_sgt(dashboard, db.orgid)
     sgacls = meraki_read_sgacl(dashboard, db.orgid)
-    meraki_read_sgpolicy(dashboard, db.orgid)
+    # sgpolicies = meraki_read_sgpolicy(dashboard, db.orgid)
     for s in sgts:
         if not s["value"] in sync._config.whitelisted_sgts:
             print("Removing SGT", s["value"], "from Meraki Dashboard...")
@@ -33,6 +38,46 @@ def reset_dashboard(db):
     #     #  If the group did get deleted successfully, this will error out, hence the try block
     #     meraki_update_sgpolicy(dashboard, db.orgid, srcGroupId=s["srcGroupId"], dstGroupId=s["dstGroupId"],
     #                            aclIds=None, catchAllRule="global", name="")
+
+    sgts = meraki_read_sgt(dashboard, db.orgid)
+    sgacls = meraki_read_sgacl(dashboard, db.orgid)
+    sgpolicies = meraki_read_sgpolicy(dashboard, db.orgid)
+
+    current_vals = [d['value'] for d in sgts]
+    for s in sync._config.meraki_default_sgts:
+        if not s["value"] in current_vals:
+            print("Adding SGT", s["value"], "to Meraki Dashboard...")
+            meraki_create_sgt(dashboard, db.orgid, name=s["name"], description=s["description"], value=s["value"])
+
+    current_vals = [d['name'] for d in sgacls]
+    for s in sync._config.meraki_default_sgacls:
+        if not s["name"] in current_vals:
+            print("Adding SGACL", s["name"], "to Meraki Dashboard...")
+            meraki_create_sgacl(dashboard, db.orgid, name=s["name"], description=s["description"],
+                                rules=s["aclcontent"], ipVersion=s["version"])
+
+    sgt_list = meraki_read_sgt(dashboard, db.orgid)
+    sgacl_list = meraki_read_sgacl(dashboard, db.orgid)
+    current_vals = [d['name'] for d in sgpolicies]
+    for pol in sync._config.meraki_default_policies:
+        src_sgt_id = dst_sgt_id = None
+        if not pol["name"] in current_vals:
+            # Look up Policy elements that we are going to be adding in Dashboard...
+            for s in sgt_list:
+                if s["name"] == pol["src"]:
+                    src_sgt_id = s["groupId"]
+                if s["name"] == pol["dst"]:
+                    dst_sgt_id = s["groupId"]
+            acl_id_list = []
+            for acl in pol["acls"]:
+                for a in sgacl_list:
+                    if a["name"] == acl:
+                        acl_id_list.append(a["aclId"])
+
+            print("Adding Egress Policy", pol["name"], "to Meraki Dashboard...")
+            meraki_update_sgpolicy(dashboard, db.orgid, srcGroupId=src_sgt_id, dstGroupId=dst_sgt_id, name=pol["name"],
+                                   description=pol["description"], catchAllRule=pol["default"], bindingEnabled=True,
+                                   monitorModeEnabled=False, aclIds=acl_id_list)
 
 
 def reset_ise(db):
@@ -506,11 +551,14 @@ def test_ise_sgts_in_database(arg):
             else:
                 print("2 (SUCCESS) :", model_to_dict(s))
 
-    if len(sgts) != len(sync._config.whitelisted_sgts + sync._config.ise_default_sgts):
+    if len(sgts) != len(sync._config.whitelisted_sgts + sync._config.ise_default_sgts +
+                        sync._config.meraki_default_sgts):
         success = False
-        print("3 (FAIL) : ", sgts, (sync._config.whitelisted_sgts + sync._config.ise_default_sgts))
+        print("3 (FAIL) : ", sgts, (sync._config.whitelisted_sgts + sync._config.ise_default_sgts +
+                                    sync._config.meraki_default_sgts))
     else:
-        print("3 (SUCCESS) : ", sgts, (sync._config.whitelisted_sgts + sync._config.ise_default_sgts))
+        print("3 (SUCCESS) : ", sgts, (sync._config.whitelisted_sgts + sync._config.ise_default_sgts +
+                                       sync._config.meraki_default_sgts))
 
     assert success
 
@@ -542,11 +590,14 @@ def test_ise_sgacls_in_database(arg):
             else:
                 print("2 (SUCCESS) :", model_to_dict(s))
 
-    if len(sgacls) != len(sync._config.whitelisted_sgacls + sync._config.ise_default_sgacls):
+    if len(sgacls) != len(sync._config.whitelisted_sgacls + sync._config.ise_default_sgacls +
+                          sync._config.meraki_default_sgacls):
         success = False
-        print("3 (FAIL) : ", sgacls, (sync._config.whitelisted_sgacls + sync._config.ise_default_sgacls))
+        print("3 (FAIL) : ", sgacls, (sync._config.whitelisted_sgacls + sync._config.ise_default_sgacls +
+                                      sync._config.meraki_default_sgacls))
     else:
-        print("3 (SUCCESS) : ", sgacls, (sync._config.whitelisted_sgacls + sync._config.ise_default_sgacls))
+        print("3 (SUCCESS) : ", sgacls, (sync._config.whitelisted_sgacls + sync._config.ise_default_sgacls +
+                                         sync._config.meraki_default_sgacls))
 
     assert success
 
@@ -576,11 +627,14 @@ def test_ise_policies_in_database(arg):
                 print("2 (SUCCESS) :", model_to_dict(s))
 
     # The default ISE ANY-ANY policy will not be synchronized to the database; subtract one for that
-    if len(sgpolicies) != len(sync._config.whitelisted_policies + sync._config.ise_default_policies) - 1:
+    if len(sgpolicies) != len(sync._config.whitelisted_policies + sync._config.ise_default_policies +
+                              sync._config.meraki_default_policies) - 1:
         success = False
-        print("3 (FAIL) : ", sgpolicies, (sync._config.whitelisted_policies + sync._config.ise_default_policies))
+        print("3 (FAIL) : ", sgpolicies, (sync._config.whitelisted_policies + sync._config.ise_default_policies +
+                                          sync._config.meraki_default_policies))
     else:
-        print("3 (SUCCESS) : ", sgpolicies, (sync._config.whitelisted_policies + sync._config.ise_default_policies))
+        print("3 (SUCCESS) : ", sgpolicies, (sync._config.whitelisted_policies + sync._config.ise_default_policies +
+                                             sync._config.meraki_default_policies))
 
     assert success
 
@@ -638,7 +692,8 @@ def test_ise_sync_success(arg):
     """Perform a full sync and ensure SGTs, SGACLs and Policies have synced correctly"""
     success = True
     sgts = Tag.objects.all()
-    if len(sgts) != len(sync._config.ise_default_sgts + sync._config.whitelisted_sgts):
+    if len(sgts) != len(sync._config.whitelisted_sgts + sync._config.ise_default_sgts +
+                        sync._config.meraki_default_sgts):
         success = False
         print("1 (FAIL) :", "Incorrect number of objects in DB")
     for s in sgts:
@@ -649,11 +704,11 @@ def test_ise_sync_success(arg):
             else:
                 print("1 (SUCCESS) :", model_to_dict(s))
     sgacls = ACL.objects.filter(visible=True)
-    if len(sgacls) != len(sync._config.ise_default_sgacls):
+    if len(sgacls) != len(sync._config.ise_default_sgacls + sync._config.meraki_default_sgacls):
         success = False
         print("2 (FAIL) :", "Incorrect number of objects in DB")
     for s in sgacls:
-        if s.name in sync._config.expected_sgacls:
+        if s.name in sync._config.expected_ise_sgacls:
             if not s.do_sync or not s.match_report(bool_only=True):
                 success = False
                 print("2 (FAIL-NO_MATCH) :", model_to_dict(s))
@@ -664,14 +719,14 @@ def test_ise_sync_success(arg):
         if success:
             print("2 (SUCCESS) :", model_to_dict(s))
     policies = Policy.objects.all()
-    if len(policies) != len(sync._config.ise_default_policies):
+    if len(policies) != len(sync._config.ise_default_policies + sync._config.meraki_default_policies):
         success = False
         print("3 (FAIL) :", "Incorrect number of objects in DB")
     for s in policies:
-        if s.name in sync._config.expected_policies:
+        if s.name in sync._config.expected_ise_policies:
             if not s.do_sync or not s.match_report(bool_only=True):
                 success = False
-                print("3 (FAIL-NO_MATCH) :", model_to_dict(s))
+                print("3 (FAIL-NO_MATCH) :", model_to_dict(s), "\n", s.match_report())
         else:
             if s.do_sync:
                 success = False
@@ -705,62 +760,64 @@ def test_update_ise_success(arg):
     # print(model_to_dict(policy))
 
     if sa.ise_source:
-        upd_sgt = ise.get_sgt(sync._config.update_sgt["search"])["response"]
-        upd_sgacl = ise.get_sgacl(sync._config.update_sgacl["search"])["response"]
-        upd_policy = ise.get_egressmatrixcell(sync._config.update_policy["search"])["response"]
+        upd_sgt = ise.get_sgt(sync._config.update_ise_sgt["search"])["response"]
+        upd_sgacl = ise.get_sgacl(sync._config.update_ise_sgacl["search"])["response"]
+        upd_policy = ise.get_egressmatrixcell(sync._config.update_ise_policy["search"])["response"]
 
         if not upd_sgt or not upd_sgacl or not upd_policy:
             print("One or more elements missing during search", upd_sgt, upd_sgacl, upd_policy)
             assert False
 
         ise.update_egressmatrixcell(upd_policy["id"], upd_policy["sourceSgtId"], upd_policy["destinationSgtId"],
-                                    sync._config.update_policy["default"], acls=sync._config.update_policy["acls"],
-                                    description=sync._config.update_policy["description"])
-        ise.update_sgacl(upd_sgacl["id"], sync._config.update_sgacl["name"], sync._config.update_sgacl["description"],
-                         sync._config.update_sgacl["version"], sync._config.update_sgacl["aclcontent"])
-        ise.update_sgt(upd_sgt["id"], sync._config.update_sgt["name"], sync._config.update_sgt["description"],
-                       sync._config.update_sgt["value"])
+                                    sync._config.update_ise_policy["default"],
+                                    acls=sync._config.update_ise_policy["acls"],
+                                    description=sync._config.update_ise_policy["description"])
+        ise.update_sgacl(upd_sgacl["id"], sync._config.update_ise_sgacl["name"],
+                         sync._config.update_ise_sgacl["description"],
+                         sync._config.update_ise_sgacl["version"], sync._config.update_ise_sgacl["aclcontent"])
+        ise.update_sgt(upd_sgt["id"], sync._config.update_ise_sgt["name"], sync._config.update_ise_sgt["description"],
+                       sync._config.update_ise_sgt["value"])
     else:
         src_sgt_id = dst_sgt_id = update_sgt_id = update_sgacl_id = None
         # Look up SGT that we are going to be updating in Dashboard...
         sgt_list = meraki_read_sgt(dashboard, db.orgid)
         for a in sgt_list:
-            if a["name"] == sync._config.update_sgt["search"]:
+            if a["name"] == sync._config.update_ise_sgt["search"]:
                 update_sgt_id = a["groupId"]
         # Look up SGACL that we are going to be updating in Dashboard...
         sgacl_list = meraki_read_sgacl(dashboard, db.orgid)
         for a in sgacl_list:
             # print(a["name"], update_sgacl["search"])
-            if a["name"] == sync._config.update_sgacl["search"]:
+            if a["name"] == sync._config.update_ise_sgacl["search"]:
                 update_sgacl_id = a["aclId"]
         # Look up Policy elements that we are going to be updating in Dashboard...
         for s in sgt_list:
-            if s["name"] == sync._config.update_policy["src"]:
+            if s["name"] == sync._config.update_ise_policy["src"]:
                 src_sgt_id = s["groupId"]
-            if s["name"] == sync._config.update_policy["dst"]:
+            if s["name"] == sync._config.update_ise_policy["dst"]:
                 dst_sgt_id = s["groupId"]
         acl_id_list = []
-        for acl in sync._config.update_policy["acls"]:
+        for acl in sync._config.update_ise_policy["acls"]:
             for a in sgacl_list:
                 # print(a["name"], acl)
                 if a["name"] == acl:
                     acl_id_list.append(a["aclId"])
         # Update!
-        meraki_update_sgpolicy(dashboard, db.orgid, name=sync._config.update_policy["name"],
-                               description=sync._config.update_policy["description"], srcGroupId=src_sgt_id,
+        meraki_update_sgpolicy(dashboard, db.orgid, name=sync._config.update_ise_policy["name"],
+                               description=sync._config.update_ise_policy["description"], srcGroupId=src_sgt_id,
                                dstGroupId=dst_sgt_id, aclIds=acl_id_list if len(acl_id_list) > 0 else None,
-                               catchAllRule=sync._config.update_policy["default_meraki"], bindingEnabled=True,
+                               catchAllRule=sync._config.update_ise_policy["default_meraki"], bindingEnabled=True,
                                monitorModeEnabled=False)
 
         # print("@@@@@@@@@@@@@@@", pol, src_sgt_id, dst_sgt_id, acl_id_list)
-        acl = meraki_update_sgacl(dashboard, db.orgid, update_sgacl_id, name=sync._config.update_sgacl["name"],
-                                  description=sync._config.update_sgacl["description"],
-                                  rules=sync._config.update_sgacl["aclcontent_meraki"],
-                                  ipVersion=sync._config.update_sgacl["version_meraki"])
-        sgt = meraki_update_sgt(dashboard, db.orgid, update_sgt_id, name=sync._config.update_sgt["name"],
-                                description=sync._config.update_sgt["description"],
-                                value=sync._config.update_sgt["value"])
-        Tag.objects.filter(name=sync._config.update_sgt["search"]).update(meraki_id=sgt["groupId"], meraki_data=sgt)
+        acl = meraki_update_sgacl(dashboard, db.orgid, update_sgacl_id, name=sync._config.update_ise_sgacl["name"],
+                                  description=sync._config.update_ise_sgacl["description"],
+                                  rules=sync._config.update_ise_sgacl["aclcontent_meraki"],
+                                  ipVersion=sync._config.update_ise_sgacl["version_meraki"])
+        sgt = meraki_update_sgt(dashboard, db.orgid, update_sgt_id, name=sync._config.update_ise_sgt["name"],
+                                description=sync._config.update_ise_sgt["description"],
+                                value=sync._config.update_ise_sgt["value"])
+        Tag.objects.filter(name=sync._config.update_ise_sgt["search"]).update(meraki_id=sgt["groupId"], meraki_data=sgt)
 
     sa.force_rebuild = True
     sa.save()
@@ -776,39 +833,41 @@ def test_update_ise_success(arg):
         # print("\n==============\n", msg, log, "\n==============\n")
     # sgts = Tag.objects.all()
     # print(sgts)
-    sgts = Tag.objects.filter(name=sync._config.update_sgt["name"])
+    sgts = Tag.objects.filter(name=sync._config.update_ise_sgt["name"])
     if len(sgts) != 1:
         success = False
         print("1 (FAIL) :", "Incorrect number of objects in DB")
     for s in sgts:
-        if s.name == sync._config.update_sgt["name"] and s.description == sync._config.update_sgt["description"] and \
-                s.tag_number == sync._config.update_sgt["value"] and s.match_report(True):
+        if s.name == sync._config.update_ise_sgt["name"] and \
+                s.description == sync._config.update_ise_sgt["description"] and \
+                s.tag_number == sync._config.update_ise_sgt["value"] and s.match_report(True):
             print("1 (SUCCESS) :", model_to_dict(s))
         else:
             success = False
             print("1 (FAIL) :", model_to_dict(s))
-    sgacls = ACL.objects.filter(name=sync._config.update_sgacl["name"])
+    sgacls = ACL.objects.filter(name=sync._config.update_ise_sgacl["name"])
     if len(sgacls) != 1:
         success = False
         print("2 (FAIL) :", "Incorrect number of objects in DB")
     for s in sgacls:
         ise_data = json.loads(s.ise_data)
-        if s.name == sync._config.update_sgacl["name"] and \
-                s.description == sync._config.update_sgacl["description"] and \
-                s.get_version("ise") == sync._config.update_sgacl["version"] and \
-                ise_data["aclcontent"] == "\n".join(sync._config.update_sgacl["aclcontent"]) and s.match_report(True):
+        if s.name == sync._config.update_ise_sgacl["name"] and \
+                s.description == sync._config.update_ise_sgacl["description"] and \
+                s.get_version("ise") == sync._config.update_ise_sgacl["version"] and \
+                ise_data["aclcontent"] == "\n".join(sync._config.update_ise_sgacl["aclcontent"]) and \
+                s.match_report(True):
             print("2 (SUCCESS) :", model_to_dict(s))
         else:
             success = False
             print("2 (FAIL) :", model_to_dict(s))
-    policies = Policy.objects.filter(name=sync._config.update_policy["name"])
+    policies = Policy.objects.filter(name=sync._config.update_ise_policy["name"])
     if len(policies) != 1:
         success = False
         print("3 (FAIL) :", "Incorrect number of objects in DB")
     for s in policies:
-        if s.name == sync._config.update_policy["name"] and \
-                s.description == sync._config.update_policy["description"] and \
-                s.get_catchall("meraki") == sync._config.update_policy["default_meraki"] and s.match_report(True):
+        if s.name == sync._config.update_ise_policy["name"] and \
+                s.description == sync._config.update_ise_policy["description"] and \
+                s.get_catchall("meraki") == sync._config.update_ise_policy["default_meraki"] and s.match_report(True):
             print("3 (SUCCESS) :", model_to_dict(s))
         else:
             success = False
