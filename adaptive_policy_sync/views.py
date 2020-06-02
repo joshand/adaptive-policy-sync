@@ -132,26 +132,20 @@ def setupcert(request):
     if not request.user.is_authenticated:
         return redirect('/login')
 
-    # iseservers = ISEServer.objects.all()
-    # if len(iseservers) > 0:
-    #     iseserver = iseservers[0]
-    # else:
-    #     iseserver = None
     uploadzips = Upload.objects.all()
 
-    if request.method == 'POST':
-        form = UploadForm(request.POST, request.FILES)
-        if form.is_valid():
-            form.save()
-            return redirect('/home')
-    else:
-        form = UploadForm()
+    form = UploadForm()
     return render(request, 'setup/isecert.html', {"active": 3, "data": uploadzips, "form": form})
 
 
 def setuppxgrid(request):
     if not request.user.is_authenticated:
         return redirect('/login')
+
+    if request.method == 'POST':
+        form = UploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
 
     iseservers = ISEServer.objects.all()
     if len(iseservers) > 0:
