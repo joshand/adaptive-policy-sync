@@ -212,7 +212,9 @@ def sync_ise():
 
                 ingest_ise_data(dbs, log)
 
-    digest_database_data(SyncSession.objects.all()[0], log)
+    ss = SyncSession.objects.all()
+    if len(ss) > 0:
+        digest_database_data(ss[0], log)
 
     append_log(log, "ise_monitor::sync_ise::Done")
     db_log("ise_monitor", log)

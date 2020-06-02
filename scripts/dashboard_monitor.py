@@ -194,7 +194,9 @@ def sync_dashboard():
 
                 ingest_dashboard_data(dbs, log)
 
-    digest_database_data(SyncSession.objects.all()[0], log)
+    ss = SyncSession.objects.all()
+    if len(ss) > 0:
+        digest_database_data(ss[0], log)
 
     append_log(log, "dashboard_monitor::sync_dashboard::Done")
     db_log("dashboard_monitor", log)
