@@ -61,22 +61,44 @@ def digest_database_data(sa, log):
         append_log(log, "ise_monitor::digest_database_data::sync session not set to apply changes")
         return
 
+    policies = Policy.objects.filter(Q(needs_update="ise") & Q(do_sync=True))
+    for o in policies:
+        if o.ise_id:
+            if o.push_delete:
+                try:
+                    ret = ise.delete_egressmatrixcell(o.ise_id)
+                    append_log(log, "ise_monitor::digest_database_data::Policy delete", ret)
+                    o.delete()
+                except Exception as e:  # pragma: no cover
+                    append_log(log, "ise_monitor::digest_database_data::Policy Delete Exception", e,
+                               traceback.format_exc())
+
     tags = Tag.objects.filter(Q(needs_update="ise") & Q(do_sync=True))
     for o in tags:
         if o.ise_id:
-            try:
-                ret = ise.update_sgt(o.ise_id, o.name, o.description, o.tag_number, return_object=True)
-                o.last_update_data = ret
-                o.last_update_state = str(ret.get("success", False))
-                o.save()
-                if ret["response"]:
-                    merge_sgts("ise", [ret["response"]], sa.ise_source, sa, log)
-                    append_log(log, "ise_monitor::digest_database_data::Push SGT update", o.ise_id, o.name,
-                               o.description, o.tag_number, ret)
-                else:
-                    append_log(log, "ise_monitor::digest_database_data::SGT Null Return", ret)
-            except Exception as e:     # pragma: no cover
-                append_log(log, "ise_monitor::digest_database_data::SGT Update Exception", e, traceback.format_exc())
+            if o.push_delete:
+                try:
+                    ret = ise.delete_sgt(o.ise_id)
+                    append_log(log, "ise_monitor::digest_database_data::SGT delete", ret)
+                    o.delete()
+                except Exception as e:  # pragma: no cover
+                    append_log(log, "ise_monitor::digest_database_data::SGT Delete Exception", e,
+                               traceback.format_exc())
+            else:
+                try:
+                    ret = ise.update_sgt(o.ise_id, o.name, o.description, o.tag_number, return_object=True)
+                    o.last_update_data = ret
+                    o.last_update_state = str(ret.get("success", False))
+                    o.save()
+                    if ret["response"]:
+                        merge_sgts("ise", [ret["response"]], sa.ise_source, sa, log)
+                        append_log(log, "ise_monitor::digest_database_data::Push SGT update", o.ise_id, o.name,
+                                   o.description, o.tag_number, ret)
+                    else:
+                        append_log(log, "ise_monitor::digest_database_data::SGT Null Return", ret)
+                except Exception as e:     # pragma: no cover
+                    append_log(log, "ise_monitor::digest_database_data::SGT Update Exception", e,
+                               traceback.format_exc())
         else:
             try:
                 ret = ise.add_sgt(o.name, o.description, o.tag_number, return_object=True)
@@ -95,20 +117,30 @@ def digest_database_data(sa, log):
     acls = ACL.objects.filter(Q(needs_update="ise") & Q(do_sync=True))
     for o in acls:
         if o.ise_id:
-            try:
-                ret = ise.update_sgacl(o.ise_id, o.name, o.description, o.get_version("ise"),
-                                       o.get_rules("ise").split("\n"), return_object=True)
-                o.last_update_data = ret
-                o.last_update_state = str(ret.get("success", False))
-                o.save()
-                if ret["response"]:
-                    merge_sgacls("ise", [ret["response"]], sa.ise_source, sa, log)
-                    append_log(log, "ise_monitor::digest_database_data::Push SGACL update", o.ise_id, o.name,
-                               o.description, ret)
-                else:
-                    append_log(log, "ise_monitor::digest_database_data::SGACL Null Return", ret)
-            except Exception as e:     # pragma: no cover
-                append_log(log, "ise_monitor::digest_database_data::SGACL Update Exception", e, traceback.format_exc())
+            if o.push_delete:
+                try:
+                    ret = ise.delete_sgacl(o.ise_id)
+                    append_log(log, "ise_monitor::digest_database_data::SGACL delete", ret)
+                    o.delete()
+                except Exception as e:  # pragma: no cover
+                    append_log(log, "ise_monitor::digest_database_data::SGACL Delete Exception", e,
+                               traceback.format_exc())
+            else:
+                try:
+                    ret = ise.update_sgacl(o.ise_id, o.name, o.description, o.get_version("ise"),
+                                           o.get_rules("ise").split("\n"), return_object=True)
+                    o.last_update_data = ret
+                    o.last_update_state = str(ret.get("success", False))
+                    o.save()
+                    if ret["response"]:
+                        merge_sgacls("ise", [ret["response"]], sa.ise_source, sa, log)
+                        append_log(log, "ise_monitor::digest_database_data::Push SGACL update", o.ise_id, o.name,
+                                   o.description, ret)
+                    else:
+                        append_log(log, "ise_monitor::digest_database_data::SGACL Null Return", ret)
+                except Exception as e:     # pragma: no cover
+                    append_log(log, "ise_monitor::digest_database_data::SGACL Update Exception", e,
+                               traceback.format_exc())
         else:
             try:
                 ret = ise.add_sgacl(o.name, o.description, o.get_version("ise"), o.get_rules("ise").split("\n"),
@@ -127,7 +159,7 @@ def digest_database_data(sa, log):
 
     policies = Policy.objects.filter(Q(needs_update="ise") & Q(do_sync=True))
     for o in policies:
-        if o.ise_id:
+        if o.ise_id and not o.push_delete:
             try:
                 srcsgt, dstsgt = o.lookup_ise_sgts()
                 ret = ise.update_egressmatrixcell(o.ise_id, srcsgt.ise_id, dstsgt.ise_id, o.get_catchall("ise"),
@@ -143,7 +175,8 @@ def digest_database_data(sa, log):
                 else:
                     append_log(log, "ise_monitor::digest_database_data::Policy Null Return", ret)
             except Exception as e:     # pragma: no cover
-                append_log(log, "ise_monitor::digest_database_data::Policy Update Exception", e, traceback.format_exc())
+                append_log(log, "ise_monitor::digest_database_data::Policy Update Exception", e,
+                           traceback.format_exc())
         else:
             try:
                 srcsgt, dstsgt = o.lookup_meraki_sgts()

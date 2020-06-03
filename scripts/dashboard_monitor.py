@@ -14,7 +14,8 @@ from scripts.db_trustsec import clean_sgts, clean_sgacls, clean_sgpolicies, merg
 from scripts.dblog import append_log, db_log
 import meraki
 from scripts.meraki_addons import meraki_read_sgt, meraki_read_sgacl, meraki_read_sgpolicy, meraki_update_sgt, \
-    meraki_create_sgt, meraki_update_sgacl, meraki_create_sgacl, meraki_update_sgpolicy
+    meraki_create_sgt, meraki_update_sgacl, meraki_create_sgacl, meraki_update_sgpolicy, meraki_delete_sgt, \
+    meraki_delete_sgacl
 from django.conf import settings
 import traceback
 
@@ -67,20 +68,29 @@ def digest_database_data(sa, log):
     tags = Tag.objects.filter(Q(needs_update="meraki") & Q(do_sync=True))
     for o in tags:
         if o.meraki_id:
-            try:
-                ret = meraki_update_sgt(dashboard, sa.dashboard.orgid, o.meraki_id, name=o.name,
-                                        description=o.description, value=o.tag_number)
-                o.last_update_data = json.dumps(ret)
-                o.last_update_state = True if "groupId" in ret else False
-                o.save()
-                # Value update causes a delete/create combination, so immediately update with new ID
-                Tag.objects.filter(id=o.id).update(meraki_id=ret["groupId"])
-                merge_sgts("meraki", [ret], not sa.ise_source, sa, log)
-                append_log(log, "dashboard_monitor::digest_database_data::Push SGT update", o.meraki_id, o.name,
-                           o.description, ret)
-            except Exception as e:  # pragma: no cover
-                append_log(log, "dashboard_monitor::digest_database_data::SGT Update Exception", e,
-                           traceback.format_exc())
+            if o.push_delete:
+                try:
+                    ret = meraki_delete_sgt(dashboard, sa.dashboard.orgid, o.meraki_id)
+                    append_log(log, "dashboard_monitor::digest_database_data::SGT delete", ret)
+                    o.delete()
+                except Exception as e:  # pragma: no cover
+                    append_log(log, "dashboard_monitor::digest_database_data::SGT Delete Exception", e,
+                               traceback.format_exc())
+            else:
+                try:
+                    ret = meraki_update_sgt(dashboard, sa.dashboard.orgid, o.meraki_id, name=o.name,
+                                            description=o.description, value=o.tag_number)
+                    o.last_update_data = json.dumps(ret)
+                    o.last_update_state = True if "groupId" in ret else False
+                    o.save()
+                    # Value update causes a delete/create combination, so immediately update with new ID
+                    Tag.objects.filter(id=o.id).update(meraki_id=ret["groupId"])
+                    merge_sgts("meraki", [ret], not sa.ise_source, sa, log)
+                    append_log(log, "dashboard_monitor::digest_database_data::Push SGT update", o.meraki_id, o.name,
+                               o.description, ret)
+                except Exception as e:  # pragma: no cover
+                    append_log(log, "dashboard_monitor::digest_database_data::SGT Update Exception", e,
+                               traceback.format_exc())
         else:
             try:
                 ret = meraki_create_sgt(dashboard, sa.dashboard.orgid, value=o.tag_number, name=o.name,
@@ -98,19 +108,28 @@ def digest_database_data(sa, log):
     acls = ACL.objects.filter(Q(needs_update="meraki") & Q(do_sync=True))
     for o in acls:
         if o.meraki_id:
-            try:
-                ret = meraki_update_sgacl(dashboard, sa.dashboard.orgid, o.meraki_id, name=o.name,
-                                          description=o.description, rules=o.get_rules("meraki"),
-                                          ipVersion=o.get_version("meraki"))
-                o.last_update_data = json.dumps(ret)
-                o.last_update_state = True if "aclId" in ret else False
-                o.save()
-                merge_sgacls("meraki", [ret], not sa.ise_source, sa, log)
-                append_log(log, "dashboard_monitor::digest_database_data::Push SGACL update", o.meraki_id, o.name,
-                           o.description, ret)
-            except Exception as e:  # pragma: no cover
-                append_log(log, "dashboard_monitor::digest_database_data::SGACL Update Exception", e,
-                           traceback.format_exc())
+            if o.push_delete:
+                try:
+                    ret = meraki_delete_sgacl(dashboard, sa.dashboard.orgid, o.meraki_id)
+                    append_log(log, "dashboard_monitor::digest_database_data::SGACL delete", ret)
+                    o.delete()
+                except Exception as e:  # pragma: no cover
+                    append_log(log, "dashboard_monitor::digest_database_data::SGACL Delete Exception", e,
+                               traceback.format_exc())
+            else:
+                try:
+                    ret = meraki_update_sgacl(dashboard, sa.dashboard.orgid, o.meraki_id, name=o.name,
+                                              description=o.description, rules=o.get_rules("meraki"),
+                                              ipVersion=o.get_version("meraki"))
+                    o.last_update_data = json.dumps(ret)
+                    o.last_update_state = True if "aclId" in ret else False
+                    o.save()
+                    merge_sgacls("meraki", [ret], not sa.ise_source, sa, log)
+                    append_log(log, "dashboard_monitor::digest_database_data::Push SGACL update", o.meraki_id, o.name,
+                               o.description, ret)
+                except Exception as e:  # pragma: no cover
+                    append_log(log, "dashboard_monitor::digest_database_data::SGACL Update Exception", e,
+                               traceback.format_exc())
         else:
             try:
                 ret = meraki_create_sgacl(dashboard, sa.dashboard.orgid, name=o.name,
@@ -128,21 +147,33 @@ def digest_database_data(sa, log):
 
     policies = Policy.objects.filter(Q(needs_update="meraki") & Q(do_sync=True))
     for o in policies:
-        try:
-            srcsgt, dstsgt = o.lookup_ise_sgts()
-            ret = meraki_update_sgpolicy(dashboard, sa.dashboard.orgid, name=o.name, description=o.description,
-                                         srcGroupId=srcsgt.meraki_id, dstGroupId=dstsgt.meraki_id,
-                                         aclIds=o.get_sgacls("meraki"), catchAllRule=o.get_catchall("meraki"),
-                                         bindingEnabled=True, monitorModeEnabled=False)
-            o.last_update_data = json.dumps(ret)
-            o.last_update_state = True if "srcGroupId" in ret else False
-            o.save()
-            merge_sgpolicies("meraki", [ret], not sa.ise_source, sa, log)
-            append_log(log, "dashboard_monitor::digest_database_data::Push Policy update", o.meraki_id, o.name,
-                       o.description, ret)
-        except Exception as e:  # pragma: no cover
-            append_log(log, "dashboard_monitor::digest_database_data::Policy Update Exception", e,
-                       traceback.format_exc())
+        if o.push_delete:
+            try:
+                srcsgt, dstsgt = o.lookup_ise_sgts()
+                ret = meraki_update_sgpolicy(dashboard, sa.dashboard.orgid, name=o.name, description=o.description,
+                                             srcGroupId=srcsgt.meraki_id, dstGroupId=dstsgt.meraki_id, aclIds=None,
+                                             catchAllRule="global")
+                append_log(log, "dashboard_monitor::digest_database_data::Policy delete", ret)
+                o.delete()
+            except Exception as e:  # pragma: no cover
+                append_log(log, "dashboard_monitor::digest_database_data::Policy Delete Exception", e,
+                           traceback.format_exc())
+        else:
+            try:
+                srcsgt, dstsgt = o.lookup_ise_sgts()
+                ret = meraki_update_sgpolicy(dashboard, sa.dashboard.orgid, name=o.name, description=o.description,
+                                             srcGroupId=srcsgt.meraki_id, dstGroupId=dstsgt.meraki_id,
+                                             aclIds=o.get_sgacls("meraki"), catchAllRule=o.get_catchall("meraki"),
+                                             bindingEnabled=True, monitorModeEnabled=False)
+                o.last_update_data = json.dumps(ret)
+                o.last_update_state = True if "srcGroupId" in ret else False
+                o.save()
+                merge_sgpolicies("meraki", [ret], not sa.ise_source, sa, log)
+                append_log(log, "dashboard_monitor::digest_database_data::Push Policy update", o.meraki_id, o.name,
+                           o.description, ret)
+            except Exception as e:  # pragma: no cover
+                append_log(log, "dashboard_monitor::digest_database_data::Policy Update Exception", e,
+                           traceback.format_exc())
 
 
 def sync_dashboard():
