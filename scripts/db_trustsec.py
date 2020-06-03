@@ -5,7 +5,6 @@ from django.db.models import Q
 import json
 from scripts.dblog import append_log
 import traceback
-from django.forms.models import model_to_dict
 
 
 def clean_sgts(src, sgts, is_base, sync_session, log=None):

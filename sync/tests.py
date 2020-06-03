@@ -1050,8 +1050,8 @@ def test_delete_element_success(arg):
         meraki_update_sgpolicy(dashboard, db.orgid, name=sync._config.update_ise_policy["search"],
                                description=sync._config.update_ise_policy["description"], srcGroupId=src_sgt_id,
                                dstGroupId=dst_sgt_id, aclIds=None, catchAllRule="global")
-        acl = meraki_delete_sgacl(dashboard, db.orgid, update_sgacl_id)
-        sgt = meraki_delete_sgt(dashboard, db.orgid, update_sgt_id)
+        meraki_delete_sgacl(dashboard, db.orgid, update_sgacl_id)
+        meraki_delete_sgt(dashboard, db.orgid, update_sgt_id)
         # print(update_sgt_id, sgt)
         # Tag.objects.filter(name=sync._config.update_ise_sgt["search"]).update(meraki_id=None, meraki_data=None)
 
@@ -1156,8 +1156,8 @@ def test_delete_element_revert(arg):
         meraki_update_sgpolicy(dashboard, db.orgid, name=sync._config.update_ise_policy["search"],
                                description=sync._config.update_ise_policy["description"], srcGroupId=src_sgt_id,
                                dstGroupId=dst_sgt_id, aclIds=None, catchAllRule="global")
-        acl = meraki_delete_sgacl(dashboard, db.orgid, update_sgacl_id)
-        sgt = meraki_delete_sgt(dashboard, db.orgid, update_sgt_id)
+        meraki_delete_sgacl(dashboard, db.orgid, update_sgacl_id)
+        meraki_delete_sgt(dashboard, db.orgid, update_sgt_id)
         # print(update_sgt_id, sgt)
         # Tag.objects.filter(name=sync._config.update_ise_sgt["search"]).update(meraki_id=None, meraki_data=None)
 
