@@ -5,9 +5,11 @@ from django.db.models import Q
 import json
 from scripts.dblog import append_log
 import traceback
+from django.forms.models import model_to_dict
 
 
 def clean_sgts(src, sgts, is_base, sync_session, log=None):
+    append_log(log, "db_trustsec::clean_sgts::", sgts)
     try:
         changed_objs = []
         if is_base:
@@ -22,13 +24,13 @@ def clean_sgts(src, sgts, is_base, sync_session, log=None):
             tags = Tag.objects.filter(syncsession=sync_session)
             for i in tags:
                 if src == "ise" and i.ise_id and i.ise_id not in active_id_list:
-                    append_log(log, "setting ise", i.ise_id, "for delete")
+                    append_log(log, "db_trustsec::clean_sgts::setting ise", i.ise_id, "for delete")
                     i.push_delete = True
                     i.last_update = make_aware(datetime.datetime.now())
                     i.save()
                     changed_objs.append(i)
                 if src == "meraki" and i.meraki_id and i.meraki_id not in active_id_list:
-                    append_log(log, "setting meraki", i.meraki_id, "for delete")
+                    append_log(log, "db_trustsec::clean_sgts::setting meraki", i.meraki_id, "for delete")
                     i.push_delete = True
                     i.last_update = make_aware(datetime.datetime.now())
                     i.save()
@@ -39,6 +41,7 @@ def clean_sgts(src, sgts, is_base, sync_session, log=None):
 
 
 def clean_sgacls(src, sgacls, is_base, sync_session, log=None):
+    append_log(log, "db_trustsec::clean_sgacls::", sgacls)
     try:
         changed_objs = []
         if is_base:
@@ -53,11 +56,13 @@ def clean_sgacls(src, sgacls, is_base, sync_session, log=None):
             acls = ACL.objects.filter(syncsession=sync_session)
             for i in acls:
                 if src == "ise" and i.ise_id and i.ise_id not in active_id_list:
+                    append_log(log, "db_trustsec::clean_sgacls::setting ise", i.ise_id, "for delete")
                     i.push_delete = True
                     i.last_update = make_aware(datetime.datetime.now())
                     i.save()
                     changed_objs.append(i)
                 if src == "meraki" and i.meraki_id and i.meraki_id not in active_id_list:
+                    append_log(log, "db_trustsec::clean_sgacls::setting meraki", i.meraki_id, "for delete")
                     i.push_delete = True
                     i.last_update = make_aware(datetime.datetime.now())
                     i.save()
@@ -68,6 +73,7 @@ def clean_sgacls(src, sgacls, is_base, sync_session, log=None):
 
 
 def clean_sgpolicies(src, sgpolicies, is_base, sync_session, log=None):
+    append_log(log, "db_trustsec::clean_sgpolicies::", sgpolicies)
     try:
         changed_objs = []
         if is_base:
@@ -82,14 +88,14 @@ def clean_sgpolicies(src, sgpolicies, is_base, sync_session, log=None):
             policies = Policy.objects.filter(syncsession=sync_session)
             for i in policies:
                 if src == "ise" and i.ise_id and i.ise_id not in active_id_list:
+                    append_log(log, "db_trustsec::clean_sgpolicies::setting ise", i.ise_id, "for delete")
                     i.push_delete = True
-                    # print("````````````", src, i.ise_id, active_id_list)
                     i.last_update = make_aware(datetime.datetime.now())
                     i.save()
                     changed_objs.append(i)
                 if src == "meraki" and i.meraki_id and i.meraki_id not in active_id_list:
+                    append_log(log, "db_trustsec::clean_sgpolicies::setting meraki", i.meraki_id, "for delete")
                     i.push_delete = True
-                    # print("````````````", src, i.meraki_id, active_id_list)
                     i.last_update = make_aware(datetime.datetime.now())
                     i.save()
                     changed_objs.append(i)
