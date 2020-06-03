@@ -36,10 +36,10 @@
 2) Current Code Coverage:
     - [Test Coverage](https://htmlpreview.github.io/?https://github.com/joshand/adaptive-policy-sync/blob/master/htmlcov/index.html)
 3) To Do:
-    - Add sample objects to Dashboard to better test sync from Dashboard -> ISE
-    - Test Component Update on non-authoritative source (should be reverted)
-    - Test Component Deletes on authoritative source (should propegate)
-    - Test Component Deletes on non-authoritative source (should be reverted)
+    - ~~Add sample objects to Dashboard to better test sync from Dashboard -> ISE~~
+    - ~~Test Component Update on non-authoritative source (should be reverted)~~
+    - ~~Test Component Deletes on authoritative source (should propegate)~~
+    - ~~Test Component Deletes on non-authoritative source (should be reverted)~~
     - Test pxGrid
     - Test API
     - Test UI
