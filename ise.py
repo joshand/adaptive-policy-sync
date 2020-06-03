@@ -5,6 +5,8 @@ import re
 from furl import furl
 from datetime import datetime, timedelta
 import requests
+from urllib3.exceptions import HeaderParsingError
+import time
 
 base_dir = os.path.dirname(__file__)
 
@@ -133,9 +135,19 @@ class ERS(object):
             self.ise.headers.update({'ACCEPT': 'application/json', 'Content-Type': 'application/json',
                                      'X-CSRF-TOKEN': self.csrf})
 
-            req = self.ise.request(method, url, data=data, timeout=self.timeout)
+            try:
+                req = self.ise.request(method, url, data=data, timeout=self.timeout)
+            except HeaderParsingError:
+                print("Received HeaderParsingError; Trying again...")
+                time.sleep(5)
+                req = self.ise.request(method, url, data=data, timeout=self.timeout)
         else:
-            req = self.ise.request(method, url, data=data, timeout=self.timeout)
+            try:
+                req = self.ise.request(method, url, data=data, timeout=self.timeout)
+            except HeaderParsingError:
+                print("Received HeaderParsingError; Trying again...")
+                time.sleep(5)
+                req = self.ise.request(method, url, data=data, timeout=self.timeout)
 
         return req
 
