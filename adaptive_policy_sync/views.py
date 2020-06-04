@@ -1,6 +1,5 @@
 from sync.models import ISEServer, Upload, UploadZip, Dashboard, Tag, ACL, Policy, SyncSession
 from django.shortcuts import redirect, reverse, render
-from django.db.models import Q
 from django.contrib.auth import logout
 from django.http import JsonResponse
 from django.contrib.auth import views as auth_views
