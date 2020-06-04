@@ -11,6 +11,8 @@ from django.conf import settings
 import scripts.dashboard_monitor
 import scripts.ise_monitor
 import json
+from selenium import webdriver
+# from selenium.webdriver.common.keys import Keys
 
 
 def reset_dashboard(db):
@@ -130,6 +132,21 @@ def reset_ise(db):
         if not s["name"] in current_vals:
             print("Adding Egress Policy", s["name"], "to Cisco ISE...")
             ise.add_egressmatrixcell(s["src"], s["dst"], s["default"], acls=s["acls"], description=s["description"])
+
+
+@pytest.fixture(scope='module')
+def browser(request):
+    """Provide a selenium webdriver instance."""
+    # SetUp
+    options = webdriver.ChromeOptions()
+    options.add_argument('headless')
+
+    browser_ = webdriver.Chrome(chrome_options=options)
+
+    yield browser_
+
+    # TearDown
+    browser_.quit()
 
 
 @pytest.fixture(params=[0])
@@ -370,8 +387,10 @@ def setup_ise24_data_sync_i_src(setup_ise24_data_i_src):
             print("Enabling sync for tag", s.tag_number, "...")
             s.do_sync = True
             s.save()
-    scripts.ise_monitor.sync_ise()
-    scripts.dashboard_monitor.sync_dashboard()
+    msg, log = scripts.ise_monitor.sync_ise()
+    # print(msg, log)
+    msg, log = scripts.dashboard_monitor.sync_dashboard()
+    # print(msg, log)
 
 
 @pytest.fixture
@@ -1200,3 +1219,17 @@ def test_delete_element_revert(arg):
         print("3 (SUCCESS) :", "Element deleted from DB")
 
     assert success
+
+
+# @pytest.mark.parametrize('arg', ['setup_ise24_i_src', 'setup_ise26_i_src', 'setup_ise27_i_src', 'setup_ise30_i_src'],
+#                          indirect=True)
+# @pytest.mark.django_db
+# def test_ui_setup(arg):
+#     driver = webdriver.Firefox()
+#     driver.get('http://127.0.0.1:8000')
+#     username = driver.find_element_by_id('username')
+#     password = driver.find_element_by_id('id_password')
+#     submit = driver.find_element_by_tag_name('button')
+#     username.send_keys('unittests')
+#     password.send_keys('Phg7aCyItk4QMk')
+#     submit.send_keys(Keys.RETURN)
