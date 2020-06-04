@@ -243,7 +243,7 @@ function filter_table(elem) {
 }
 </script>
     <h1>pytest_report.html</h1>
-    <p>Report generated on 04-Jun-2020 at 15:01:15 by <a href="https://pypi.python.org/pypi/pytest-html">pytest-html</a> v2.1.1</p>
+    <p>Report generated on 04-Jun-2020 at 15:06:26 by <a href="https://pypi.python.org/pypi/pytest-html">pytest-html</a> v2.1.1</p>
     <h2>Environment</h2>
     <table id="environment">
       <tr>
@@ -259,7 +259,7 @@ function filter_table(elem) {
         <td>Python</td>
         <td>3.7.7</td></tr></table>
     <h2>Summary</h2>
-    <p>0 tests ran in 1.12 seconds. </p>
+    <p>0 tests ran in 0.88 seconds. </p>
     <p class="filter" hidden="true">(Un)check the boxes to filter the results.</p><input checked="true" class="filter" data-test-result="passed" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="passed">0 passed</span>, <input checked="true" class="filter" data-test-result="skipped" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="skipped">0 skipped</span>, <input checked="true" class="filter" data-test-result="failed" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="failed">0 failed</span>, <input checked="true" class="filter" data-test-result="error" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="error">1 errors</span>, <input checked="true" class="filter" data-test-result="xfailed" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="xfailed">0 expected failures</span>, <input checked="true" class="filter" data-test-result="xpassed" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="xpassed">0 unexpected passes</span>
     <h2>Results</h2>
     <table id="results-table">
@@ -279,4 +279,4 @@ function filter_table(elem) {
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
-            <div class="log">venv/lib/python3.7/site-packages/_pytest/python.py:511: in _importtestmodule<br/>    mod = self.fspath.pyimport(ensuresyspath=importmode)<br/>venv/lib/python3.7/site-packages/py/_path/local.py:701: in pyimport<br/>    __import__(modname)<br/>venv/lib/python3.7/site-packages/_pytest/assertion/rewrite.py:152: in exec_module<br/>    exec(co, module.__dict__)<br/>sync/tests.py:14: in &lt;module&gt;<br/>    from selenium import webdriver<br/><span class="error">E   ModuleNotFoundError: No module named &#x27;selenium&#x27;</span><br/><br/>During handling of the above exception, another exception occurred:<br/>/usr/local/Cellar/python/3.7.7/Frameworks/Python.framework/Versions/3.7/lib/python3.7/inspect.py:780: in findsource<br/>    module = getmodule(object, file)<br/>/usr/local/Cellar/python/3.7.7/Frameworks/Python.framework/Versions/3.7/lib/python3.7/inspect.py:742: in getmodule<br/>    os.path.realpath(f)] = module.__name__<br/>/usr/local/Cellar/python/3.7.7/Frameworks/Python.framework/Versions/3.7/lib/python3.7/posixpath.py:395: in realpath<br/>    path, ok = _joinrealpath(filename[:0], filename, {})<br/>/usr/local/Cellar/python/3.7.7/Frameworks/Python.framework/Versions/3.7/lib/python3.7/posixpath.py:429: in _joinrealpath<br/>    if not islink(newpath):<br/>/usr/local/Cellar/python/3.7.7/Frameworks/Python.framework/Versions/3.7/lib/python3.7/posixpath.py:171: in islink<br/>    st = os.lstat(path)<br/><span class="error">E   KeyboardInterrupt</span><br/></div></td></tr></tbody></table></body></html>
+            <div class="log">ImportError while importing test module &#x27;/Users/joshanderson/code/adaptive-policy-sync/sync/tests.py&#x27;.<br/>Hint: make sure your test modules/packages have valid Python names.<br/>Traceback:<br/>sync/tests.py:14: in &lt;module&gt;<br/>    from selenium import webdriver<br/><span class="error">E   ModuleNotFoundError: No module named &#x27;selenium&#x27;</span><br/></div></td></tr></tbody></table></body></html>
