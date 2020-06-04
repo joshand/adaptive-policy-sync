@@ -65,7 +65,7 @@ def digest_database_data(sa, log):
         append_log(log, "dashboard_monitor::digest_database_data::sync session not set to apply changes;")
         return
 
-    tags = Tag.objects.filter(Q(needs_update="meraki") & Q(do_sync=True))
+    tags = Tag.objects.filter(Q(needs_update="meraki") & Q(do_sync=True) & Q(update_failed=False))
     for o in tags:
         if o.meraki_id:
             if o.push_delete:
@@ -76,6 +76,8 @@ def digest_database_data(sa, log):
                 except Exception as e:  # pragma: no cover
                     append_log(log, "dashboard_monitor::digest_database_data::SGT Delete Exception", e,
                                traceback.format_exc())
+                    o.update_failed = True
+                    o.save()
             else:
                 try:
                     ret = meraki_update_sgt(dashboard, sa.dashboard.orgid, o.meraki_id, name=o.name,
@@ -91,6 +93,8 @@ def digest_database_data(sa, log):
                 except Exception as e:  # pragma: no cover
                     append_log(log, "dashboard_monitor::digest_database_data::SGT Update Exception", e,
                                traceback.format_exc())
+                    o.update_failed = True
+                    o.save()
         else:
             try:
                 ret = meraki_create_sgt(dashboard, sa.dashboard.orgid, value=o.tag_number, name=o.name,
@@ -104,8 +108,10 @@ def digest_database_data(sa, log):
             except Exception as e:  # pragma: no cover
                 append_log(log, "dashboard_monitor::digest_database_data::SGT Create Exception", e,
                            traceback.format_exc())
+                o.update_failed = True
+                o.save()
 
-    acls = ACL.objects.filter(Q(needs_update="meraki") & Q(do_sync=True))
+    acls = ACL.objects.filter(Q(needs_update="meraki") & Q(do_sync=True) & Q(update_failed=False))
     for o in acls:
         if o.meraki_id:
             if o.push_delete:
@@ -116,6 +122,8 @@ def digest_database_data(sa, log):
                 except Exception as e:  # pragma: no cover
                     append_log(log, "dashboard_monitor::digest_database_data::SGACL Delete Exception", e,
                                traceback.format_exc())
+                    o.update_failed = True
+                    o.save()
             else:
                 try:
                     ret = meraki_update_sgacl(dashboard, sa.dashboard.orgid, o.meraki_id, name=o.name,
@@ -130,6 +138,8 @@ def digest_database_data(sa, log):
                 except Exception as e:  # pragma: no cover
                     append_log(log, "dashboard_monitor::digest_database_data::SGACL Update Exception", e,
                                traceback.format_exc())
+                    o.update_failed = True
+                    o.save()
         else:
             try:
                 ret = meraki_create_sgacl(dashboard, sa.dashboard.orgid, name=o.name,
@@ -144,8 +154,10 @@ def digest_database_data(sa, log):
             except Exception as e:  # pragma: no cover
                 append_log(log, "dashboard_monitor::digest_database_data::SGACL Create Exception", e,
                            traceback.format_exc())
+                o.update_failed = True
+                o.save()
 
-    policies = Policy.objects.filter(Q(needs_update="meraki") & Q(do_sync=True))
+    policies = Policy.objects.filter(Q(needs_update="meraki") & Q(do_sync=True) & Q(update_failed=False))
     for o in policies:
         if o.push_delete:
             try:
