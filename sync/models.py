@@ -833,6 +833,11 @@ class Policy(models.Model):
             return True
         return False
 
+    def cleaned_name(self):
+        newname = self.name[:32]
+        newname = re.sub('[^0-9a-zA-Z-]+', '_', newname)
+        return newname
+
     def lookup_ise_sgts(self):
         if self.ise_id and self.ise_data:
             idata = json.loads(self.ise_data)
@@ -1082,8 +1087,11 @@ def post_save_policy(sender, instance=None, created=False, **kwargs):
     post_save.disconnect(post_save_policy, sender=Policy)
     if instance:
         instance.last_updated = datetime.datetime.now()
+        if instance.source_group.do_sync and instance.dest_group.do_sync:
+            instance.do_sync = True
         instance.save()
 
+        # ACL.objects.all().update(do_sync=True)
         acls = ACL.objects.filter(id__in=instance.acl.all())
         for a in acls:
             a.do_sync = True
