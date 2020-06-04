@@ -145,7 +145,8 @@ def merge_sgts(src, sgts, is_base, sync_session, log=None):
                     t.description = s["description"].replace("'", "").replace('"', "")
                     t.push_delete = False
                     t.syncsession = sync_session
-                    t.sourced_from = src
+                    if not t.sourced_from:
+                        t.sourced_from = src
 
                 if tag_num != 0 and tag_num != 2:
                     default_dest = "meraki" if sync_session.ise_source else "ise"
@@ -215,7 +216,8 @@ def merge_sgacls(src, sgacls, is_base, sync_session, log=None):
                     t.description = s["description"].replace("'", "").replace('"', "")
                     t.push_delete = False
                     t.syncsession = sync_session
-                    t.sourced_from = src
+                    if not t.sourced_from:
+                        t.sourced_from = src
 
                 default_dest = "meraki" if sync_session.ise_source else "ise"
                 update_dest = "meraki" if src == "ise" else "ise"
@@ -226,7 +228,7 @@ def merge_sgacls(src, sgacls, is_base, sync_session, log=None):
                     t.meraki_data = json.dumps(s)
                     if str(t.meraki_ver) != str(s["versionNum"]):
                         t.meraki_ver = s["versionNum"]
-                        t.do_sync = True
+                        # t.do_sync = True
                 elif src == "ise":
                     t.ise_id = s["id"]
                     t.ise_data = json.dumps(s)
@@ -235,9 +237,10 @@ def merge_sgacls(src, sgacls, is_base, sync_session, log=None):
                         t.visible = False
                     if str(t.ise_ver) != str(s["generationId"]):
                         t.ise_ver = s["generationId"]
-                        if t.visible:
-                            t.do_sync = True
-                        else:
+                        # if t.visible:
+                        #     t.do_sync = True
+                        # else:
+                        if not t.visible:
                             t.needs_update = None
                 t.last_update = make_aware(datetime.datetime.now())
                 changed_objs.append(t)
@@ -306,11 +309,13 @@ def merge_sgpolicies(src, sgpolicies, is_base, sync_session, log=None):
 
                 if full_update:
                     t.mapping = binding_name
-                    t.name = policy_name
+                    if t.name != policy_name and t.cleaned_name() != policy_name:
+                        t.name = policy_name
                     t.description = policy_desc
                     t.push_delete = False
                     t.syncsession = sync_session
-                    t.sourced_from = src
+                    if not t.sourced_from:
+                        t.sourced_from = src
 
                 t.source_group = src_grp
                 t.dest_group = dst_grp
@@ -341,6 +346,8 @@ def merge_sgpolicies(src, sgpolicies, is_base, sync_session, log=None):
                 if t.in_sync():
                     t.needs_update = None
                 t.save()
+            else:
+                print("db_trustsec::merge_sgpolicies::missing src or dst", src_grp, dst_grp)
         return changed_objs
     except Exception as e:    # pragma: no cover
         append_log(log, "db_trustsec::merge_sgpolicies::Exception in merge_sgpolicies: ", e, traceback.format_exc())
