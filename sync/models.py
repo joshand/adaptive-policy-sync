@@ -321,6 +321,11 @@ class Tag(models.Model):
         else:
             return self.name + " (" + str(self.tag_number) + ")"
 
+    def update_success(self):
+        if self.last_update_state == "True" and not self.update_failed:
+            return True
+        return False
+
     def cleaned_name(self):
         newname = self.name[:32]
         newname = re.sub('[^0-9a-zA-Z]+', '_', newname)
@@ -469,6 +474,11 @@ class ACL(models.Model):
 
     def __str__(self):
         return self.name    # + " -- Valid:" + str(self.is_valid_config()) + " -- Matches:" + str(self.in_sync())
+
+    def update_success(self):
+        if self.last_update_state == "True" and not self.update_failed:
+            return True
+        return False
 
     def cleaned_name(self):
         newname = self.name[:32]
@@ -817,6 +827,11 @@ class Policy(models.Model):
 
     def __str__(self):
         return self.name + " (" + self.mapping + ")"    # + " -- Matches:" + str(self.in_sync())
+
+    def update_success(self):
+        if self.last_update_state == "True" and not self.update_failed:
+            return True
+        return False
 
     def lookup_ise_sgts(self):
         if self.ise_id and self.ise_data:
