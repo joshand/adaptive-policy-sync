@@ -309,31 +309,79 @@ def home(request):
     ise_sgacls = ACL.objects.filter(sourced_from="ise")
     ise_policies = Policy.objects.filter(sourced_from="ise")
 
-    e_meraki_sgts = Tag.objects.filter(sourced_from="meraki").exclude(last_update_state="200").\
-        exclude(last_update_state="201").exclude(last_update_state=None)
-    e_meraki_sgacls = ACL.objects.filter(sourced_from="meraki").exclude(last_update_state="200").\
-        exclude(last_update_state="201").exclude(last_update_state=None)
-    e_meraki_policies = Policy.objects.filter(sourced_from="meraki").exclude(last_update_state="200").\
-        exclude(last_update_state="201").exclude(last_update_state=None)
-    e_ise_sgts = Tag.objects.filter(sourced_from="ise").exclude(last_update_state="200").\
-        exclude(last_update_state="201").exclude(last_update_state=None)
-    e_ise_sgacls = ACL.objects.filter(sourced_from="ise").exclude(last_update_state="200").\
-        exclude(last_update_state="201").exclude(last_update_state=None)
-    e_ise_policies = Policy.objects.filter(sourced_from="ise").exclude(last_update_state="200").\
-        exclude(last_update_state="201").exclude(last_update_state=None)
+    e_meraki_sgts = []
+    e_meraki_sgacls = []
+    e_meraki_policies = []
+    e_ise_sgts = []
+    e_ise_sgacls = []
+    e_ise_policies = []
+    s_meraki_sgts = []
+    s_meraki_sgacls = []
+    s_meraki_policies = []
+    s_ise_sgts = []
+    s_ise_sgacls = []
+    s_ise_policies = []
+    for element in meraki_sgts:
+        if element.update_success:
+            s_meraki_sgts.append(element)
+        else:
+            e_meraki_sgts.append(element)
 
-    s_meraki_sgts = Tag.objects.filter(sourced_from="meraki").filter(Q(last_update_state="200") |
-                                                                     Q(last_update_state="201"))
-    s_meraki_sgacls = ACL.objects.filter(sourced_from="meraki").filter(Q(last_update_state="200") |
-                                                                       Q(last_update_state="201"))
-    s_meraki_policies = Policy.objects.filter(sourced_from="meraki").filter(Q(last_update_state="200") |
-                                                                            Q(last_update_state="201"))
-    s_ise_sgts = Tag.objects.filter(sourced_from="ise").filter(Q(last_update_state="200") |
-                                                               Q(last_update_state="201"))
-    s_ise_sgacls = ACL.objects.filter(sourced_from="ise").filter(Q(last_update_state="200") |
-                                                                 Q(last_update_state="201"))
-    s_ise_policies = Policy.objects.filter(sourced_from="ise").filter(Q(last_update_state="200") |
-                                                                      Q(last_update_state="201"))
+    for element in meraki_sgacls:
+        if element.update_success:
+            s_meraki_sgacls.append(element)
+        else:
+            e_meraki_sgacls.append(element)
+
+    for element in meraki_policies:
+        if element.update_success:
+            s_meraki_policies.append(element)
+        else:
+            e_meraki_policies.append(element)
+
+    for element in ise_sgts:
+        if element.update_success:
+            s_ise_sgts.append(element)
+        else:
+            e_ise_sgts.append(element)
+
+    for element in ise_sgacls:
+        if element.update_success:
+            s_ise_sgacls.append(element)
+        else:
+            e_ise_sgacls.append(element)
+
+    for element in ise_policies:
+        if element.update_success:
+            s_ise_policies.append(element)
+        else:
+            e_ise_policies.append(element)
+
+    # e_meraki_sgts = Tag.objects.filter(sourced_from="meraki").exclude(last_update_state="200").\
+    #     exclude(last_update_state="201").exclude(last_update_state=None)
+    # e_meraki_sgacls = ACL.objects.filter(sourced_from="meraki").exclude(last_update_state="200").\
+    #     exclude(last_update_state="201").exclude(last_update_state=None)
+    # e_meraki_policies = Policy.objects.filter(sourced_from="meraki").exclude(last_update_state="200").\
+    #     exclude(last_update_state="201").exclude(last_update_state=None)
+    # e_ise_sgts = Tag.objects.filter(sourced_from="ise").exclude(last_update_state="200").\
+    #     exclude(last_update_state="201").exclude(last_update_state=None)
+    # e_ise_sgacls = ACL.objects.filter(sourced_from="ise").exclude(last_update_state="200").\
+    #     exclude(last_update_state="201").exclude(last_update_state=None)
+    # e_ise_policies = Policy.objects.filter(sourced_from="ise").exclude(last_update_state="200").\
+    #     exclude(last_update_state="201").exclude(last_update_state=None)
+    #
+    # s_meraki_sgts = Tag.objects.filter(sourced_from="meraki").filter(Q(last_update_state="200") |
+    #                                                                  Q(last_update_state="201"))
+    # s_meraki_sgacls = ACL.objects.filter(sourced_from="meraki").filter(Q(last_update_state="200") |
+    #                                                                    Q(last_update_state="201"))
+    # s_meraki_policies = Policy.objects.filter(sourced_from="meraki").filter(Q(last_update_state="200") |
+    #                                                                         Q(last_update_state="201"))
+    # s_ise_sgts = Tag.objects.filter(sourced_from="ise").filter(Q(last_update_state="200") |
+    #                                                            Q(last_update_state="201"))
+    # s_ise_sgacls = ACL.objects.filter(sourced_from="ise").filter(Q(last_update_state="200") |
+    #                                                              Q(last_update_state="201"))
+    # s_ise_policies = Policy.objects.filter(sourced_from="ise").filter(Q(last_update_state="200") |
+    #                                                                   Q(last_update_state="201"))
 
     crumbs = '<li class="current">Home</li>'
     return render(request, 'home/home.html',
