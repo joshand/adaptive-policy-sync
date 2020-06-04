@@ -90,14 +90,14 @@ def digest_database_data(sa, log):
                     o.save()
             else:
                 try:
-                    ret = ise.update_sgt(o.ise_id, o.name, o.description, o.tag_number, return_object=True)
+                    ret = ise.update_sgt(o.ise_id, o.cleaned_name(), o.description, o.tag_number, return_object=True)
                     o.last_update_data = ret
                     o.last_update_state = str(ret.get("success", False))
                     o.save()
                     if ret["response"]:
                         merge_sgts("ise", [ret["response"]], sa.ise_source, sa, log)
-                        append_log(log, "ise_monitor::digest_database_data::Push SGT update", o.ise_id, o.name,
-                                   o.description, o.tag_number, ret)
+                        append_log(log, "ise_monitor::digest_database_data::Push SGT update", o.ise_id,
+                                   o.cleaned_name(), o.description, o.tag_number, ret)
                     else:     # pragma: no cover
                         append_log(log, "ise_monitor::digest_database_data::SGT Null Return", ret)
                         o.update_failed = True
@@ -109,13 +109,13 @@ def digest_database_data(sa, log):
                     o.save()
         else:
             try:
-                ret = ise.add_sgt(o.name, o.description, o.tag_number, return_object=True)
+                ret = ise.add_sgt(o.cleaned_name(), o.description, o.tag_number, return_object=True)
                 o.last_update_data = ret
                 o.last_update_state = str(ret.get("success", False))
                 o.save()
                 if ret["response"]:
                     merge_sgts("ise", [ret["response"]], sa.ise_source, sa, log)
-                    append_log(log, "ise_monitor::digest_database_data::Push SGT create", o.name,
+                    append_log(log, "ise_monitor::digest_database_data::Push SGT create", o.cleaned_name(),
                                o.description, o.tag_number, ret)
                 else:     # pragma: no cover
                     append_log(log, "ise_monitor::digest_database_data::SGT Null Return", ret)
@@ -141,15 +141,15 @@ def digest_database_data(sa, log):
                     o.save()
             else:
                 try:
-                    ret = ise.update_sgacl(o.ise_id, o.name, o.description, o.get_version("ise"),
+                    ret = ise.update_sgacl(o.ise_id, o.cleaned_name(), o.description, o.get_version("ise"),
                                            o.get_rules("ise").split("\n"), return_object=True)
                     o.last_update_data = ret
                     o.last_update_state = str(ret.get("success", False))
                     o.save()
                     if ret["response"]:
                         merge_sgacls("ise", [ret["response"]], sa.ise_source, sa, log)
-                        append_log(log, "ise_monitor::digest_database_data::Push SGACL update", o.ise_id, o.name,
-                                   o.description, ret)
+                        append_log(log, "ise_monitor::digest_database_data::Push SGACL update", o.ise_id,
+                                   o.cleaned_name(), o.description, ret)
                     else:     # pragma: no cover
                         append_log(log, "ise_monitor::digest_database_data::SGACL Null Return", ret)
                         o.update_failed = True
@@ -161,14 +161,14 @@ def digest_database_data(sa, log):
                     o.save()
         else:
             try:
-                ret = ise.add_sgacl(o.name, o.description, o.get_version("ise"), o.get_rules("ise").split("\n"),
-                                    return_object=True)
+                ret = ise.add_sgacl(o.cleaned_name(), o.description, o.get_version("ise"),
+                                    o.get_rules("ise").split("\n"), return_object=True)
                 o.last_update_data = ret
                 o.last_update_state = str(ret.get("success", False))
                 o.save()
                 if ret["response"]:
                     merge_sgacls("ise", [ret["response"]], sa.ise_source, sa, log)
-                    append_log(log, "ise_monitor::digest_database_data::Push SGACL create", o.name,
+                    append_log(log, "ise_monitor::digest_database_data::Push SGACL create", o.cleaned_name(),
                                o.description, ret)
                 else:     # pragma: no cover
                     append_log(log, "ise_monitor::digest_database_data::SGACL Null Return", ret)
@@ -213,7 +213,7 @@ def digest_database_data(sa, log):
                 o.save()
                 if ret["response"]:
                     merge_sgpolicies("ise", [ret["response"]], sa.ise_source, sa, log)
-                    append_log(log, "ise_monitor::digest_database_data::Push Policy create", o.tag_number, o.name,
+                    append_log(log, "ise_monitor::digest_database_data::Push Policy create", o.name,
                                o.description, ret)
                 else:     # pragma: no cover
                     append_log(log, "ise_monitor::digest_database_data::Policy Null Return", ret)
