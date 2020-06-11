@@ -321,39 +321,45 @@ def home(request):
     s_ise_sgacls = []
     s_ise_policies = []
     for element in meraki_sgts:
-        if element.update_success:
+        us = element.update_success()
+        if us is True:
             s_meraki_sgts.append(element)
-        else:
+        elif us is False:
             e_meraki_sgts.append(element)
 
     for element in meraki_sgacls:
-        if element.update_success:
+        us = element.update_success()
+        if us is True:
             s_meraki_sgacls.append(element)
-        else:
+        elif us is False:
             e_meraki_sgacls.append(element)
 
     for element in meraki_policies:
-        if element.update_success:
+        us = element.update_success()
+        if us is True:
             s_meraki_policies.append(element)
-        else:
+        elif us is False:
             e_meraki_policies.append(element)
 
     for element in ise_sgts:
-        if element.update_success:
+        us = element.update_success()
+        if us is True:
             s_ise_sgts.append(element)
-        else:
+        elif us is False:
             e_ise_sgts.append(element)
 
     for element in ise_sgacls:
-        if element.update_success:
+        us = element.update_success()
+        if us is True:
             s_ise_sgacls.append(element)
-        else:
+        elif us is False:
             e_ise_sgacls.append(element)
 
     for element in ise_policies:
-        if element.update_success:
+        us = element.update_success()
+        if us is True:
             s_ise_policies.append(element)
-        else:
+        elif us is False:
             e_ise_policies.append(element)
 
     # e_meraki_sgts = Tag.objects.filter(sourced_from="meraki").exclude(last_update_state="200").\
