@@ -56,7 +56,7 @@
                             {
                                 if (outtype === 1) {
                                     out_data += '<div aria-current="true" class="md-list-item" id="md-list-73__so-item" role="option" value="' + data[elm].id + '" tabindex="0" title="' + data[elm].name + '">';
-                                    out_data += '  <div class="md-list-item__center" onclick="listclick(\'' + data[elm].id + '\', \'' + data[elm].name + '\', \'' + outputlabel + '\', \'' + hiddenid + '\', \'' + hiddenname + '\', \'' + enablebtn + '\')")>' + data[elm].name + '</div>';
+                                    out_data += '  <div class="md-list-item__center" id="' + data[elm].id + '" onclick="listclick(\'' + data[elm].id + '\', \'' + data[elm].name + '\', \'' + outputlabel + '\', \'' + hiddenid + '\', \'' + hiddenname + '\', \'' + enablebtn + '\')")>' + data[elm].name + '</div>';
                                     out_data += '  <div class="md-list-item__right"></div>';
                                     out_data += '</div>';
                                     if (selectedval) {

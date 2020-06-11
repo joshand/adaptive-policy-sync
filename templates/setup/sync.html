@@ -15,26 +15,26 @@
                                 <div class="md-input-container md-radio" style="float:left">
                                     <input value="ise" type="radio" class="md-input md-radio__input" tabindex="10" id="basicRadio1" name="basicRadio" checked>
                                     <label class="md-radio__label" for="basicRadio1">
-                                        <span>Cisco ISE</span>
+                                        <span name="label_ise" id="label_ise">Cisco ISE</span>
                                     </label>
                                 </div>
                                 <div class="md-input-container md-radio" style="float:left">
                                     <input value="meraki" type="radio" class="md-input md-radio__input" tabindex="20" id="basicRadio2" name="basicRadio">
                                     <label class="md-radio__label" for="basicRadio2">
-                                        <span>Meraki Dashboard</span>
+                                        <span name="label_meraki" id="label_meraki">Meraki Dashboard</span>
                                     </label>
                                 </div>
                             {% else %}
                                 <div class="md-input-container md-radio" style="float:left">
                                     <input value="ise" type="radio" class="md-input md-radio__input" tabindex="10" id="basicRadio1" name="basicRadio">
                                     <label class="md-radio__label" for="basicRadio1">
-                                        <span>Cisco ISE</span>
+                                        <span name="label_ise" id="label_ise">Cisco ISE</span>
                                     </label>
                                 </div>
                                 <div class="md-input-container md-radio" style="float:left">
                                     <input value="meraki" type="radio" class="md-input md-radio__input" tabindex="20" id="basicRadio2" name="basicRadio" checked>
                                     <label class="md-radio__label" for="basicRadio2">
-                                        <span>Meraki Dashboard</span>
+                                        <span name="label_meraki" id="label_meraki">Meraki Dashboard</span>
                                     </label>
                                 </div>
                             {% endif %}
@@ -78,7 +78,7 @@
                 <div class="row" style="align-content:center; display:flex">
                     <div class="md-input-container columns medium-6">
                         <div class="md-input__wrapper">
-                            <button class="md-button md-button--blue" tabindex="50">Finish</button>
+                            <button name="finishbtn" id="finishbth" class="md-button md-button--blue" tabindex="50">Finish</button>
                         </div>
                     </div>
                 </div>
