@@ -83,7 +83,7 @@ def digest_database_data(sa, log):
                     ret = meraki_update_sgt(dashboard, sa.dashboard.orgid, o.meraki_id, name=o.name,
                                             description=o.description, value=o.tag_number)
                     o.last_update_data = json.dumps(ret)
-                    o.last_update_state = True if "groupId" in ret else False
+                    o.last_update_state = "True" if "groupId" in ret else "False"
                     o.save()
                     # Value update causes a delete/create combination, so immediately update with new ID
                     Tag.objects.filter(id=o.id).update(meraki_id=ret["groupId"])
@@ -100,7 +100,7 @@ def digest_database_data(sa, log):
                 ret = meraki_create_sgt(dashboard, sa.dashboard.orgid, value=o.tag_number, name=o.name,
                                         description=o.description)
                 o.last_update_data = json.dumps(ret)
-                o.last_update_state = True if "groupId" in ret else False
+                o.last_update_state = "True" if "groupId" in ret else "False"
                 o.save()
                 merge_sgts("meraki", [ret], not sa.ise_source, sa, log)
                 append_log(log, "dashboard_monitor::digest_database_data::Push SGT create", o.tag_number, o.name,
@@ -130,7 +130,7 @@ def digest_database_data(sa, log):
                                               description=o.description, rules=o.get_rules("meraki"),
                                               ipVersion=o.get_version("meraki"))
                     o.last_update_data = json.dumps(ret)
-                    o.last_update_state = True if "aclId" in ret else False
+                    o.last_update_state = "True" if "aclId" in ret else "False"
                     o.save()
                     merge_sgacls("meraki", [ret], not sa.ise_source, sa, log)
                     append_log(log, "dashboard_monitor::digest_database_data::Push SGACL update", o.meraki_id, o.name,
@@ -146,7 +146,7 @@ def digest_database_data(sa, log):
                                           description=o.description, rules=list(o.get_rules("meraki")),
                                           ipVersion=o.get_version("meraki"))
                 o.last_update_data = json.dumps(ret)
-                o.last_update_state = True if "aclId" in ret else False
+                o.last_update_state = "True" if "aclId" in ret else "False"
                 o.save()
                 merge_sgacls("meraki", [ret], not sa.ise_source, sa, log)
                 append_log(log, "dashboard_monitor::digest_database_data::Push SGACL create", o.name,
@@ -178,7 +178,7 @@ def digest_database_data(sa, log):
                                              aclIds=o.get_sgacls("meraki"), catchAllRule=o.get_catchall("meraki"),
                                              bindingEnabled=True, monitorModeEnabled=False)
                 o.last_update_data = json.dumps(ret)
-                o.last_update_state = True if "srcGroupId" in ret else False
+                o.last_update_state = "True" if "srcGroupId" in ret else "False"
                 o.save()
                 merge_sgpolicies("meraki", [ret], not sa.ise_source, sa, log)
                 append_log(log, "dashboard_monitor::digest_database_data::Push Policy update", o.meraki_id, o.name,
