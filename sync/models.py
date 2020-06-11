@@ -324,7 +324,10 @@ class Tag(models.Model):
     def update_success(self):
         if self.last_update_state == "True" and not self.update_failed:
             return True
-        return False
+        elif self.last_update_state == "False" or self.update_failed:
+            return False
+
+        return None
 
     def cleaned_name(self):
         newname = self.name[:32]
@@ -478,7 +481,10 @@ class ACL(models.Model):
     def update_success(self):
         if self.last_update_state == "True" and not self.update_failed:
             return True
-        return False
+        elif self.last_update_state == "False" or self.update_failed:
+            return False
+
+        return None
 
     def cleaned_name(self):
         newname = self.name[:32]
@@ -831,7 +837,10 @@ class Policy(models.Model):
     def update_success(self):
         if self.last_update_state == "True" and not self.update_failed:
             return True
-        return False
+        elif self.last_update_state == "False" or self.update_failed:
+            return False
+
+        return None
 
     def cleaned_name(self):
         newname = self.name[:32]
