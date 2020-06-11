@@ -42,7 +42,7 @@
     - ~~Test Component Deletes on non-authoritative source (should be reverted)~~
     - Test pxGrid
     - Test API
-    - Test UI
+    - ~~Test UI~~
         
 ### Set up your environment
 
