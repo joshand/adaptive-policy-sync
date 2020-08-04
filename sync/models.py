@@ -183,7 +183,7 @@ class Dashboard(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     description = models.CharField("Dashboard Integration Description", max_length=100, blank=False, null=False)
     baseurl = models.CharField("Base URL", max_length=64, null=False, blank=False,
-                               default="https://api.meraki.com/api/v0")
+                               default="https://api.meraki.com/api/v1")
     apikey = models.CharField("API Key", max_length=64, null=False, blank=False)
     orgid = models.CharField("API Organization ID", max_length=32, null=True, blank=True, default=None)
     # netid = models.CharField(max_length=32, null=True, blank=True, default=None)
