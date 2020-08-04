@@ -27,6 +27,8 @@ blocks:
       jobs:
         - name: Checklist
           commands:
+            - python manage.py makemigrations
+            - python manage.py migrate
             - python manage.py check --deploy
         - name: Style Check
           commands:
