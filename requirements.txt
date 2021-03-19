@@ -12,7 +12,7 @@ django-apscheduler==0.4.0
 django-extensions==3.0.3
 django-rest-framework==0.1.0
 django-timezone-field==4.0
-djangorestframework==3.11.0
+djangorestframework==3.11.2
 entrypoints==0.3
 flake8==3.8.3
 furl==2.1.0
